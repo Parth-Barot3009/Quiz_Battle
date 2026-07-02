@@ -45,7 +45,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       fixedSize: Size(350, 100),
-                      backgroundColor: Color(280440),
+                      backgroundColor: Color(0x00044778),
                     ),
                     onPressed: (){}, child: Row(
                       children: [
@@ -84,7 +84,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       fixedSize: Size(350, 100),
-                      backgroundColor: Color(280440),
+                      backgroundColor: Color(0x00044778),
                     ),
                     onPressed: (){}, child:  Row(
                   children: [
@@ -122,7 +122,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       fixedSize: Size(350, 100),
-                      backgroundColor: Color(280440),
+                      backgroundColor: Color(0x00044778),
                     ),
                     onPressed: (){
                       Navigator.push(context, 
