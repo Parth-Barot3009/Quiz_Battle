@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/Admin_Deshboard.dart';
-import 'package:quiz_battle/login(admin-organiser).dart';
+import 'package:quiz_battle/login(admin-organiser-user).dart';
 import 'package:quiz_battle/organiser(dashboard).dart';
 
 
@@ -45,6 +45,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
                 // Admin Button
                 GestureDetector(
                   onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "admin"),));
                     //Navigate to Admin Login Page
                   },
                   child: Padding(

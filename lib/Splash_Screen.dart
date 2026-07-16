@@ -1,16 +1,15 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/Choose_Role_Screen.dart';
 
-class SplahScreen extends StatefulWidget {
-  const SplahScreen({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
   @override
-  State<SplahScreen> createState() => _SplahScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplahScreenState extends State<SplahScreen> {
+class _SplashScreenState extends State<SplashScreen> {
 
   @override
 
@@ -34,16 +33,21 @@ class _SplahScreenState extends State<SplahScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF7209B7),
-                  Color(0xFF320451),
+                  Color(0xFF1565C0),
+                  Color(0xFF42A5F5),
+                  Color(0xFF90CAF9),
+                  Color(0xFFE3F2FD),
                 ]
             )
         ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 15.0),
-            child: Image.asset("assets/images/Logo.png", width: 384,height: 384,),
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset("assets/images/Logo.png", width: 384,height: 384,),
+            CircularProgressIndicator(
+              color: Colors.white,
+            ),
+          ],
         )
       ),
     );

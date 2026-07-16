@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:quiz_battle/User(Registration).dart';
+import 'package:quiz_battle/organiser(dashboard).dart';
+import 'package:bottom_navigation/bottom_navigation.dart';
 
 class AdminDeshboard extends StatefulWidget {
   const AdminDeshboard({super.key});
@@ -8,11 +13,411 @@ class AdminDeshboard extends StatefulWidget {
 }
 
 class _AdminDeshboardState extends State<AdminDeshboard> {
+
   @override
   Widget build(BuildContext context) {
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Text("Admin Deshboard\nManage your quiz platform",style: TextStyle(color: Colors.white),),
+
     return Scaffold(
+
       appBar: AppBar(
-        title: Text("Admin Deshboard"),
+        title: Text("ADMIN DASHBOARD",
+          style: TextStyle(
+            fontSize: 24,
+            color: Colors.white,
+
+          ),
+        ),
+        backgroundColor: Color(0xFF306AE7),
+        toolbarHeight: 100,
+      ),
+
+      body: SingleChildScrollView(
+        child: Container(
+          color: Color(0xFF306AE7),
+          child: Padding(
+            padding: const EdgeInsets.only(),
+            child: Container(
+              height: screenHeight,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(30),topRight: Radius.circular(30)),
+                color: Colors.white,
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      width: screenWidth,
+                      height: 135,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF4A7CFF),
+                                Color(0xFF306AE7),
+                              ]
+                          )
+                      ),
+
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 25,left: 15),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 15,top: 20),
+                                        child: Text("Welcome,",style: TextStyle(
+                                          fontSize: 24,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.normal,
+                                        ),),
+                                      ),
+                                      Text("Admin",style: TextStyle(
+                                        fontSize: 30,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Spacer(),
+                              Opacity(
+                                opacity: 0.5,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 15),
+                                  child: Icon(
+                                    Icons.shield_outlined,
+                                    size: 120,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // 1st Section
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        //Organizer Card
+                        Container(
+                          width: 200,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.red,
+                              width: 3,
+                            ),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius:30,
+                                  backgroundColor: Colors.red[100],
+                                  child: Icon(
+                                    Icons.group_outlined,
+                                    size: 35,
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                                SizedBox(width: 6,),
+
+                                // View Oranizer number and add number of organizer number from database.
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("36",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text("Organizer",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Spacer(),
+                        // Student Card
+
+                        Container(
+                          width: 200,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.green,
+                              width: 3,
+                            ),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius:30,
+                                  backgroundColor: Colors.lightGreenAccent[100],
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 35,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                                SizedBox(width: 9,),
+                                // View Oranizer number and add number of organizer number from database.
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("36",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text("Student",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10,),
+                  // 2nd Section
+
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        //Organizer Card
+                        Container(
+                          width: 200,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.red,
+                              width: 3,
+                            ),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius:30,
+                                  backgroundColor: Colors.deepOrange[100],
+                                  child: Icon(
+                                    Icons.crop_square,
+                                    size: 35,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                SizedBox(width: 6,),
+
+                                // View Oranizer number and add number of organizer number from database.
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("36",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text("Active Battles",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Spacer(),
+                        // Student Card
+
+                        Container(
+                          width: 200,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.blue,
+                              width: 3,
+                            ),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius:30,
+                                  backgroundColor: Colors.lightBlueAccent[100],
+                                  child: Icon(
+                                    Icons.book_outlined,
+                                    size: 35,
+                                    color: Colors.blueAccent,
+                                  ),
+                                ),
+                                SizedBox(width: 9,),
+                                // View Oranizer number and add number of organizer number from database.
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("36",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text("Total Quizzes",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+
+                  // Quick Actions Text
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15,top: 25),
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text("QUICK ACTIONS",
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Add organizer Button
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Container(
+                      width: screenWidth,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFF4A7CFF),
+                            Color(0xFF306AE7),
+                          ],
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child:Icon(
+                                Icons.person_add_alt_1,
+                                size: 45,
+                                color: Colors.white,
+                              ),
+
+                          ),
+                          SizedBox(width: 10,),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Add Organizer",
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text("Create new organizer account",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
