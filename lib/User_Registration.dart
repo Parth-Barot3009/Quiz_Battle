@@ -30,7 +30,6 @@ class _Register extends State<Register>
   bool passwordvisible = false;
 
   @override
-
   Widget build(BuildContext context) {
     return Scaffold(
       body:Container(
@@ -41,18 +40,17 @@ class _Register extends State<Register>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xff3C005E),
-                Color(0xff5B138A),
-                Color(0xff3C005E)
+                Color(0xFF4A7CFF),
+                Color(0xFF306AE7),
               ]
           ),
         ),
         child: Center(
             child: Container(
-              width: 350,
-              height: 500,
+              width: 300,
+              height: 460,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.20),
+                color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(20.00)),
               ),
 
@@ -66,18 +64,18 @@ class _Register extends State<Register>
                       },
                       child: const CircleAvatar(
                           radius: 45,
-                          backgroundColor: Colors.white,
+                          backgroundColor: Colors.blue,
                           child: Icon(
-                            Icons.add_a_photo,
-                            size: 40,
-                            color: Colors.grey,
+                              Icons.add_a_photo,
+                              size: 40,
+                              color: Colors.white
                           )
                       ),
                     ),
                   ),
                   SizedBox(height: 5,),
-                  Text("Add Profile Image",style: TextStyle(fontSize: 11,color: Colors.white),),
-                  Text("Register",style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold,color: Colors.white),),
+                  Text("Add Profile Image",style: TextStyle(fontSize: 11,color: Colors.blue),),
+                  Text("Register",style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold,color: Colors.blue),),
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child:
@@ -92,15 +90,14 @@ class _Register extends State<Register>
                                         borderRadius: BorderRadius.all(Radius.circular(15.0)),
                                         borderSide: BorderSide(color:Color(0xFF4E3F3F))
                                     ),
-                                    hintText: "Enter your name",
-                                    labelText: "Name",
+                                    hintText: "Name",
+
                                     filled: true ,
                                     fillColor:Colors.white,
                                     prefixIcon: Icon(
-                                      Icons.person,
-                                      color: Colors.grey,
+                                      Icons.person_outline,
+                                      color: Color(0xFF5E90E6),
                                       size: 30,
-                                      fontWeight: FontWeight.bold,
                                     )
                                 ),
                               ),
@@ -111,9 +108,9 @@ class _Register extends State<Register>
                                   controller: emailcontroller,
                                   decoration: InputDecoration(
                                       prefixIcon: Icon(
-                                          Icons.email,color: Colors.grey
+                                          Icons.email_outlined,color: Color(0xFF5E90E6)
                                       ),
-                                      hintText: "Enter your email",
+                                      hintText: "Email",
                                       filled: true ,
                                       fillColor: Colors.white,
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)
@@ -137,13 +134,12 @@ class _Register extends State<Register>
                                   obscureText: passwordvisible,
                                   decoration: InputDecoration(
                                       prefixIcon: Icon(
-                                        Icons.lock,
-                                        color: Colors.grey,
+                                        Icons.lock_outline,
+                                        color: Color(0xFF5E90E6),
                                         size: 30,
-                                        fontWeight: FontWeight.bold,
                                       ),
 
-                                      hintText: "Enter your password",
+                                      hintText: "Password",
                                       filled: true ,
                                       fillColor:Colors.white,
                                       border: OutlineInputBorder(
@@ -173,7 +169,7 @@ class _Register extends State<Register>
 
                               SizedBox(height: 20,),
                               Container(
-                                width: 270,
+                                width: 228,
                                 child:
 
                                 ElevatedButton(onPressed: (){
@@ -186,9 +182,9 @@ class _Register extends State<Register>
                                   }
                                 },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.grey,
+                                    backgroundColor: Color(0xFF5E90E6),
                                   ),
-                                  child: const Text(  "Register",  textAlign: TextAlign.center,  style: TextStyle  (    fontSize: 25,    color: Color(0xFFFFF7F7),),
+                                  child: const Text(  "Sign In",  textAlign: TextAlign.center,  style: TextStyle  (fontSize: 20,    color: Colors.white,),
                                   ),
                                 ),
                               )
