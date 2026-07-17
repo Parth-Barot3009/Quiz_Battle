@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class Org_List extends StatefulWidget {
-  const Org_List({super.key});
+class Stu_List extends StatefulWidget {
+  const Stu_List({super.key});
 
   @override
-  State<Org_List> createState() => _Org_ListState();
+  State<Stu_List> createState() => _Stu_ListState();
 }
 
-class _Org_ListState extends State<Org_List> {
+class _Stu_ListState extends State<Stu_List> {
   @override
   final search_organizer = TextEditingController();
 
@@ -15,7 +15,7 @@ class _Org_ListState extends State<Org_List> {
     return Scaffold(
       backgroundColor: Color(0xFF4A7CFF),
       appBar: AppBar(
-        title: Text("Organizer",
+        title: Text("Students",
           style: TextStyle(
             color: Colors.white,
             fontSize: 30,
@@ -24,26 +24,6 @@ class _Org_ListState extends State<Org_List> {
         ),
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 100,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 25.0),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              child: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(
-                  onPressed: () {
-                    print("Button Pressed");
-                    // Navigate to add organizeer
-                  },
-                  icon: Icon(Icons.add),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
 
       body: Container(
@@ -72,11 +52,11 @@ class _Org_ListState extends State<Org_List> {
                     ),
                   ],
                 ),
-        
+
                 child: TextFormField(
                   controller: search_organizer,
                   decoration: InputDecoration(
-                    hintText: "Search Organizer",
+                    hintText: "Search Student",
                     hintStyle: TextStyle(color: Colors.grey[200], fontSize: 16),
                     prefixIcon: Icon(Icons.search_rounded, color: Colors.white),
                     border: InputBorder.none,
@@ -85,91 +65,14 @@ class _Org_ListState extends State<Org_List> {
                 ),
               ),
             ),
-        
-            // Container of Organiser's list
+
+            // Container of Student's list
             Padding(
               padding: const EdgeInsets.all(15.0),
               child: Container(
                 child: Column(
                   children: [
-                    // Organiser Image
-                    Container(
-                      height: 90,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            blurRadius: 8,
-                            offset: Offset(0, 5)
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 15.0),
-                              child: CircleAvatar(
-                                backgroundColor: Color(0xFF4A7CFF),
-                                radius:30,
-                                child: Icon(
-                                  Icons.person_rounded,
-                                  size: 40,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          SizedBox(width: 25,),
-        
-        
-                          // Organiser Name and Email
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("Organiser 1",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-        
-                              Text("Organiser Email",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        SizedBox(width: 145,),
-                        //   Delete Organiser
-                          Container(
-                              height: 45,
-                              width: 45,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.rectangle,
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [BoxShadow(
-                                  color: Colors.grey,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                )],
-                              ),
-                              child: Icon(
-                                color: Color(0xFF4A7CFF),
-                                Icons.delete_outline,
-                                size: 30,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-        
-                  SizedBox(height: 20,),
-                  //   2nd Organiser
+                    // Student Image
                     Container(
                       height: 90,
                       width: double.infinity,
@@ -200,46 +103,83 @@ class _Org_ListState extends State<Org_List> {
                             ),
                           ),
                           SizedBox(width: 25,),
-        
-        
-                          // Organiser Name and Email
+
+
+                          // Student Name,total battles and win
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Organiser 1",
+                              Text("Student 1",
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-        
-                              Text("Organiser Email",
+
+                              Text("25 battles , 5 wins",
                                 style: TextStyle(
                                   fontSize: 16,
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(width: 145,),
-                          //   Delete Organiser
-                          Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [BoxShadow(
-                                color: Colors.grey,
-                                blurRadius: 10,
-                                offset: Offset(0, 4),
-                              )],
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: 20,),
+                    //   2nd Student
+                    Container(
+                      height: 90,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.grey,
+                              blurRadius: 8,
+                              offset: Offset(0, 5)
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 15.0),
+                            child: CircleAvatar(
+                              backgroundColor: Color(0xFF4A7CFF),
+                              radius:30,
+                              child: Icon(
+                                Icons.person_rounded,
+                                size: 40,
+                                color: Colors.white,
+                              ),
                             ),
-                            child: Icon(
-                              color: Color(0xFF4A7CFF),
-                              Icons.delete_outline,
-                              size: 30,
-                            ),
+                          ),
+                          SizedBox(width: 25,),
+
+
+                          // Student Name,total battles and win
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Student 2",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              Text("25 battles , 5 wins",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

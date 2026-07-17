@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:quiz_battle/User(Registration).dart';
+import 'package:quiz_battle/User_Registration.dart';
 import 'package:quiz_battle/organiser(dashboard).dart';
 import 'package:quiz_battle/Admin_Deshboard.dart';
 
