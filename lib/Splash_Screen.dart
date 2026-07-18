@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/Authantication.dart';
 import 'package:quiz_battle/Choose_Role_Screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState(){
     super.initState();
     Timer(Duration(seconds: 3),(){
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Choose_Role_Screen()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
     });
   }
 

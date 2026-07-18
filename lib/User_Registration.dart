@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/login_admin_organiser.dart';
 // import 'package:image_picker/image_picker.dart';
 
 
@@ -15,6 +17,28 @@ class _Register extends State<Register>
   final namecon = TextEditingController();
   final emailcontroller = TextEditingController();
   final passwordcontroller = TextEditingController();
+
+  void dispose() {
+    namecon.dispose();
+    emailcontroller.dispose();
+    passwordcontroller.dispose();
+    super.dispose();
+  }
+
+
+  Future sighUp() async{
+    try{
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: emailcontroller.text.trim(),
+      password: passwordcontroller.text.trim(),
+      ); 
+    }on FirebaseAuthException catch (e){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message != null ?"Incorrect email or password":"Login failed try again"))
+      );
+    }
+  }
+
   // final ImagePicker picker = ImagePicker();
 
 // Future<void> pickImage() async {
@@ -173,6 +197,8 @@ class _Register extends State<Register>
                                 child:
 
                                 ElevatedButton(onPressed: (){
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "player")));
+
                                   if (formkey.currentState!.validate()){
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -184,7 +210,7 @@ class _Register extends State<Register>
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(0xFF5E90E6),
                                   ),
-                                  child: const Text(  "Sign In",  textAlign: TextAlign.center,  style: TextStyle  (fontSize: 20,    color: Colors.white,),
+                                  child: const Text("Sign Up",  textAlign: TextAlign.center,  style: TextStyle  (fontSize: 20,    color: Colors.white,),
                                   ),
                                 ),
                               )

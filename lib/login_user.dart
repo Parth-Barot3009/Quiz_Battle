@@ -1,32 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/Admin_Deshboard.dart';
+import 'package:quiz_battle/Authantication.dart';
+import 'package:quiz_battle/CheckRole.dart';
+import 'package:quiz_battle/User_Registration.dart';
 
-class LoginScreen extends StatefulWidget {
-  String role;
-  LoginScreen({super.key, required this.role});
+class UserLoginScreen extends StatefulWidget {
+  String? role;
+  UserLoginScreen({super.key,required this.role});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<UserLoginScreen> createState() => _UserLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _UserLoginScreenState extends State<UserLoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final  emailController = TextEditingController();
   final  passwordController = TextEditingController();
-
-  Future Login(String role) async{
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-    );
-
-    if(role == "admin"){
-      Navigator.push(context, MaterialPageRoute(builder: (context) => AdminDeshboard(),));
-    }
-
-  }
 
   bool isPasswordVisible = false;
   bool isLoading = false;
@@ -38,25 +28,37 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> login() async {
+  Future<void> login(role) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       isLoading = true;
     });
 
-    // Simulate API Call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Checkrole()));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Login Successful"),
+        ),
+      );
+
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message != null ? "Incorrect email or password" : "Login failed try again"))
+      );
+    }
 
     setState(() {
       isLoading = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Login Successful"),
-      ),
-    );
   }
 
   @override
@@ -177,38 +179,51 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                          },
+                          child: Text(
+                            "Create Account",
+                            style: TextStyle(
+                              color: Color(0xFF306AE7),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+
                       const SizedBox(height: 35),
 
-                      GestureDetector(
-                        onTap: () => Login(widget.role),
-                        child: Container(
-                          width: double.infinity,
-                          height: 60,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF306AE7),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              elevation: 8,
+                      Container(
+                        width: double.infinity,
+                        height: 60,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF306AE7),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            onPressed: isLoading ? null : login,
-                            child: isLoading
-                                ? const SizedBox(
-                              width: 25,
-                              height: 25,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                color: Colors.white,
-                              ),
-                            )
-                                : const Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            elevation: 8,
+                          ),
+                          onPressed: isLoading ? null : ()=>login(widget.role),
+                          child: isLoading
+                              ? const SizedBox(
+                            width: 25,
+                            height: 25,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.white,
+                            ),
+                          )
+                              : const Text(
+                            "Login",
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),

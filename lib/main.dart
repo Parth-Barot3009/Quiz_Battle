@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quiz_battle/Authantication.dart';
 import 'package:quiz_battle/Organizer(List_Screen).dart';
 import 'package:quiz_battle/ProfileInfo(Organizer).dart';
 import 'package:quiz_battle/Student_ListScreen.dart';
@@ -11,7 +12,7 @@ import 'package:quiz_battle/Navigation(Admin).dart';
 import 'package:quiz_battle/User_Registration.dart';
 import 'package:quiz_battle/Splash_Screen.dart';
 import 'package:quiz_battle/organiser(dashboard).dart';
-import 'package:quiz_battle/login_admin_organiser_user.dart';
+import 'package:quiz_battle/login_admin_organiser.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      home: Stu_List(),
+      home: SplashScreen(),
     );
   }
 }
