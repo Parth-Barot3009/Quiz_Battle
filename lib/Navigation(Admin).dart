@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:quiz_battle/User_Registration.dart';
-import 'package:quiz_battle/organiser(dashboard).dart';
 import 'package:quiz_battle/Admin_Deshboard.dart';
+import 'package:quiz_battle/organizer_dashboard.dart';
 
 class Admin_Nav extends StatefulWidget {
   const Admin_Nav({super.key});
@@ -20,7 +20,7 @@ class _Admin_NavState extends State<Admin_Nav> {
 
   final List<Widget> _screen = [
     AdminDeshboard(),
-    o_dashboard(),
+    org_dashboard(),
     Register(),
   ];
 

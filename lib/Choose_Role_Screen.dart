@@ -3,7 +3,6 @@ import 'package:quiz_battle/Admin_Deshboard.dart';
 import 'package:quiz_battle/CheckRole.dart';
 import 'package:quiz_battle/login_admin_organiser.dart';
 import 'package:quiz_battle/login_user.dart';
-import 'package:quiz_battle/organiser(dashboard).dart';
 
 
 class Choose_Role_Screen extends StatefulWidget {
@@ -124,7 +123,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
 
                 GestureDetector(
                   onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "oraganizer",),));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "organizer",),));
                     //Navigate to Organizer Login Page
                   },
                   child: Padding(

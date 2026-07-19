@@ -599,7 +599,7 @@ class _create_battleState extends State<create_battle> {
                                   // Selected Date
                                   Text(
                                     selectedDate == null
-                                        ? "--/--/----"
+                                        ? "--/--/---"
                                         : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
                                     style: const TextStyle(
                                       fontSize: 16,
@@ -622,21 +622,15 @@ class _create_battleState extends State<create_battle> {
                             ),
                           ],
                         ),
-
                       ],
                     ),
                   ),
                 )
               ],
-
             ),
           ),
         ),
       ),
-
-
     );
-
   }
 }
-

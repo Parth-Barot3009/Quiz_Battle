@@ -38,6 +38,8 @@ dependencies:
   bottom_navigation: ^0.1.1
   firebase_auth: ^6.5.4
   font_awesome_flutter: ^10.8.0
+  flutter_time_picker_spinner: ^2.0.0
+  file_picker: ^10.3.2
 
 dev_dependencies:
   flutter_test:

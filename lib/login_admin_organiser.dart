@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordController.text.trim(),
       );
 
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Checkrole()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Checkrole(role: widget.role,)));
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
