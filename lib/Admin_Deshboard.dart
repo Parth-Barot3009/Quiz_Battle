@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:quiz_battle/User_Registration.dart';
-import 'package:quiz_battle/organiser(dashboard).dart';
 import 'package:bottom_navigation/bottom_navigation.dart';
 
 class AdminDeshboard extends StatefulWidget {
@@ -33,7 +32,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
           ),
         ),
         backgroundColor: Color(0xFF306AE7),
-        toolbarHeight: 100,
+        toolbarHeight: 90,
       ),
 
       body: SingleChildScrollView(

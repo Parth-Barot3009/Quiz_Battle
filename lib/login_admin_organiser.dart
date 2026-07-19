@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/Admin_Deshboard.dart';
+import 'package:quiz_battle/Authantication.dart';
+import 'package:quiz_battle/CheckRole.dart';
 
 class LoginScreen extends StatefulWidget {
-  String role;
-  LoginScreen({super.key, required this.role});
+  String? role;
+  LoginScreen({super.key,required this.role});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -16,18 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final  emailController = TextEditingController();
   final  passwordController = TextEditingController();
 
-  Future Login(String role) async{
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-    );
-
-    if(role == "admin"){
-      Navigator.push(context, MaterialPageRoute(builder: (context) => AdminDeshboard(),));
-    }
-
-  }
-
   bool isPasswordVisible = false;
   bool isLoading = false;
 
@@ -38,25 +27,37 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> login() async {
+  Future<void> login(role) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       isLoading = true;
     });
 
-    // Simulate API Call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Checkrole(role: widget.role,)));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Login Successful"),
+        ),
+      );
+
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message != null ? "Incorrect email or password" : "Login failed try again"))
+      );
+    }
 
     setState(() {
       isLoading = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Login Successful"),
-      ),
-    );
   }
 
   @override
@@ -179,9 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       const SizedBox(height: 35),
 
-                      GestureDetector(
-                        onTap: () => Login(widget.role),
-                        child: Container(
+                      Container(
                           width: double.infinity,
                           height: 60,
                           child: ElevatedButton(
@@ -192,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               elevation: 8,
                             ),
-                            onPressed: isLoading ? null : login,
+                            onPressed: isLoading ? null : ()=>login(widget.role),
                             child: isLoading
                                 ? const SizedBox(
                               width: 25,
@@ -212,7 +211,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                      ),
 
                       const SizedBox(height: 30),
                     ],

@@ -32,6 +32,7 @@ class _Stu_ListState extends State<Stu_List> {
           borderRadius: BorderRadius.only(topLeft: Radius.circular(30),topRight: Radius.circular(30)),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.all(10.0),
@@ -57,8 +58,11 @@ class _Stu_ListState extends State<Stu_List> {
                   controller: search_organizer,
                   decoration: InputDecoration(
                     hintText: "Search Student",
-                    hintStyle: TextStyle(color: Colors.grey[200], fontSize: 16),
-                    prefixIcon: Icon(Icons.search_rounded, color: Colors.white),
+                    hintStyle: TextStyle(color: Colors.grey[200], fontSize: 20),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(top: 8.0,bottom: 8.0,left: 8.0),
+                      child: Icon(Icons.search_rounded, color: Colors.white,size: 30,),
+                    ),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(vertical: 16),
                   ),

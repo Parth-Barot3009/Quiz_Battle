@@ -37,7 +37,13 @@ dependencies:
   curved_navigation_bar: ^1.0.6
   bottom_navigation: ^0.1.1
   firebase_auth: ^6.5.4
+<<<<<<< HEAD
 
+=======
+  font_awesome_flutter: ^10.8.0
+  flutter_time_picker_spinner: ^2.0.0
+  file_picker: ^10.3.2
+>>>>>>> 5d5ed111b951d132fd5bea038d6326cbba7b923f
 
 dev_dependencies:
   flutter_test:

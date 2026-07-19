@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/Admin_Deshboard.dart';
-import 'package:quiz_battle/login_admin_organiser_user.dart';
-import 'package:quiz_battle/organiser(dashboard).dart';
+import 'package:quiz_battle/CheckRole.dart';
+import 'package:quiz_battle/login_admin_organiser.dart';
+import 'package:quiz_battle/login_user.dart';
 
 
 class Choose_Role_Screen extends StatefulWidget {
@@ -45,7 +46,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
                 // Admin Button
                 GestureDetector(
                   onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "admin"),));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "admin",),));
                     //Navigate to Admin Login Page
                   },
                   child: Padding(
@@ -122,6 +123,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
 
                 GestureDetector(
                   onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "organizer",),));
                     //Navigate to Organizer Login Page
                   },
                   child: Padding(
@@ -197,6 +199,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
 
                 GestureDetector(
                   onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => UserLoginScreen(role: "player")));
                     //Navigate to Player Login Page
                   },
                   child: Padding(
