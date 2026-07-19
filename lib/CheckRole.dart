@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/Admin_Deshboard.dart';
+import 'package:quiz_battle/Navigation(Admin).dart';
 import 'package:quiz_battle/organizer_dashboard.dart';
 
 
@@ -10,7 +11,7 @@ class Checkrole extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if ( role == "admin" ){
-        return AdminDeshboard();
+        return Admin_Nav();
     }
     else if ( role == "organizer" ){
       return org_dashboard();
