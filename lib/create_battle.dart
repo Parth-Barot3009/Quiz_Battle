@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
+import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
+import 'package:file_picker/file_picker.dart';
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -12,6 +13,10 @@ class _create_battleState extends State<create_battle> {
 
   TimeOfDay? startTime;
   TimeOfDay? endTime;
+  String? selectedFileName;
+  DateTime? selectedDate;
+
+  //time pick class
 
   Future<void> pickTime(bool isStartTime) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -28,6 +33,45 @@ class _create_battleState extends State<create_battle> {
         } else {
           endTime = picked;
         }
+      });
+    }
+  }
+
+  //file pick class
+
+  Future<void> pickExcelFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xls'],
+      allowMultiple: false,
+      dialogTitle: 'Select Excel File',
+      lockParentWindow: true,
+    );
+
+    if (result != null) {
+      setState(() {
+        selectedFileName = result.files.single.name;
+      });
+
+      print("Path: ${result.files.single.path}");
+    } else {
+      print("User cancelled");
+    }
+  }
+
+  //date picker
+
+  Future<void> pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2035),
+    );
+
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
       });
     }
   }
@@ -108,6 +152,7 @@ class _create_battleState extends State<create_battle> {
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
+                          fontFamily: "BaiJamjuree",
                         ),
                         ),
 
@@ -262,23 +307,20 @@ class _create_battleState extends State<create_battle> {
 
                         SizedBox(height: 15),
 
-                        InkWell(
-                            onTap: () {
-                              print("clicked");
-                            },
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
 
-                              height: 60,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                            Container(
+                              height: 65,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
-                                  color: Colors.grey.shade300,
-                                  width: 1,
+                                  color: const Color(0xFFE0E0E0),
                                 ),
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Colors.black12,
                                     blurRadius: 6,
@@ -286,42 +328,54 @@ class _create_battleState extends State<create_battle> {
                                   ),
                                 ],
                               ),
+
                               child: Row(
                                 children: [
+
                                   // Left Icon
                                   Container(
-                                    width: 40,
-                                    height: 40,
+                                    width: 44,
+                                    height: 44,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFE8EEFF),
+                                      color: const Color(0xFFE9ECFF),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(
                                       Icons.upload_file_rounded,
-                                      color: Color(0xFF3366E8),
+                                      color: Color(0xFF4A6CF7),
                                     ),
                                   ),
 
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: 15),
 
-                                  const Expanded(
+                                  // File Name
+                                  Expanded(
                                     child: Text(
-                                      "Upload Excel File",
+                                      selectedFileName ?? "Upload Excel File",
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color: Colors.grey,
+                                        color: selectedFileName == null
+                                            ? Colors.grey
+                                            : Colors.black,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
 
-                                  const Icon(
-                                    Icons.folder_open_rounded,
-                                    color: Color(0xFF3366E8),
+                                  // Folder Button
+                                  IconButton(
+                                    onPressed: pickExcelFile,
+                                    icon: const Icon(
+                                      Icons.folder_open_rounded,
+                                      color: Color(0xFF4A6CF7),
+                                      size: 28,
+                                    ),
                                   ),
                                 ],
                               ),
-                            )
+                            ),
+                          ],
                         ),
 
                         SizedBox(height: 20),
@@ -373,7 +427,6 @@ class _create_battleState extends State<create_battle> {
                                   style: TextStyle(
                                     fontSize: 18,
                                     color: Colors.grey,
-                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -454,7 +507,6 @@ class _create_battleState extends State<create_battle> {
                                   style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 18,
-                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -474,6 +526,7 @@ class _create_battleState extends State<create_battle> {
                               const SizedBox(width: 5),
 
                               // Clock Button
+
                               IconButton(
                                 onPressed: () => pickTime(false),
                                 icon: const Icon(
@@ -484,7 +537,91 @@ class _create_battleState extends State<create_battle> {
                               ),
                             ],
                           ),
-                        )
+                        ),
+
+                        //date
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            const Text(
+                              "Quiz Date",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+
+                            const SizedBox(height: 15),
+
+                            Container(
+                              height: 65,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: const Color(0xFFE0E0E0),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+
+                                  // Left Icon
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE9ECFF),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.calendar_month_rounded,
+                                      color: Color(0xFF4A6CF7),
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 15),
+
+                                  // Title
+                                  const Expanded(
+                                    child: Text(
+                                      "Quiz Date",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Selected Date
+                                  Text(
+                                    selectedDate == null
+                                        ? "--/--/----"
+                                        : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF4A6CF7),
+                                    ),
+                                  ),
+
+                                  // Calendar Button
+                                  IconButton(
+                                    onPressed: pickDate,
+                                    icon: const Icon(
+                                      Icons.date_range_rounded,
+                                      color: Color(0xFF4A6CF7),
+                                      size: 28,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
 
                       ],
                     ),
