@@ -4,6 +4,7 @@ import 'package:quiz_battle/Organizer(List_Screen).dart';
 import 'package:quiz_battle/ProfileInfo(Organizer).dart';
 import 'package:quiz_battle/Student_ListScreen.dart';
 import 'package:quiz_battle/addorganiser.dart';
+import 'package:quiz_battle/user_dashboard.dart';
 import 'firebase_options.dart';
 import 'package:quiz_battle/Admin_Deshboard.dart';
 import 'package:quiz_battle/Choose_Role_Screen.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      home: Stu_List(),
+      home: u_dashboard(),
     );
   }
 }

@@ -68,7 +68,7 @@ class _Register extends State<Register>
                           child: Icon(
                               Icons.add_a_photo,
                               size: 40,
-                              color: Colors.white
+                              color: Colors.white,
                           )
                       ),
                     ),

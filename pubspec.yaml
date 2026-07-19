@@ -37,7 +37,7 @@ dependencies:
   curved_navigation_bar: ^1.0.6
   bottom_navigation: ^0.1.1
   firebase_auth: ^6.5.4
-  font_awesome_flutter: ^10.8.0
+
 
 dev_dependencies:
   flutter_test:
