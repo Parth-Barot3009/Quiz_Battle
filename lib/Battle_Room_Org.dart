@@ -11,147 +11,445 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF4A7CFF),
       appBar: AppBar(
         title: Text("Battle Room",
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
-        toolbarHeight: 100,
+        backgroundColor: Color(0xFF4A7CFF),
+        toolbarHeight: 90,
       ),
 
-      body: Column(
-        children: [
-
-          // Container of Room Code
-          Container(
-            height: 150,
-            width: 410,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                  Color(0xFF4A7CFF),
-                  Color(0xFF306AE7),
-                ]
-              ),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Room Code"),
-                Row(
+      body: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(35),
+          color: Colors.white,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: Column(
+            children: [
+              // Container of Room Code
+              Container(
+                height: 150,
+                width: 410,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                      Color(0xFF4A7CFF),
+                      Color(0xFF306AE7),
+                    ]
+                  ),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("ABCD"),
-                    Icon(
-                      Icons.copy_outlined,
+                    Text("Room Code",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("ABCDEF",
+                            style: TextStyle(
+                              fontSize: 35,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          IconButton(onPressed: (){},
+                              icon: Icon(
+                                Icons.copy_outlined,
+                                size: 35,
+                                color: Colors.white,
+                              )
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text("Share this code with players",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
-                Text("Share this code with players"),
-              ],
-            ),
-          ),
-
-          // Container of Quiz Details
-          Container(
-            height: 409,
-            width: 261,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF4A7CFF),
-                    Color(0xFF306AE7),
-                  ]
               ),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Column(
-              children: [
-                Text("Quiz Details",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
 
-                Container(
-                  decoration: BoxDecoration(
-                    border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Quiz"),
-                      Text("Flutter"),
-                    ],
-                  ),
-                ),
-
-                Container(
-                  decoration: BoxDecoration(
-                    border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Questions"),
-                      Text("10"),
-                    ],
-                  ),
-                ),
-
-                Container(
-                  decoration: BoxDecoration(
-                    border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Time/Duration"),
-                      Text("10"),
-                    ],
-                  ),
-                ),
-
-              ],
-            ),
-          ),
-
-        //  Saction of Player who is playing
-  
-          Container(
-              child: Column(
-                children: [
-                  Text("Players"),
-                  Container(
+              SizedBox(height: 10,),
+              // Container of Quiz Details
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child:Container(
+                    height: 300,
+                    width: 409,
                     decoration: BoxDecoration(
+                      color: Colors.white60,
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 12,
+                          spreadRadius: 5,
+                          color: Color(0x14000000),
+                        )
+                      ],
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          child: Icon(
-                            Icons.person_outline,
-                            size: 30,
-                            color: Colors.blueAccent,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0,top: 8.0),
+                                child: CircleAvatar(
+                                  backgroundColor: Color(0xFF4A7CFF),
+                                  child: Icon(
+                                      Icons.description_outlined,
+                                      size: 28,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10.0,top: 10.0),
+                                child: Text("Quiz Details",
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 10,),
+                          // Quiz
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          height:35,
+                                          width: 35,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.rectangle,
+                                            color: Color(0xFFDCEAFF),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child:Icon(
+                                                Icons.help,
+                                                size: 25,
+                                            color: Color(0xFF306AE7),
+                                            ),
+                                        ),
+                                        SizedBox(width: 10,),
+                                        Text("Quiz",
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text("Flutter",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF306AE7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Questions
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          height:35,
+                                          width: 35,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.rectangle,
+                                            color: Color(0xFFDCEAFF),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child:Icon(
+                                            Icons.list,
+                                            size: 25,
+                                            color: Color(0xFF306AE7),
+                                          ),
+                                        ),
+                                        SizedBox(width: 10,),
+                                        Text("Questions",
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text("10",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF306AE7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Time/Duration
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          height:35,
+                                          width: 35,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.rectangle,
+                                            color: Color(0xFFDCEAFF),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child:Icon(
+                                            Icons.history,
+                                            size: 25,
+                                            color: Color(0xFF306AE7),
+                                          ),
+                                        ),
+                                        SizedBox(width: 10,),
+                                        Text("Time/Duration",
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text("10",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Color(0xFF306AE7),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Status
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          height:35,
+                                          width: 35,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.rectangle,
+                                            color: Color(0xFFDCEAFF),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child:Icon(
+                                            Icons.emoji_events,
+                                            size: 25,
+                                            color: Color(0xFF306AE7),
+                                          ),
+                                        ),
+                                        SizedBox(width: 10,),
+                                        Text("Status",
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text("Waiting For Player",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF306AE7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ),
+
+            //  Saction of Player who is playing
+              SizedBox(height: 10,),
+              Container(
+                  height: 240,
+                  width: 409,
+                  decoration: BoxDecoration(
+                    color: Colors.white60,
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 12,
+                        spreadRadius: 5,
+                        color: Color(0x14000000),
+                      )
+                    ],
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Color(0xFF306AE7),
+                                child: Icon(
+                                    Icons.people_rounded,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                ),
+                            ),
+
+                            SizedBox(width: 10,),
+                            Text("Players",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+
+                      // Students Name
+                      Container(
+                          width: 380,
+                          height: 65,
+                          decoration: BoxDecoration(
+                            color: Color(0xFFDDEBFF),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: Color(0xFF306AE7),
+                                  child: Icon(
+                                    Icons.person_rounded,
+                                    size: 32,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: 10,),
+                                Text("Student 1",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        Text("Student 1"),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-          ),
+                      SizedBox(height: 10,),
+                      Container(
+                        width: 380,
+                        height: 65,
+                        decoration: BoxDecoration(
+                          color: Color(0xFFDDEBFF),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Color(0xFF306AE7),
+                                child: Icon(
+                                  Icons.person_rounded,
+                                  size: 32,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              Text("Student 1",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
-          
-        ],
+                    ],
+                  )
+              ),
+
+
+            ],
+          ),
+        ),
       ),
     );
   }
