@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:quiz_battle/Choose_Role_Screen.dart';
 import 'package:quiz_battle/addorganiser.dart';
 
-
 class AdminDeshboard extends StatefulWidget {
   const AdminDeshboard({super.key});
 
