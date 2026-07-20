@@ -37,13 +37,10 @@ dependencies:
   curved_navigation_bar: ^1.0.6
   bottom_navigation: ^0.1.1
   firebase_auth: ^6.5.4
-<<<<<<< HEAD
-
-=======
   font_awesome_flutter: ^10.8.0
   flutter_time_picker_spinner: ^2.0.0
   file_picker: ^10.3.2
->>>>>>> 5d5ed111b951d132fd5bea038d6326cbba7b923f
+
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +64,17 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  fonts:
+    - family: BaiJamjuree
+      fonts:
+        - asset: assets/font/BaiJamjuree-Regular.ttf
+        - asset: assets/font/BaiJamjuree-Medium.ttf
+          weight: 500
+        - asset: assets/font/BaiJamjuree-SemiBold.ttf
+          weight: 600
+        - asset: assets/font/BaiJamjuree-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   assets:
