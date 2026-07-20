@@ -17,199 +17,165 @@ class u_dashboard extends StatelessWidget {
 }
 
 class StudentDashboard extends StatelessWidget {
-const StudentDashboard({super.key});
+  const StudentDashboard({super.key});
 
 @override
-Widget build(BuildContext context) {
-return Scaffold(
-backgroundColor: const Color(0xFFF4F7FF),
+  Widget build(BuildContext context) {
+        return Scaffold(
+        backgroundColor: const Color(0xFFF4F7FF),
 
-appBar: AppBar(
-backgroundColor: Colors.blue,
-elevation: 0,
-centerTitle: true,
-title: const Text(
-"Student Dashboard",
-style: TextStyle(
-color: Colors.white,
-fontWeight: FontWeight.bold,
-),
-),
-),
+        appBar: AppBar(
+          backgroundColor: Colors.blue,
+          elevation: 0,
+          centerTitle: true,
+          title: const Text(
+          "Student Dashboard",
 
-body: SingleChildScrollView(
-child: Padding(
-padding: const EdgeInsets.all(20),
+            style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
 
-child: Column(
-crossAxisAlignment: CrossAxisAlignment.start,
+        body: SingleChildScrollView(
+          child: Padding(
+          padding: const EdgeInsets.all(20),
 
-children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
 
-const Text(
-"Hello,",
-style: TextStyle(
-fontSize: 18,
-color: Colors.black54,
-),
-),
+          children: [
 
-const SizedBox(height: 5),
+        const Text(
+          "Hello,",
+          style: TextStyle(
+          fontSize: 18,
+          color: Colors.black54,
+          ),
+        ),
 
-const Text(
-"STUDENT",
-style: TextStyle(
-fontSize: 30,
-fontWeight: FontWeight.bold,
-),
-),
+    const SizedBox(height: 5),
 
-const SizedBox(height: 20),
+        const Text(
+          "STUDENT",
+          style: TextStyle(
+          fontSize: 30,
+          fontWeight: FontWeight.bold,
+          ),
+        ),
+
+    const SizedBox(height: 20),
 
 /// PROFILE CARD
-Container(
-width: double.infinity,
-height: 170,
+    Container(
+      width: double.infinity,
+      height: 170,
 
-decoration: BoxDecoration(
-color: Colors.blue,
-borderRadius: BorderRadius.circular(25),
-),
+      decoration: BoxDecoration(
+      color: Colors.blue,
+      borderRadius: BorderRadius.circular(25),
+      ),
 
-child: Padding(
-padding: const EdgeInsets.all(20),
+      child: Padding(
+      padding: const EdgeInsets.all(20),
 
-child: Row(
-children: [
+      child: Row(
+      children: [
 
-const CircleAvatar(
-radius: 35,
-backgroundColor: Colors.white,
-child: Icon(
-Icons.person,
-color: Colors.blue,
-size: 40,
-),
-),
+      const CircleAvatar(
+        radius: 35,
+        backgroundColor: Colors.white,
 
-const SizedBox(width: 20),
+        child: Icon(
+        Icons.person,
+        color: Colors.blue,
+        size: 40,
+        ),
+      ),
 
-const Expanded(
-child: Column(
-mainAxisAlignment: MainAxisAlignment.center,
-crossAxisAlignment: CrossAxisAlignment.start,
+    const SizedBox(width: 20),
 
-children: [
+      const Expanded(
+        child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
 
-Text(
-"John Smith",
-style: TextStyle(
-color: Colors.white,
-fontSize: 22,
-fontWeight: FontWeight.bold,
-),
-),
+        children: [
 
-SizedBox(height: 8),
+      Text(
+        "John Smith",
+          style: TextStyle(
+          color: Colors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          ),
+      ),
 
-Text(
-"Rank #25",
-style: TextStyle(
-color: Colors.white70,
-fontSize: 16,
-),
-),
+    SizedBox(height: 8),
 
-SizedBox(height: 5),
+      Text(
+        "Rank #25",
+        style: TextStyle(
+        color: Colors.white70,
+        fontSize: 16,
+        ),
+      ),
 
-Text(
-"1250 XP",
-style: TextStyle(
-color: Colors.white70,
-),
-),
-],
-),
-),
+    SizedBox(height: 5),
 
-const Icon(
-Icons.emoji_events,
-color: Colors.white54,
-size: 70,
-),
-],
-),
+      Text(
+        "1250 XP",
+        style: TextStyle(
+        color: Colors.white70,
+        ),
+      ),
+  ],
 ),
 ),
 
-const SizedBox(height: 25),
-
-Row(
-children: [
-
-Expanded(
-child: Container(
-height: 120,
-
-decoration: BoxDecoration(
-color: Colors.blue,
-borderRadius: BorderRadius.circular(20),
-),
-
-child: const Column(
-mainAxisAlignment: MainAxisAlignment.center,
-
-children: [
-
-Icon(
-Icons.flash_on,
-color: Colors.white,
-size: 45,
-),
-
-SizedBox(height: 10),
-
-Text(
-"Quick Battle",
-style: TextStyle(
-color: Colors.white,
-fontWeight: FontWeight.bold,
-),
-),
+    const Icon(
+      Icons.emoji_events,
+      color: Colors.white54,
+      size: 70,
+    ),
 ],
 ),
 ),
 ),
 
-const SizedBox(width: 15),
+    const SizedBox(height: 25),
 
-Expanded(
-child: Container(
-height: 120,
+  Row(
+    children: [
 
-decoration: BoxDecoration(
-color: Colors.blue,
-borderRadius: BorderRadius.circular(20),
-),
+    Expanded(
+      child: Container(
+      height: 120,
 
-child: const Column(
-mainAxisAlignment: MainAxisAlignment.center,
+      decoration: BoxDecoration(
+      color: Colors.blue,
+      borderRadius: BorderRadius.circular(20),
+      ),
 
-children: [
+      child: const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
 
-Icon(
-Icons.group,
-color: Colors.white,
-size: 45,
-),
+    children: [
 
-SizedBox(height: 10),
+    Icon(
+      Icons.flash_on,
+      color: Colors.white,
+      size: 45,
+    ),
 
-Text(
-"Join Battle",
-style: TextStyle(
-color: Colors.white,
-fontWeight: FontWeight.bold,
+    SizedBox(height: 10),
+
+    Text(
+      "Quick Battle",
+      style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
 ),
 ),
 ],
@@ -217,10 +183,46 @@ fontWeight: FontWeight.bold,
 ),
 ),
 
+    const SizedBox(width: 15),
+
+    Expanded(
+    child: Container(
+    height: 120,
+
+    decoration: BoxDecoration(
+      color: Colors.blue,
+      borderRadius: BorderRadius.circular(20),
+    ),
+
+    child: const Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+
+    children: [
+
+    Icon(
+      Icons.group,
+      color: Colors.white,
+      size: 45,
+    ),
+
+    SizedBox(height: 10),
+
+    Text(
+      "Join Battle",
+      style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+),
+],
+),
+),
+),
+
 ],
 ),
 
-const SizedBox(height: 25),
+    const SizedBox(height: 25),
 
 
   /// STATISTICS
