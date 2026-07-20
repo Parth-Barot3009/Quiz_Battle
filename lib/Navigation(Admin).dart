@@ -11,7 +11,6 @@ class Admin_Nav extends StatefulWidget {
 }
 
 class _Admin_NavState extends State<Admin_Nav> {
-  @override
 
   int _currentIndex = 0;
 
@@ -23,6 +22,7 @@ class _Admin_NavState extends State<Admin_Nav> {
     Stu_List(),
   ];
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(

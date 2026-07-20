@@ -26,11 +26,11 @@ class _org_dashboardState extends State<org_dashboard> {
 
     return path;
   }
-  @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    // final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
 
       //title
@@ -316,9 +316,9 @@ class _org_dashboardState extends State<org_dashboard> {
                               height: 62,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(18),
-                                color: Colors.white.withOpacity(0.18), // Low opacity white box
+                                color: Colors.white.withValues(alpha: 0.18), // Low opacity white box
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.15),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   width: 1,
                                 ),
                               ),
@@ -417,9 +417,9 @@ class _org_dashboardState extends State<org_dashboard> {
                               height: 62,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(18),
-                                color: Colors.white.withOpacity(0.18), // Low opacity white box
+                                color: Colors.white.withValues(alpha: 0.18), // Low opacity white box
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.15),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   width: 1,
                                 ),
                               ),
@@ -519,9 +519,9 @@ class _org_dashboardState extends State<org_dashboard> {
                               height: 62,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(18),
-                                color: Colors.white.withOpacity(0.18), // Low opacity white box
+                                color: Colors.white.withValues(alpha: 0.15), // Low opacity white box
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.15),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   width: 1,
                                 ),
                               ),

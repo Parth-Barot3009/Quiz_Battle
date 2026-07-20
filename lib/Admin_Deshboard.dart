@@ -1,8 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:quiz_battle/User_Registration.dart';
-import 'package:bottom_navigation/bottom_navigation.dart';
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+// import 'package:quiz_battle/User_Registration.dart';
+// import 'package:bottom_navigation/bottom_navigation.dart';
 
 class AdminDeshboard extends StatefulWidget {
   const AdminDeshboard({super.key});
@@ -12,6 +13,7 @@ class AdminDeshboard extends StatefulWidget {
 }
 
 class _AdminDeshboardState extends State<AdminDeshboard> {
+  final user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +33,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
 
           ),
         ),
+        leading: Navigator.canPop(context) ? null : const SizedBox.shrink(),
         backgroundColor: Color(0xFF306AE7),
         toolbarHeight: 90,
       ),
@@ -119,7 +122,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       children: [
                         //Organizer Card
                         Container(
-                          width: 200,
+                          width: screenWidth*0.45,
                           height: 130,
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -173,7 +176,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                         // Student Card
 
                         Container(
-                          width: 200,
+                          width: screenWidth*0.45,
                           height: 130,
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -234,7 +237,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       children: [
                         //Organizer Card
                         Container(
-                          width: 200,
+                          width: screenWidth*0.45,
                           height: 130,
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -260,25 +263,27 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                 SizedBox(width: 6,),
 
                                 // View Oranizer number and add number of organizer number from database.
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("36",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("36",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    Text("Active Battles",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                      Text("Active Battles",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -288,7 +293,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                         // Student Card
 
                         Container(
-                          width: 200,
+                          width: screenWidth*0.45,
                           height: 130,
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -313,25 +318,27 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                 ),
                                 SizedBox(width: 9,),
                                 // View Oranizer number and add number of organizer number from database.
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("36",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("36",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    Text("Total Quizzes",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                      Text("Total Quizzes",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -412,6 +419,9 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       ),
                     ),
                   ),
+                  ElevatedButton(onPressed: (){
+                    FirebaseAuth.instance.signOut();
+                  }, child: Text("sign out"))
                 ],
               ),
             ),

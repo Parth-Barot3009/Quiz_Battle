@@ -4,7 +4,7 @@ import 'package:quiz_battle/CheckRole.dart';
 import 'package:quiz_battle/Choose_Role_Screen.dart';
 
 class Authantication extends StatelessWidget {
-  Authantication({super.key});
+  const Authantication({super.key});
 
   @override
   Widget build(BuildContext context) {
