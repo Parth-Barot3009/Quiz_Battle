@@ -6,7 +6,6 @@ import 'package:quiz_battle/Organizer(List_Screen).dart';
 import 'package:quiz_battle/ProfileInfo(Organizer).dart';
 import 'package:quiz_battle/Student_ListScreen.dart';
 import 'package:quiz_battle/addorganiser.dart';
-import 'package:quiz_battle/user_dashboard.dart';
 import 'package:quiz_battle/create_battle.dart';
 import 'package:quiz_battle/organizer_dashboard.dart';
 import 'firebase_options.dart';
@@ -32,11 +31,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-<<<<<<< HEAD
-      home: u_dashboard(),
-=======
       home: SplashScreen(),
->>>>>>> 5d5ed111b951d132fd5bea038d6326cbba7b923f
     );
   }
 }

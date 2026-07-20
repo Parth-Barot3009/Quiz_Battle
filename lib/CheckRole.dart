@@ -5,8 +5,8 @@ import 'package:quiz_battle/organizer_dashboard.dart';
 
 
 class Checkrole extends StatelessWidget {
-  String? role;
-  Checkrole({super.key,this.role});
+  final String? role;
+  const Checkrole({super.key,this.role});
 
   @override
   Widget build(BuildContext context) {

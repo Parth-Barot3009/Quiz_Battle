@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const u_dashboard());
-}
-
 class u_dashboard extends StatelessWidget {
   const u_dashboard({super.key});
 
@@ -25,9 +21,7 @@ class StudentDashboard extends StatelessWidget {
         backgroundColor: const Color(0xFFF4F7FF),
 
         appBar: AppBar(
-          backgroundColor: Colors.blue,
           elevation: 0,
-          centerTitle: true,
           title: const Text(
           "Student Dashboard",
 
@@ -73,7 +67,6 @@ class StudentDashboard extends StatelessWidget {
       height: 170,
 
       decoration: BoxDecoration(
-      color: Colors.blue,
       borderRadius: BorderRadius.circular(25),
       ),
 
@@ -117,7 +110,6 @@ class StudentDashboard extends StatelessWidget {
       Text(
         "Rank #25",
         style: TextStyle(
-        color: Colors.white70,
         fontSize: 16,
         ),
       ),
@@ -127,7 +119,6 @@ class StudentDashboard extends StatelessWidget {
       Text(
         "1250 XP",
         style: TextStyle(
-        color: Colors.white70,
         ),
       ),
   ],
@@ -154,7 +145,6 @@ class StudentDashboard extends StatelessWidget {
       height: 120,
 
       decoration: BoxDecoration(
-      color: Colors.blue,
       borderRadius: BorderRadius.circular(20),
       ),
 
@@ -190,7 +180,6 @@ class StudentDashboard extends StatelessWidget {
     height: 120,
 
     decoration: BoxDecoration(
-      color: Colors.blue,
       borderRadius: BorderRadius.circular(20),
     ),
 
@@ -328,7 +317,6 @@ Widget statCard(
 
         Icon(
           icon,
-          color: Colors.blue,
           size: 32,
         ),
 
@@ -378,7 +366,6 @@ Widget battleCard(
           padding: const EdgeInsets.all(12),
 
           decoration: BoxDecoration(
-            color: Colors.blue,
             borderRadius: BorderRadius.circular(15),
           ),
 

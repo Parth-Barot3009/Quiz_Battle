@@ -8,35 +8,17 @@ class org_dashboard extends StatefulWidget {
 }
 
 class _org_dashboardState extends State<org_dashboard> {
-  Path getClip(Size size) {
-    Path path = Path();
 
-    path.lineTo(0, size.height - 30);
-
-    path.quadraticBezierTo(
-      size.width / 2,
-      size.height + 30,
-      size.width,
-      size.height - 30,
-    );
-
-    path.lineTo(size.width, 0);
-
-    path.close();
-
-    return path;
-  }
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    // final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
 
       //title
 
       appBar: AppBar(
-        toolbarHeight: 100,
+        toolbarHeight: 80,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -67,10 +49,6 @@ class _org_dashboardState extends State<org_dashboard> {
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(35),
-                topRight: Radius.circular(35),
-              ),
             ),
             child: Column(
               children: [
@@ -316,9 +294,9 @@ class _org_dashboardState extends State<org_dashboard> {
                               height: 62,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(18),
-                                color: Colors.white.withOpacity(0.18), // Low opacity white box
+                                color: Colors.white.withValues(alpha: 0.18), // Low opacity white box
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.15),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   width: 1,
                                 ),
                               ),
@@ -417,9 +395,9 @@ class _org_dashboardState extends State<org_dashboard> {
                               height: 62,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(18),
-                                color: Colors.white.withOpacity(0.18), // Low opacity white box
+                                color: Colors.white.withValues(alpha: 0.18), // Low opacity white box
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.15),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   width: 1,
                                 ),
                               ),
@@ -519,9 +497,9 @@ class _org_dashboardState extends State<org_dashboard> {
                               height: 62,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(18),
-                                color: Colors.white.withOpacity(0.18), // Low opacity white box
+                                color: Colors.white.withValues(alpha: 0.15), // Low opacity white box
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.15),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   width: 1,
                                 ),
                               ),

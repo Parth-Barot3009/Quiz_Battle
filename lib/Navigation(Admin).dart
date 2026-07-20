@@ -11,7 +11,6 @@ class Admin_Nav extends StatefulWidget {
 }
 
 class _Admin_NavState extends State<Admin_Nav> {
-  @override
 
   int _currentIndex = 0;
 
@@ -21,12 +20,19 @@ class _Admin_NavState extends State<Admin_Nav> {
     AdminDeshboard(),
     Org_List(),
     Stu_List(),
+    Stu_List(),
   ];
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(
         controller: controller,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         children: _screen,
       ),bottomNavigationBar: NavigationBarTheme(
       data: NavigationBarThemeData(

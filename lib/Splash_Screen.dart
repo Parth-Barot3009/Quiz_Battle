@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/Authantication.dart';
-import 'package:quiz_battle/Choose_Role_Screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,23 +29,14 @@ class _SplashScreenState extends State<SplashScreen> {
         width: screenWidth,
         height: screenHeight,
         decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF1565C0),
-                  Color(0xFF42A5F5),
-                  Color(0xFF90CAF9),
-                  Color(0xFFE3F2FD),
-                ]
-            )
+          color: Colors.white,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset("assets/images/Logo.png", width: 384,height: 384,),
             CircularProgressIndicator(
-              color: Colors.white,
+              color: Colors.black,
             ),
           ],
         )

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/addorganiser.dart';
 
 class Org_List extends StatefulWidget {
   const Org_List({super.key});
@@ -8,9 +9,9 @@ class Org_List extends StatefulWidget {
 }
 
 class _Org_ListState extends State<Org_List> {
-  @override
   final search_organizer = TextEditingController();
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF4A7CFF),
@@ -23,7 +24,7 @@ class _Org_ListState extends State<Org_List> {
           ),
         ),
         backgroundColor: Color(0xFF4A7CFF),
-        toolbarHeight: 100,
+        toolbarHeight: 80,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 25.0),
@@ -35,8 +36,7 @@ class _Org_ListState extends State<Org_List> {
                 backgroundColor: Colors.white,
                 child: IconButton(
                   onPressed: () {
-                    print("Button Pressed");
-                    // Navigate to add organizeer
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Addorganiser()));
                   },
                   icon: Icon(Icons.add),
                 ),
@@ -49,7 +49,6 @@ class _Org_ListState extends State<Org_List> {
       body: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(30),topRight: Radius.circular(30)),
         ),
         child: Column(
           children: [
@@ -66,7 +65,7 @@ class _Org_ListState extends State<Org_List> {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 5),
                     ),

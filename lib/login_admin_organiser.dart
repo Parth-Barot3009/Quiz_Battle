@@ -1,11 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/Authantication.dart';
+// import 'package:quiz_battle/Authantication.dart';
 import 'package:quiz_battle/CheckRole.dart';
+import 'package:quiz_battle/User_Registration.dart';
 
 class LoginScreen extends StatefulWidget {
-  String? role;
-  LoginScreen({super.key,required this.role});
+  final String? role;
+  const LoginScreen({super.key,required this.role});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -35,10 +36,11 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      var temp = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+      print(temp);
 
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Checkrole(role: widget.role,)));
 
@@ -177,6 +179,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+
+                      ?widget.role == "player" ? Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                          },
+                          child: Text(
+                            "Create Account",
+                            style: TextStyle(
+                              color: Color(0xFF306AE7),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ) : null,
 
                       const SizedBox(height: 35),
 

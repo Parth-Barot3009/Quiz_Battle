@@ -8,9 +8,10 @@ class Stu_List extends StatefulWidget {
 }
 
 class _Stu_ListState extends State<Stu_List> {
-  @override
+
   final search_organizer = TextEditingController();
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF4A7CFF),
@@ -23,13 +24,12 @@ class _Stu_ListState extends State<Stu_List> {
           ),
         ),
         backgroundColor: Color(0xFF4A7CFF),
-        toolbarHeight: 100,
+        toolbarHeight: 80,
       ),
 
       body: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(30),topRight: Radius.circular(30)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -47,7 +47,7 @@ class _Stu_ListState extends State<Stu_List> {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 5),
                     ),
