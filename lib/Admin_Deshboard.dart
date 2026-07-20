@@ -1,8 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:quiz_battle/User_Registration.dart';
-import 'package:bottom_navigation/bottom_navigation.dart';
+import 'package:quiz_battle/Choose_Role_Screen.dart';
+import 'package:quiz_battle/addorganiser.dart';
+
 
 class AdminDeshboard extends StatefulWidget {
   const AdminDeshboard({super.key});
@@ -12,6 +12,8 @@ class AdminDeshboard extends StatefulWidget {
 }
 
 class _AdminDeshboardState extends State<AdminDeshboard> {
+
+  final user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +33,9 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
 
           ),
         ),
+        automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF306AE7),
-        toolbarHeight: 90,
+        toolbarHeight: 80,
       ),
 
       body: SingleChildScrollView(
@@ -43,7 +46,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
             child: Container(
               height: screenHeight,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(30),topRight: Radius.circular(30)),
                 color: Colors.white,
               ),
               child: Column(
@@ -119,7 +121,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       children: [
                         //Organizer Card
                         Container(
-                          width: 200,
+                          width: screenWidth*0.45,
                           height: 130,
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -173,7 +175,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                         // Student Card
 
                         Container(
-                          width: 200,
+                          width: screenWidth*0.45,
                           height: 130,
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -234,7 +236,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       children: [
                         //Organizer Card
                         Container(
-                          width: 200,
+                          width: screenWidth*0.45,
                           height: 130,
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -260,25 +262,27 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                 SizedBox(width: 6,),
 
                                 // View Oranizer number and add number of organizer number from database.
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("36",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("36",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    Text("Active Battles",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                      Text("Active Battles",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -288,7 +292,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                         // Student Card
 
                         Container(
-                          width: 200,
+                          width: screenWidth*0.45,
                           height: 130,
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -313,25 +317,27 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                 ),
                                 SizedBox(width: 9,),
                                 // View Oranizer number and add number of organizer number from database.
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("36",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("36",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    Text("Total Quizzes",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                      Text("Total Quizzes",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -360,57 +366,74 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                   // Add organizer Button
                   Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: Container(
-                      width: screenWidth,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFF4A7CFF),
-                            Color(0xFF306AE7),
+                    child: GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => Addorganiser()));
+                      },
+                      child: Container(
+                        width: screenWidth*70,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0xFF4A7CFF),
+                              Color(0xFF306AE7),
+                            ],
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child:Icon(
+                                  Icons.person_add_alt_1,
+                                  size: 45,
+                                  color: Colors.white,
+                                ),
+
+                            ),
+                            SizedBox(width: 10,),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Add Organizer",
+                                  style: TextStyle(
+                                    fontSize: 26,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text("Create new organizer account",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child:Icon(
-                                Icons.person_add_alt_1,
-                                size: 45,
-                                color: Colors.white,
-                              ),
-
-                          ),
-                          SizedBox(width: 10,),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Add Organizer",
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text("Create new organizer account",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                     ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Choose_Role_Screen(),
+                        ),
+                            (route) => false,
+                      );
+                    },
+                    child: const Text("Sign Out"),
                   ),
                 ],
               ),
