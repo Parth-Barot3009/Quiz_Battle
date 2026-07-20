@@ -20,6 +20,7 @@ class _Admin_NavState extends State<Admin_Nav> {
     AdminDeshboard(),
     Org_List(),
     Stu_List(),
+    Stu_List(),
   ];
 
   @override
@@ -27,6 +28,11 @@ class _Admin_NavState extends State<Admin_Nav> {
     return Scaffold(
       body: PageView(
         controller: controller,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         children: _screen,
       ),bottomNavigationBar: NavigationBarTheme(
       data: NavigationBarThemeData(

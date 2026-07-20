@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quiz_battle/Organizer(List_Screen).dart';
+import 'package:quiz_battle/user_dashboard.dart';
 import 'firebase_options.dart';
 import 'package:quiz_battle/Admin_Deshboard.dart';
 import 'package:quiz_battle/Splash_Screen.dart';

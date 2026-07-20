@@ -21,12 +21,11 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
           ),
         ),
         backgroundColor: Color(0xFF4A7CFF),
-        toolbarHeight: 90,
+        toolbarHeight: 80,
       ),
 
       body: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(35),
           color: Colors.white,
         ),
         child: Padding(

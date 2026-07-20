@@ -8,25 +8,7 @@ class org_dashboard extends StatefulWidget {
 }
 
 class _org_dashboardState extends State<org_dashboard> {
-  Path getClip(Size size) {
-    Path path = Path();
 
-    path.lineTo(0, size.height - 30);
-
-    path.quadraticBezierTo(
-      size.width / 2,
-      size.height + 30,
-      size.width,
-      size.height - 30,
-    );
-
-    path.lineTo(size.width, 0);
-
-    path.close();
-
-    return path;
-  }
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -36,7 +18,7 @@ class _org_dashboardState extends State<org_dashboard> {
       //title
 
       appBar: AppBar(
-        toolbarHeight: 100,
+        toolbarHeight: 80,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -67,10 +49,6 @@ class _org_dashboardState extends State<org_dashboard> {
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(35),
-                topRight: Radius.circular(35),
-              ),
             ),
             child: Column(
               children: [

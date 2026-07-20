@@ -85,7 +85,7 @@ class _create_battleState extends State<create_battle> {
     return Scaffold(
 
       appBar: AppBar(
-        toolbarHeight: 100,
+        toolbarHeight: 80,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -130,10 +130,6 @@ class _create_battleState extends State<create_battle> {
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(35),
-                topRight: Radius.circular(35),
-              ),
             ),
 
             child: Column(
