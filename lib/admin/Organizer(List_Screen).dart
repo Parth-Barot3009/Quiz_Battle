@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/addorganiser.dart';
+import 'package:quiz_battle/admin/addorganiser.dart';
+
 
 class Org_List extends StatefulWidget {
   const Org_List({super.key});

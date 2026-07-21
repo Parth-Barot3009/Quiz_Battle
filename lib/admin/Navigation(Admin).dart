@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/Organizer(List_Screen).dart';
-import 'package:quiz_battle/Student_ListScreen.dart';
-import 'package:quiz_battle/Admin_Deshboard.dart';
+import 'package:quiz_battle/admin/Admin_Deshboard.dart';
+import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
+import 'package:quiz_battle/admin/Student_ListScreen.dart';
+
 
 class Admin_Nav extends StatefulWidget {
   const Admin_Nav({super.key});

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:quiz_battle/Admin_Deshboard.dart';
-// import 'package:quiz_battle/CheckRole.dart';
-import 'package:quiz_battle/login_admin_organiser.dart';
-
+import 'package:quiz_battle/auth/login_admin_organiser.dart';
 
 
 class Choose_Role_Screen extends StatefulWidget {

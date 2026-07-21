@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-// import 'package:quiz_battle/Authantication.dart';
-import 'package:quiz_battle/CheckRole.dart';
-import 'package:quiz_battle/User_Registration.dart';
+import 'package:quiz_battle/auth/CheckRole.dart';
+import 'package:quiz_battle/auth/User_Registration.dart';
+
+
 
 class LoginScreen extends StatefulWidget {
   final String? role;

@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/Choose_Role_Screen.dart';
-import 'package:quiz_battle/addorganiser.dart';
+import 'package:quiz_battle/admin/addorganiser.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 
 
 class AdminDeshboard extends StatefulWidget {
@@ -24,7 +24,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
     // Text("Admin Deshboard\nManage your quiz platform",style: TextStyle(color: Colors.white),),
 
     return Scaffold(
-
       appBar: AppBar(
         title: Text("ADMIN DASHBOARD",
           style: TextStyle(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:quiz_battle/CheckRole.dart';
-import 'package:quiz_battle/Choose_Role_Screen.dart';
+import 'package:quiz_battle/auth/CheckRole.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 
 class Authantication extends StatelessWidget {
   const Authantication({super.key});
