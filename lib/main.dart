@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
+
+import 'package:quiz_battle/organizer/ProfileInfo(Organizer).dart';
+import 'package:quiz_battle/player/user_profile.dart';
+import 'package:quiz_battle/player/waiting_room.dart';
 import 'firebase_options.dart';
 
 
@@ -22,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "BaiJamjuree",
       ),
-      home: Org_BattleRoom(),
+      home: WaitingRoom(),
     );
   }
 }

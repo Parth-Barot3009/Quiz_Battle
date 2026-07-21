@@ -18,7 +18,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Color(0xFF4A7CFF),
       appBar: AppBar(
         title: Text("Battle Room",
           style: TextStyle(
