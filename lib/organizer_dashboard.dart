@@ -73,11 +73,17 @@ class _org_dashboardState extends State<org_dashboard> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
+
+                            //--
+                            Expanded(
+
                               child: Padding(
-                                padding: const EdgeInsets.only(bottom: 25,left: 15),
+                                //--
+                                padding: const EdgeInsets.only(left: 20),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  //--
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.only(left: 15,top: 30),
@@ -89,11 +95,15 @@ class _org_dashboardState extends State<org_dashboard> {
                                             fontWeight: FontWeight.normal,
                                             fontFamily: "BaiJamjuree",
                                           ),),
+                                          //--
+                                          SizedBox(height: 8),
                                           Text("pro.xyz",style: TextStyle(
                                             fontSize: 30,
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                           ),),
+                                          //--
+                                          SizedBox(height: 5),
                                           Text("xyz@gmail.com",style: TextStyle(
                                             fontSize: 15,
                                             color: Colors.white,
@@ -105,14 +115,14 @@ class _org_dashboardState extends State<org_dashboard> {
                                 ),
                               ),
                             ),
-                            Spacer(),
+
                             Opacity(
                               opacity: 0.5,
                               child: Padding(
                                 padding: const EdgeInsets.only(right: 15),
                                 child: Icon(
                                   Icons.menu_book_sharp,
-                                  size: 120,
+                                  size: 90,
                                   color: Colors.white,
                                 ),
                               ),
