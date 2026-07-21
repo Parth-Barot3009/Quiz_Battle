@@ -24,7 +24,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
     // Text("Admin Deshboard\nManage your quiz platform",style: TextStyle(color: Colors.white),),
 
     return Scaffold(
-
       appBar: AppBar(
         title: Text("ADMIN DASHBOARD",
           style: TextStyle(

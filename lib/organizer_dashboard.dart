@@ -16,7 +16,6 @@ class _org_dashboardState extends State<org_dashboard> {
     return Scaffold(
 
       //title
-
       appBar: AppBar(
         toolbarHeight: 80,
         flexibleSpace: Container(
