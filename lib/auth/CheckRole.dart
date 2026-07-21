@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/Admin_Deshboard.dart';
-import 'package:quiz_battle/Navigation(Admin).dart';
-import 'package:quiz_battle/organizer_dashboard.dart';
+import 'package:quiz_battle/admin/Admin_Deshboard.dart';
+import 'package:quiz_battle/admin/Navigation(Admin).dart';
+import 'package:quiz_battle/organizer/organizer_dashboard.dart';
+
 
 
 class Checkrole extends StatelessWidget {

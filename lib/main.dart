@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:quiz_battle/Battle_Room_Org.dart';
-import 'package:quiz_battle/create_battle.dart';
+import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
 import 'firebase_options.dart';
 
 

@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/Choose_Role_Screen.dart';
-import 'package:quiz_battle/addorganiser.dart';
+import 'package:quiz_battle/admin/addorganiser.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 
 
 class AdminDeshboard extends StatefulWidget {
