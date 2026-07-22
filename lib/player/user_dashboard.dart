@@ -20,17 +20,25 @@ class StudentDashboard extends StatelessWidget {
         return Scaffold(
         backgroundColor: const Color(0xFFF4F7FF),
 
-        appBar: AppBar(
-          elevation: 0,
-          title: const Text(
-          "Student Dashboard",
-
-            style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+          appBar: AppBar(
+            toolbarHeight: 80,
+            flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [0.0,0.45],
+                  colors: [
+                    Color(0xFF4A7CFF),
+                    Color(0xFF306AE7),
+                  ],
+                ),
+              ),
             ),
+            title: Text("Hello,\nStudent",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
+
+
           ),
-        ),
 
         body: SingleChildScrollView(
           child: Padding(
@@ -41,34 +49,35 @@ class StudentDashboard extends StatelessWidget {
 
           children: [
 
-        const Text(
-          "Hello,",
-          style: TextStyle(
-          fontSize: 18,
-          color: Colors.black54,
-          ),
-        ),
-
-    const SizedBox(height: 5),
-
-        const Text(
-          "STUDENT",
-          style: TextStyle(
-          fontSize: 30,
-          fontWeight: FontWeight.bold,
-          ),
-        ),
-
-    const SizedBox(height: 20),
+    //     const Text(
+    //       "Hello,",
+    //       style: TextStyle(
+    //       fontSize: 18,
+    //       color: Colors.black54,
+    //       ),
+    //     ),
+    //
+    // const SizedBox(height: 5),
+    //
+    //     const Text(
+    //       "STUDENT",
+    //       style: TextStyle(
+    //       fontSize: 30,
+    //       fontWeight: FontWeight.bold,
+    //       ),
+    //     ),
+    //
+    // const SizedBox(height: 20),
 
 /// PROFILE CARD
-    Container(
-      width: double.infinity,
-      height: 170,
+            Container(
+              width: double.infinity,
+              height: 170,
 
-      decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(25),
-      ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF5E90E6),
+                borderRadius: BorderRadius.circular(25),
+              ),
 
       child: Padding(
       padding: const EdgeInsets.all(20),
@@ -82,7 +91,7 @@ class StudentDashboard extends StatelessWidget {
 
         child: Icon(
         Icons.person,
-        color: Colors.blue,
+        color: Color(0xFF5E90E6),
         size: 40,
         ),
       ),
@@ -94,7 +103,9 @@ class StudentDashboard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
 
+
         children: [
+
 
       Text(
         "John Smith",
@@ -146,6 +157,7 @@ class StudentDashboard extends StatelessWidget {
 
       decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(20),
+        color: Color(0xFF5E90E6)
       ),
 
       child: const Column(
@@ -181,6 +193,7 @@ class StudentDashboard extends StatelessWidget {
 
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(20),
+      color: Color(0xFF5E90E6)
     ),
 
     child: const Column(
@@ -199,7 +212,7 @@ class StudentDashboard extends StatelessWidget {
     Text(
       "Join Battle",
       style: TextStyle(
-      color: Colors.white,
+     color: Colors.white,
       fontWeight: FontWeight.bold,
     ),
 ),
@@ -299,7 +312,7 @@ Widget statCard(
     height: 110,
 
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Color(0xFF5E90E6),
       borderRadius: BorderRadius.circular(20),
 
       boxShadow: const [
@@ -310,13 +323,14 @@ Widget statCard(
       ],
     ),
 
-    child: Column(
+    child:Column(
       mainAxisAlignment: MainAxisAlignment.center,
 
       children: [
 
         Icon(
           icon,
+          color: Colors.white,
           size: 32,
         ),
 
@@ -325,6 +339,7 @@ Widget statCard(
         Text(
           number,
           style: const TextStyle(
+            color: Colors.white,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -332,7 +347,12 @@ Widget statCard(
 
         const SizedBox(height: 5),
 
-        Text(title),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+        ),
 
       ],
     ),
@@ -371,7 +391,7 @@ Widget battleCard(
 
           child: const Icon(
             Icons.sports_esports,
-            color: Colors.white,
+            color: Color(0xFF5E90E6),
           ),
         ),
 
