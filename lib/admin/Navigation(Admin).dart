@@ -27,19 +27,13 @@ class _Admin_NavState extends State<Admin_Nav> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-        controller: controller,
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        children: _screen,
-      ),bottomNavigationBar: NavigationBarTheme(
+      body: _screen[_currentIndex]
+      ,bottomNavigationBar: NavigationBarTheme(
       data: NavigationBarThemeData(
         backgroundColor: Color(0xFF306AE7),
         labelTextStyle: WidgetStateProperty.all(TextStyle(
           color: Colors.white,
+          fontSize: 12,
           fontWeight: FontWeight.bold,
         )
         ),
@@ -63,8 +57,19 @@ class _Admin_NavState extends State<Admin_Nav> {
           NavigationDestination(icon: Icon(Icons.people_rounded), label: "Organizers"),
           NavigationDestination(icon: Icon(Icons.school_outlined), label: "Students"),
           NavigationDestination(icon: Icon(Icons.settings), label: "Setting"),
-            ]),
+          ]),
       ),
     );
   }
 }
+
+
+// PageView(
+// controller: controller,
+// onPageChanged: (index) {
+// setState(() {
+// _currentIndex = index;
+// });
+// },
+// children: _screen,
+// )

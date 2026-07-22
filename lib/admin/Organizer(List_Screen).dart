@@ -14,6 +14,10 @@ class _Org_ListState extends State<Org_List> {
 
   @override
   Widget build(BuildContext context) {
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Color(0xFF4A7CFF),
       appBar: AppBar(
@@ -24,6 +28,7 @@ class _Org_ListState extends State<Org_List> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
         actions: [
@@ -94,8 +99,8 @@ class _Org_ListState extends State<Org_List> {
                   children: [
                     // Organiser Image
                     Container(
-                      height: 90,
-                      width: double.infinity,
+                      height: screenHeight*0.09,
+                      width: screenWidth,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(25),
@@ -128,30 +133,30 @@ class _Org_ListState extends State<Org_List> {
                           // Organiser Name and Email
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Organiser 1",
                                 style: TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
         
                               Text("Organiser Email",
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
                           ),
-                        SizedBox(width: 145,),
+                        Spacer(),
                         //   Delete Organiser
                           Container(
                               height: 45,
                               width: 45,
                               decoration: BoxDecoration(
-                                shape: BoxShape.rectangle,
+                                shape: BoxShape.circle,
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
                                 boxShadow: [BoxShadow(
                                   color: Colors.grey,
                                   blurRadius: 10,
@@ -164,15 +169,17 @@ class _Org_ListState extends State<Org_List> {
                                 size: 30,
                               ),
                             ),
+                          SizedBox(width: 10,),
                         ],
                       ),
                     ),
         
                   SizedBox(height: 20,),
                   //   2nd Organiser
+
                     Container(
-                      height: 90,
-                      width: double.infinity,
+                      height: screenHeight*0.09,
+                      width: screenWidth,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(25),
@@ -200,35 +207,35 @@ class _Org_ListState extends State<Org_List> {
                             ),
                           ),
                           SizedBox(width: 25,),
-        
-        
+
+
                           // Organiser Name and Email
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Organiser 1",
+                              Text("Organiser 2",
                                 style: TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-        
+
                               Text("Organiser Email",
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(width: 145,),
+                          Spacer(),
                           //   Delete Organiser
                           Container(
                             height: 45,
                             width: 45,
                             decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
+                              shape: BoxShape.circle,
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
                               boxShadow: [BoxShadow(
                                 color: Colors.grey,
                                 blurRadius: 10,
@@ -241,9 +248,11 @@ class _Org_ListState extends State<Org_List> {
                               size: 30,
                             ),
                           ),
+                          SizedBox(width: 10,),
                         ],
                       ),
-                    )
+                    ),
+
                   ],
                 ),
               ),
