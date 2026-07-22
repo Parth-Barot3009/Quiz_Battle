@@ -22,7 +22,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
       appBar: AppBar(
         title: Text("Organizer Profile",
           style: TextStyle(
-            fontSize: 30,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -38,7 +38,6 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
 
               // Organizer Profile Image Saction
               Container(
-                height: screenHeight,
                 width: screenWidth,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -152,45 +151,14 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
           
                             SizedBox(height: 30),
           
-                            Container(
-                              width: screenWidth*0.95,
-                              height: screenHeight*0.06,
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black,
-                                  elevation: 6,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Text(
-                                      "Battle History",
-                                      style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios),
-                                  ],
-                                ),
-                              ),
-                            ),
-          
-                            const SizedBox(height: 30),
-          
                             SizedBox(
                               width: screenWidth*0.95,
-                              height: screenHeight*0.06,
+                              height: screenHeight*0.08,
                               child: ElevatedButton(
                                 onPressed: () {},
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black,
+                                  backgroundColor: Color(0xFF306AE7),
+
                                   elevation: 6,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
@@ -199,14 +167,14 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                 child: const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.logout,size: 30,color: Colors.blue,),
+                                    Icon(Icons.logout,size: 30,color: Colors.white,),
                                     SizedBox(width: 10),
                                     Text(
                                       "Logout",
                                       style: TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blueAccent,
+                                        color: Colors.white,
                                       ),
                                     ),
                                   ],

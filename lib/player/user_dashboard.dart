@@ -291,7 +291,6 @@ class StudentDashboard extends StatelessWidget {
                 "20 Questions",
                 "Friday • 7:00 PM",
               ),
-
             ],
           ),
         ),
@@ -440,9 +439,7 @@ class StudentDashboard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
             ),
-
             onPressed: () {},
-
             child: const Text(
               "JOIN",
               style: TextStyle(
@@ -450,7 +447,6 @@ class StudentDashboard extends StatelessWidget {
               ),
             ),
           ),
-
         ],
       ),
     );

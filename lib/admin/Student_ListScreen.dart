@@ -13,6 +13,10 @@ class _Stu_ListState extends State<Stu_List> {
 
   @override
   Widget build(BuildContext context) {
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Color(0xFF4A7CFF),
       appBar: AppBar(
@@ -23,6 +27,7 @@ class _Stu_ListState extends State<Stu_List> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
       ),
@@ -78,8 +83,8 @@ class _Stu_ListState extends State<Stu_List> {
                   children: [
                     // Student Image
                     Container(
-                      height: 90,
-                      width: double.infinity,
+                      height: screenHeight*0.10,
+                      width: screenWidth,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(25),
@@ -123,7 +128,7 @@ class _Stu_ListState extends State<Stu_List> {
 
                               Text("25 battles , 5 wins",
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
                               ),
                             ],
@@ -135,7 +140,7 @@ class _Stu_ListState extends State<Stu_List> {
                     SizedBox(height: 20,),
                     //   2nd Student
                     Container(
-                      height: 90,
+                      height: screenHeight*0.10,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -180,7 +185,7 @@ class _Stu_ListState extends State<Stu_List> {
 
                               Text("25 battles , 5 wins",
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
                               ),
                             ],

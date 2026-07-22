@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/admin/Admin_Deshboard.dart';
+import 'package:quiz_battle/admin/Navigation(Admin).dart';
 
 class Addorganiser extends StatefulWidget {
   const Addorganiser({super.key});
@@ -25,13 +27,28 @@ class _AddorganiserState extends State<Addorganiser> {
       appBar: AppBar(
         title: Text("Add Organizer",
           style: TextStyle(
-            fontSize: 30,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
+        automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
+        leading: IconButton(
+                onPressed: (){
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Admin_Nav()),
+                  );
+
+                },
+                icon: Icon(
+                  Icons.arrow_back_rounded,
+                  size: 30,
+                  color: Colors.white,
+                )
+            )
       ),
 
       body: SafeArea(
@@ -58,17 +75,33 @@ class _AddorganiserState extends State<Addorganiser> {
 
                   const SizedBox(height: 20),
 
-                  IconButton(
-                    onPressed: (){},
-                    icon: CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Color(0xFF306AE7),
-                    child: Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.white,
-                    ),
-                  ),),
+                  Stack(
+                    children: [
+                      IconButton(
+                        onPressed: (){},
+                        icon: CircleAvatar(
+                          radius: 60,
+                          backgroundColor: Color(0xFF306AE7),
+                          child: Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 90,
+                        bottom: 10,
+                        child: CircleAvatar(
+                          backgroundColor: Color(0xFFE9ECFF),
+                          foregroundColor: Color(0xFF4A7CFF),
+                          child: Icon(
+                              Icons.edit_outlined
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
 
                   SizedBox(height: 10),
 
@@ -93,7 +126,7 @@ class _AddorganiserState extends State<Addorganiser> {
                             TextFormField(
                               controller: namecon,
                               decoration: InputDecoration(
-                                label: Text("Email",style: TextStyle(fontWeight: FontWeight.bold,),),
+                                label: Text("Full Name",style: TextStyle(fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Full Name",
                                 hintStyle: TextStyle(fontWeight: FontWeight.bold,),
                                 prefixIcon: const Icon(
@@ -213,14 +246,14 @@ class _AddorganiserState extends State<Addorganiser> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF306AE7),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(50),
+                                    borderRadius: BorderRadius.circular(25),
                                   ),
                                 ),
                                 child: const Text(
                                   "Add Organiser",
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 26,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
