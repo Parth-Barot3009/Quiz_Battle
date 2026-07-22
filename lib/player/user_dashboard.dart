@@ -15,434 +15,444 @@ class u_dashboard extends StatelessWidget {
 class StudentDashboard extends StatelessWidget {
   const StudentDashboard({super.key});
 
-@override
+  @override
   Widget build(BuildContext context) {
-        return Scaffold(
-        backgroundColor: const Color(0xFFF4F7FF),
 
-          appBar: AppBar(
-            toolbarHeight: 80,
-            flexibleSpace: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [0.0,0.45],
-                  colors: [
-                    Color(0xFF4A7CFF),
-                    Color(0xFF306AE7),
-                  ],
-                ),
-              ),
-            ),
-            title: Text("Hello,\nStudent",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F7FF),
 
-          ),
+      appBar: AppBar(
+        toolbarHeight: 80,
+        backgroundColor: Color(0xFF306AE7),
+        title: Text("Hello, Student",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
 
-        body: SingleChildScrollView(
-          child: Padding(
-          padding: const EdgeInsets.all(20),
+        // Add Profile Image Circle
+        actions: [
 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
 
-          children: [
-
-    //     const Text(
-    //       "Hello,",
-    //       style: TextStyle(
-    //       fontSize: 18,
-    //       color: Colors.black54,
-    //       ),
-    //     ),
-    //
-    // const SizedBox(height: 5),
-    //
-    //     const Text(
-    //       "STUDENT",
-    //       style: TextStyle(
-    //       fontSize: 30,
-    //       fontWeight: FontWeight.bold,
-    //       ),
-    //     ),
-    //
-    // const SizedBox(height: 20),
-
-/// PROFILE CARD
-            Container(
-              width: double.infinity,
-              height: 170,
-
-              decoration: BoxDecoration(
-                color: const Color(0xFF5E90E6),
-                borderRadius: BorderRadius.circular(25),
-              ),
-
-      child: Padding(
-      padding: const EdgeInsets.all(20),
-
-      child: Row(
-      children: [
-
-      const CircleAvatar(
-        radius: 35,
-        backgroundColor: Colors.white,
-
-        child: Icon(
-        Icons.person,
-        color: Color(0xFF5E90E6),
-        size: 40,
-        ),
       ),
 
-    const SizedBox(width: 20),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(10),
 
-      const Expanded(
-        child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-
-
-        children: [
-
-
-      Text(
-        "John Smith",
-          style: TextStyle(
-          color: Colors.white,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          ),
-      ),
-
-    SizedBox(height: 8),
-
-      Text(
-        "Rank #25",
-        style: TextStyle(
-        fontSize: 16,
-        ),
-      ),
-
-    SizedBox(height: 5),
-
-      Text(
-        "1250 XP",
-        style: TextStyle(
-        ),
-      ),
-  ],
-),
-),
-
-    const Icon(
-      Icons.emoji_events,
-      color: Colors.white54,
-      size: 70,
-    ),
-],
-),
-),
-),
-
-    const SizedBox(height: 25),
-
-  Row(
-    children: [
-
-    Expanded(
-      child: Container(
-      height: 120,
-
-      decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-        color: Color(0xFF5E90E6)
-      ),
-
-      child: const Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-
-    children: [
-
-    Icon(
-      Icons.flash_on,
-      color: Colors.white,
-      size: 45,
-    ),
-
-    SizedBox(height: 10),
-
-    Text(
-      "Quick Battle",
-      style: TextStyle(
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-),
-),
-],
-),
-),
-),
-
-    const SizedBox(width: 15),
-
-    Expanded(
-    child: Container(
-    height: 120,
-
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-      color: Color(0xFF5E90E6)
-    ),
-
-    child: const Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-
-    children: [
-
-    Icon(
-      Icons.group,
-      color: Colors.white,
-      size: 45,
-    ),
-
-    SizedBox(height: 10),
-
-    Text(
-      "Join Battle",
-      style: TextStyle(
-     color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-),
-],
-),
-),
-),
-
-],
-),
-
-    const SizedBox(height: 25),
-
-
-  /// STATISTICS
-  Row(
-    children: [
-
-      Expanded(
-        child: statCard(
-          Icons.sports_esports,
-          "25",
-          "Battles",
-        ),
-      ),
-
-      const SizedBox(width: 10),
-
-      Expanded(
-        child: statCard(
-          Icons.emoji_events,
-          "18",
-          "Wins",
-        ),
-      ),
-
-      const SizedBox(width: 10),
-
-      Expanded(
-        child: statCard(
-          Icons.trending_up,
-          "72%",
-          "Win Rate",
-        ),
-      ),
-
-    ],
-  ),
-
-  const SizedBox(height: 30),
-
-  const Text(
-    "Upcoming Battles",
-    style: TextStyle(
-      fontSize: 22,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-
-  const SizedBox(height: 15),
-
-  battleCard(
-    "Flutter Quiz Battle",
-    "10 Questions",
-    "Today • 6:00 PM",
-  ),
-
-  const SizedBox(height: 15),
-
-  battleCard(
-    "Java Challenge",
-    "15 Questions",
-    "Tomorrow • 4:30 PM",
-  ),
-
-  const SizedBox(height: 15),
-
-  battleCard(
-    "Database Battle",
-    "20 Questions",
-    "Friday • 7:00 PM",
-  ),
-
-],
-),
-),
-),
-);
-}
-
-Widget statCard(
-    IconData icon,
-    String number,
-    String title,
-    ) {
-  return Container(
-    height: 110,
-
-    decoration: BoxDecoration(
-      color: Color(0xFF5E90E6),
-      borderRadius: BorderRadius.circular(20),
-
-      boxShadow: const [
-        BoxShadow(
-          color: Colors.black12,
-          blurRadius: 8,
-        ),
-      ],
-    ),
-
-    child:Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-
-      children: [
-
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 32,
-        ),
-
-        const SizedBox(height: 8),
-
-        Text(
-          number,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 5),
-
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-          ),
-        ),
-
-      ],
-    ),
-  );
-}
-
-Widget battleCard(
-    String title,
-    String questions,
-    String time,
-    ) {
-  return Container(
-    padding: const EdgeInsets.all(15),
-
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-
-      boxShadow: const [
-        BoxShadow(
-          color: Colors.black12,
-          blurRadius: 8,
-        ),
-      ],
-    ),
-
-    child: Row(
-      children: [
-
-        Container(
-          padding: const EdgeInsets.all(12),
-
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-          ),
-
-          child: const Icon(
-            Icons.sports_esports,
-            color: Color(0xFF5E90E6),
-          ),
-        ),
-
-        const SizedBox(width: 15),
-
-        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
+              /// PROFILE CARD
+              Container(
+                width: screenHeight*0.95,
+                height: 170,
 
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 17,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors:[
+                    Color(0xFF4A7CFF),
+                    Color(0xFF306AE7),
+                  ]
+                  ),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+
+                  child: Row(
+                    children: [
+
+                      const CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.white,
+
+                        child: Icon(
+                          Icons.person,
+                          color: Color(0xFF5E90E6),
+                          size: 40,
+                        ),
+                      ),
+
+                      const SizedBox(width: 20),
+
+                      const Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+
+
+                          children: [
+
+
+                            Text(
+                              "John Smith",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            SizedBox(height: 8),
+
+                            Text(
+                              "Rank #25",
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+
+                            SizedBox(height: 5),
+
+                            Text(
+                              "1250 XP",
+                              style: TextStyle(
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const Icon(
+                        Icons.emoji_events,
+                        color: Colors.white54,
+                        size: 90,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              Row(
+                children: [
+
+                  Expanded(
+                    child: Container(
+                      height: 120,
+
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors:[
+                              Color(0xFF4A7CFF),
+                              Color(0xFF306AE7),
+                            ]
+                        ),
+                      ),
+
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+
+                        children: [
+
+                          Icon(
+                            Icons.flash_on,
+                            color: Colors.white,
+                            size: 45,
+                          ),
+
+                          SizedBox(height: 10),
+
+                          Text(
+                            "Quick Battle",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 15),
+
+                  Expanded(
+                    child: Container(
+                      height: 120,
+
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors:[
+                              Color(0xFF4A7CFF),
+                              Color(0xFF306AE7),
+                            ]
+                        ),
+                      ),
+
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+
+                        children: [
+
+                          Icon(
+                            Icons.group,
+                            color: Colors.white,
+                            size: 45,
+                          ),
+
+                          SizedBox(height: 10),
+
+                          Text(
+                            "Join Battle",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+
+              /// STATISTICS
+              Row(
+                children: [
+
+                  Expanded(
+                    child: statCard(
+                      Icons.sports_esports,
+                      "25",
+                      "Battles",
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: statCard(
+                      Icons.emoji_events,
+                      "18",
+                      "Wins",
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: statCard(
+                      Icons.trending_up,
+                      "72%",
+                      "Win Rate",
+                    ),
+                  ),
+
+                ],
+              ),
+
+              const SizedBox(height: 30),
+
+              const Text(
+                "Upcoming Battles",
+                style: TextStyle(
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(height: 5),
+              const SizedBox(height: 15),
 
-              Text(questions),
+              battleCard(
+                "Flutter Quiz Battle",
+                "10 Questions",
+                "Today • 6:00 PM",
+              ),
 
-              Text(
-                time,
-                style: const TextStyle(
-                  color: Colors.grey,
-                ),
+              const SizedBox(height: 15),
+
+              battleCard(
+                "Java Challenge",
+                "15 Questions",
+                "Tomorrow • 4:30 PM",
+              ),
+
+              const SizedBox(height: 15),
+
+              battleCard(
+                "Database Battle",
+                "20 Questions",
+                "Friday • 7:00 PM",
               ),
 
             ],
           ),
         ),
+      ),
+    );
+  }
 
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
+  Widget statCard(
+      IconData icon,
+      String number,
+      String title,
+      ) {
+    return Container(
+      height: 110,
+
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors:[
+              Color(0xFF4A7CFF),
+              Color(0xFF306AE7),
+            ]
+        ),
+        borderRadius: BorderRadius.circular(20),
+
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+          ),
+        ],
+      ),
+
+      child:Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+
+          Icon(
+            icon,
+            color: Colors.white,
+            size: 32,
           ),
 
-          onPressed: () {},
+          const SizedBox(height: 8),
 
-          child: const Text(
-            "JOIN",
-            style: TextStyle(
+          Text(
+            number,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          Text(
+            title,
+            style: const TextStyle(
               color: Colors.white,
             ),
           ),
-        ),
 
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
+
+  Widget battleCard(
+      String title,
+      String questions,
+      String time,
+      ) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+          ),
+        ],
+      ),
+
+      child: Row(
+        children: [
+
+          Container(
+            padding: const EdgeInsets.all(12),
+
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors:[
+                    Color(0xFF4A7CFF),
+                    Color(0xFF306AE7),
+                  ]
+              ),
+            ),
+
+            child: const Icon(
+              Icons.sports_esports,
+              color: Colors.white,
+            ),
+          ),
+
+          const SizedBox(width: 15),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+
+              children: [
+
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 5),
+
+                Text(questions),
+
+                Text(
+                  time,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                  ),
+                ),
+
+              ],
+            ),
+          ),
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+            ),
+
+            onPressed: () {},
+
+            child: const Text(
+              "JOIN",
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+
+        ],
+      ),
+    );
+  }
 }
