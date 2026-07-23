@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 // import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -17,6 +18,7 @@ class _create_battleState extends State<create_battle> {
   DateTime? selectedDate;
   int totalQuestions = 20;
   final TextEditingController totalQuestionController = TextEditingController();
+  final TextEditingController roomCodeController = TextEditingController();
 
   //time pick class
 
@@ -78,7 +80,26 @@ class _create_battleState extends State<create_battle> {
     }
   }
 
+  //roomcode
+
+  void generateRoomCode() {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    final random = Random();
+
+    String code = "";
+
+    for (int i = 0; i < 6; i++) {
+      code += characters[random.nextInt(characters.length)];
+    }
+
+    roomCodeController.text = code;
+  }
+
   @override
+  void initState() {
+    super.initState();
+    generateRoomCode();
+  }
   Widget build(BuildContext context) {
 
     // final screenWidth = MediaQuery.of(context).size.width;
@@ -226,8 +247,11 @@ class _create_battleState extends State<create_battle> {
                         SizedBox(height: 15),
 
                         TextFormField(
+                          controller: roomCodeController,
+                          readOnly: true,
+
                           decoration: InputDecoration(
-                            hintText: "Enter Room Code",
+                            hintText: "Room Code",
 
                             prefixIcon: Padding(
                               padding: const EdgeInsets.all(10),
@@ -240,7 +264,7 @@ class _create_battleState extends State<create_battle> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Icon(
-                                  Icons.numbers_rounded,
+                                  Icons.vpn_key_rounded,
                                   color: Color(0xFF4A6CF7),
                                   size: 22,
                                 ),
@@ -267,19 +291,8 @@ class _create_battleState extends State<create_battle> {
 
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(18),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: Color(0xFFE0E0E0),
-                              ),
-                            ),
-
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                // Your refresh code here
-                              },
-                              icon: const Icon(
-                                Icons.refresh,
-                                color: Color(0xFF4A6CF7),
-                                size: 26,
                               ),
                             ),
 
@@ -287,6 +300,19 @@ class _create_battleState extends State<create_battle> {
                               borderRadius: BorderRadius.circular(18),
                               borderSide: const BorderSide(
                                 color: Color(0xFF4A6CF7),
+                              ),
+                            ),
+
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  generateRoomCode();
+                                });
+                              },
+                              icon: const Icon(
+                                Icons.refresh_rounded,
+                                color: Color(0xFF4A6CF7),
+                                size: 28,
                               ),
                             ),
                           ),
