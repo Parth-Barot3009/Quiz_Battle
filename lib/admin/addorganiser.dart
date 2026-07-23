@@ -93,16 +93,20 @@ class _AddorganiserState extends State<Addorganiser> {
                             TextFormField(
                               controller: namecon,
                               decoration: InputDecoration(
-                                label: Text("Email",style: TextStyle(fontWeight: FontWeight.bold,),),
+                                label: Text("Name",style: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Full Name",
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
+                                hintStyle: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold,),
                                 prefixIcon: const Icon(
                                   Icons.person_outline,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF5E90E6),
                                 ),
-                                filled: true,
-                                fillColor: Colors.white,
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.grey
+                                  ),
+                                  borderRadius: BorderRadius.all(Radius.circular(15))
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 ),
@@ -120,17 +124,25 @@ class _AddorganiserState extends State<Addorganiser> {
                             TextFormField(
                               controller: emailcontroller,
                               decoration: InputDecoration(
-                                label: Text("Email",style: TextStyle(fontWeight: FontWeight.bold,),),
+                                focusColor: Colors.grey,
+                                label: Text("Email",style: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Email",
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
-                                prefixIcon: const Icon(
+                                hintStyle: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,),
+                                prefixIcon: Icon(
                                   Icons.email_outlined,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF5E90E6),
                                 ),
-                                filled: true,
-                                fillColor: Colors.white,
+                          
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.grey,
+                                ),
+
+                                borderRadius: BorderRadius.all(Radius.circular(15))
+                              ),
                                 border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                               ),
@@ -155,9 +167,9 @@ class _AddorganiserState extends State<Addorganiser> {
                               controller: passwordcontroller,
                               obscureText: passwordvisible,
                               decoration: InputDecoration(
-                                label: Text("Password",style: TextStyle(fontWeight: FontWeight.bold,),),
+                                label: Text("Password",style: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Password",
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
+                                hintStyle: TextStyle(fontWeight: FontWeight.bold,color:Colors.grey,),
                                 prefixIcon: const Icon(
                                   Icons.lock_outline,
                                   fontWeight: FontWeight.bold,
@@ -175,9 +187,12 @@ class _AddorganiserState extends State<Addorganiser> {
                                         : Icons.visibility,
                                   ),
                                 ),
-                                filled: true,
-                                fillColor: Colors.white,
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey),
+                                  borderRadius: BorderRadius.all(Radius.circular(15))
+                                ),
                                 border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                               ),
