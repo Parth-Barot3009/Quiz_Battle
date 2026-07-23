@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
+import 'package:image_picker/image_picker.dart';
 
 // import 'package:image_picker/image_picker.dart';
 
@@ -40,17 +41,17 @@ class _Register extends State<Register>
     }
   }
 
-  // final ImagePicker picker = ImagePicker();
+  final ImagePicker picker = ImagePicker();
 
-// Future<void> pickImage() async {
-//   final XFile? image = await picker.pickImage(
-//     source: ImageSource.gallery,
-//   );
+  Future<void> pickImage() async {
+  final XFile? image = await picker.pickImage(
+    source: ImageSource.gallery,
+  );
 
-//   if (image != null) {
-//     print(image.path);
-//   }
-// }
+  if (image != null) {
+    print(image.path);
+  }
+}
 
   bool passwordvisible = false;
 
@@ -85,7 +86,7 @@ class _Register extends State<Register>
                   Container(
                     child: GestureDetector(
                       onTap: () {
-                        print("Profile Image Clicked");
+                        pickImage();
                       },
                       child: const CircleAvatar(
                           radius: 45,
@@ -110,15 +111,15 @@ class _Register extends State<Register>
                             children: [
                               TextFormField(
                                 decoration:InputDecoration(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(15))
+                                  ),
                                     border:
                                     OutlineInputBorder(
                                         borderRadius: BorderRadius.all(Radius.circular(15.0)),
                                         borderSide: BorderSide(color:Color(0xFF4E3F3F))
                                     ),
                                     hintText: "Name",
-
-                                    filled: true ,
-                                    fillColor:Colors.white,
                                     prefixIcon: Icon(
                                       Icons.person_outline,
                                       color: Color(0xFF5E90E6),
@@ -136,9 +137,14 @@ class _Register extends State<Register>
                                           Icons.email_outlined,color: Color(0xFF5E90E6)
                                       ),
                                       hintText: "Email",
-                                      filled: true ,
-                                      fillColor: Colors.white,
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)
+                                      focusedBorder:OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(15))
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.grey
+                                        ),
+                                        borderRadius: BorderRadius.circular(15.0)
                                       )
                                   ),
                                   validator: (value){
@@ -165,8 +171,9 @@ class _Register extends State<Register>
                                       ),
 
                                       hintText: "Password",
-                                      filled: true ,
-                                      fillColor:Colors.white,
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(15))
+                                      ),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.all(Radius.circular(15.0)),
                                       ),
