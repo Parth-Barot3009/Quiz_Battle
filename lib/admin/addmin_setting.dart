@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// import 'package:quiz_battle/admin/GeneralSettingScreen.dart';
 import 'package:quiz_battle/admin/about_app_setting.dart';
 import 'package:quiz_battle/admin/privacy_policy.dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';

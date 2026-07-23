@@ -15,6 +15,8 @@ class _create_battleState extends State<create_battle> {
   TimeOfDay? endTime;
   String? selectedFileName;
   DateTime? selectedDate;
+  int totalQuestions = 20;
+  final TextEditingController totalQuestionController = TextEditingController();
 
   //time pick class
 
@@ -374,6 +376,128 @@ class _create_battleState extends State<create_battle> {
                           ],
                         ),
 
+                        // Total Questions
+
+                        const SizedBox(height: 15),
+
+                        const SizedBox(height: 20),
+
+                        const Text(
+                          "Questions for Battle",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+
+                          ),
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        Container(
+                          height: 65,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: const Color(0xFFE0E0E0),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+
+                              // Left Icon
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE9ECFF),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.quiz_rounded,
+                                  color: Color(0xFF4A6CF7),
+                                ),
+                              ),
+
+                              const SizedBox(width: 15),
+
+                              const Expanded(
+                                child: Text(
+                                  "Questions",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey,
+
+                                  ),
+                                ),
+                              ),
+
+                              // Minus Button
+                              InkWell(
+                                onTap: () {
+                                  if (totalQuestions > 1) {
+                                    setState(() {
+                                      totalQuestions--;
+                                    });
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE9ECFF),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.remove,
+                                    color: Color(0xFF4A6CF7),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              Text(
+                                "$totalQuestions",
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF4A6CF7),
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              // Plus Button
+                              InkWell(
+                                onTap: () {
+                                  if (totalQuestions < 50) {
+                                    setState(() {
+                                      totalQuestions++;
+                                    });
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE9ECFF),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Color(0xFF4A6CF7),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
                         SizedBox(height: 20),
 
                         //start time
@@ -535,6 +659,8 @@ class _create_battleState extends State<create_battle> {
                           ),
                         ),
 
+                        const SizedBox(height: 15),
+
                         //date
 
                         Column(
@@ -614,6 +740,43 @@ class _create_battleState extends State<create_battle> {
                                     ),
                                   ),
                                 ],
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+
+                            SizedBox(
+                              width: double.infinity,
+                              height: 60,
+                              child: ElevatedButton(
+                                  onPressed: () {
+                                    // int battleQuestions = int.tryParse(totalQuestionController.text) ?? 0;
+                                    // print("Battle Questions : $battleQuestions");
+                                  },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4A6CF7),
+                                  foregroundColor: Colors.white,
+                                  elevation: 3,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.sports_esports_rounded,
+                                      size: 24,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      "Create Battle",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],

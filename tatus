@@ -1,0 +1,16 @@
+[33m711efb5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: merge origin/main: Merge made by the 'ort' strategy.
+[33m11483aa[m HEAD@{1}: commit: solve pixel error
+[33m0fc4cd7[m HEAD@{2}: commit: import font
+[33m09fea32[m HEAD@{3}: commit: add font dependencies
+[33me697690[m HEAD@{4}: commit (merge): Merge remote-tracking branch 'origin/main'
+[33m2c7c2d6[m HEAD@{5}: reset: moving to HEAD
+[33m2c7c2d6[m HEAD@{6}: pull origin main: updating HEAD
+[33m2c7c2d6[m HEAD@{7}: commit (merge): Merge remote-tracking branch 'origin/main'
+[33mbdab5f2[m HEAD@{8}: pull origin main: updating HEAD
+[33mbdab5f2[m HEAD@{9}: pull origin main: updating HEAD
+[33mbdab5f2[m HEAD@{10}: pull origin main: updating HEAD
+[33mbdab5f2[m HEAD@{11}: merge origin/main: Fast-forward
+[33m6cb5e50[m HEAD@{12}: commit: Update create battle screen
+[33mf13a6d6[m HEAD@{13}: commit: Add create battle and organizer dashboard screens
+[33m23935bc[m HEAD@{14}: pull: Fast-forward
+[33mfcfc21e[m HEAD@{15}: clone: from https://github.com/Parth-Barot3009/Quiz_Battle.git

@@ -232,7 +232,6 @@ class _QuizScreenState extends State<QuizScreen> {
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            fontFamily: "BaiJamjuree",
             color: Colors.white,
           ),
         ),
@@ -299,7 +298,7 @@ class _QuizScreenState extends State<QuizScreen> {
                               style: TextStyle(
                                 fontSize: 15,
                                 color: Colors.grey,
-                                fontFamily: "BaiJamjuree",
+
 
                               ),
                             ),
@@ -311,7 +310,6 @@ class _QuizScreenState extends State<QuizScreen> {
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                fontFamily: "BaiJamjuree",
                               ),
                             ),
 
@@ -338,7 +336,6 @@ class _QuizScreenState extends State<QuizScreen> {
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            fontFamily: "BaiJamjuree",
                           ),
                         ),
 
@@ -380,7 +377,6 @@ class _QuizScreenState extends State<QuizScreen> {
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 16,
-                  fontFamily: "BaiJamjuree",
                 ),
               ),
 
@@ -392,7 +388,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   color: Colors.white,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  fontFamily: "BaiJamjuree",
+
                 ),
               ),
 
@@ -492,7 +488,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           color: Color(0xFF306AE7),
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          fontFamily: "BaiJamjuree",
+
                         ),
                       ),
                     ),
@@ -510,7 +506,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           color: selected
                               ? const Color(0xFF4A6CF7)
                               : Colors.black,
-                          fontFamily: "BaiJamjuree",
+
                         ),
                       )
                   ),
@@ -555,7 +551,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        fontFamily: "BaiJamjuree",
+
                       ),
                     ),
 
@@ -590,7 +586,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                   fontSize: 36,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF4A6CF7),
-                                  fontFamily: "BaiJamjuree",
+
                                 ),
                               ),
 
@@ -599,7 +595,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                 style: TextStyle(
                                   fontSize: 15,
                                   color: Colors.grey,
-                                  fontFamily: "BaiJamjuree",
+
                                 ),
                               ),
                             ],
