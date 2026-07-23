@@ -177,7 +177,7 @@ class _Register extends State<Register>
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.all(Radius.circular(15.0)),
                                       ),
-
+                                      
 
                                       suffixIcon: IconButton(onPressed: (){
                                         setState(() {
