@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 
 class org_dashboard extends StatefulWidget {
   const org_dashboard({super.key});
@@ -12,7 +14,6 @@ class _org_dashboardState extends State<org_dashboard> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    // final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
 
       //title
@@ -32,7 +33,7 @@ class _org_dashboardState extends State<org_dashboard> {
           ),
         ),
         title: Text("Organizer\nDashboard",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
-        actions: [IconButton(onPressed: (){}, icon:Icon(Icons.account_circle_rounded),iconSize: 60,color: Colors.white,  ),
+        actions: [IconButton(onPressed: (){Navigator.push(context,MaterialPageRoute(builder: (context) => Choose_Role_Screen()));}, icon:Icon(Icons.account_circle_rounded),iconSize: 60,color: Colors.white,  ),
         ],
       ),
 
