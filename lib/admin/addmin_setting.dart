@@ -101,35 +101,6 @@ class _Admin_settingState extends State<Admin_setting> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.push(context,MaterialPageRoute(builder: (context) => SplashScreen()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          elevation: 6,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: const Row(
-                          children: [
-                            Text(
-                              "Delete Account",
-                              style: TextStyle(
-                                fontSize: 22,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 20),
-                    Container(    
-                      height: 60,
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
                           Navigator.push(context,MaterialPageRoute(builder: (context) =>PrivacyPolicyScreen()));
                         },
                         style: ElevatedButton.styleFrom(
