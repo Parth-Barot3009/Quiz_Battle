@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/auth/CheckRole.dart';
+import 'package:quiz_battle/auth/Authantication.dart';
 import 'package:quiz_battle/auth/User_Registration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('role', widget.role!);
 
 
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Checkrole(role: widget.role,)));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

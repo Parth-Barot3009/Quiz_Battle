@@ -50,6 +50,7 @@ class _org_dashboardState extends State<org_dashboard> {
           color: Color(0xFF306AE7),
           child: Container(
             width: screenWidth,
+            height: screenHeight,
             decoration: const BoxDecoration(
               color: Colors.white,
             ),
@@ -394,32 +395,6 @@ class _org_dashboardState extends State<org_dashboard> {
           ),
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   currentIndex: 0,
-      //   selectedItemColor: Color(0xFF2E7BFF),
-      //   unselectedItemColor: Colors.grey,
-      //   items: [
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.home),
-      //       label: "Home",
-      //     ),
-      //
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.quiz),
-      //       label: "Quizzes",
-      //     ),
-      //
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.people),
-      //       label: "Students",
-      //     ),
-      //
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.person),
-      //       label: "Profile",
-      //     ),
-      //   ],
-      // ),
     );
   }
 }

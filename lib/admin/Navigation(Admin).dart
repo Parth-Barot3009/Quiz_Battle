@@ -28,8 +28,8 @@ class _Admin_NavState extends State<Admin_Nav> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screen[_currentIndex]
-      ,bottomNavigationBar: NavigationBarTheme(
+      body: _screen[_currentIndex],
+      bottomNavigationBar: NavigationBarTheme(
       data: NavigationBarThemeData(
         backgroundColor: Color(0xFF306AE7),
         labelTextStyle: WidgetStateProperty.all(TextStyle(

@@ -18,7 +18,6 @@ class LeaderboardScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
       ),
 
       body: SingleChildScrollView(
@@ -31,15 +30,6 @@ class LeaderboardScreen extends StatelessWidget {
             children: [
 
               const SizedBox(height: 30),
-
-              const Text(
-                "LEADERBOARD",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
 
               const SizedBox(height: 20),
 

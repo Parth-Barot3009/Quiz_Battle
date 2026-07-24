@@ -38,7 +38,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
               // Organizer Profile Image Saction
               Container(
-                height: screenHeight,
                 width: screenWidth,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(

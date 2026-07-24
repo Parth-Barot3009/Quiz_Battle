@@ -48,7 +48,7 @@ class StudentDashboard extends StatelessWidget {
                 /// PROFILE CARD
                 Container(
                   width: screenHeight*0.95,
-                  height: 170,
+                  height: screenHeight*0.20,
           
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -136,7 +136,7 @@ class StudentDashboard extends StatelessWidget {
           
                     Expanded(
                       child: Container(
-                        height: 120,
+                        height: screenHeight*0.12,
           
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
@@ -179,7 +179,7 @@ class StudentDashboard extends StatelessWidget {
           
                     Expanded(
                       child: Container(
-                        height: 120,
+                        height: screenHeight*0.12,
           
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
@@ -221,45 +221,48 @@ class StudentDashboard extends StatelessWidget {
                   ],
                 ),
           
-                const SizedBox(height: 25),
+                const SizedBox(height: 20),
           
           
                 /// STATISTICS
-                Row(
-                  children: [
-          
-                    Expanded(
-                      child: statCard(
-                        Icons.sports_esports,
-                        "25",
-                        "Battles",
+                Container(
+
+                  child: Row(
+                    children: [
+
+                      Expanded(
+                        child: statCard(
+                          Icons.sports_esports,
+                          "25",
+                          "Battles",
+                        ),
                       ),
-                    ),
-          
-                    const SizedBox(width: 10),
-          
-                    Expanded(
-                      child: statCard(
-                        Icons.emoji_events,
-                        "18",
-                        "Wins",
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: statCard(
+                          Icons.emoji_events,
+                          "18",
+                          "Wins",
+                        ),
                       ),
-                    ),
-          
-                    const SizedBox(width: 10),
-          
-                    Expanded(
-                      child: statCard(
-                        Icons.trending_up,
-                        "72%",
-                        "Win Rate",
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: statCard(
+                          Icons.trending_up,
+                          "72%",
+                          "Win Rate",
+                        ),
                       ),
-                    ),
-          
-                  ],
+
+                    ],
+                  ),
                 ),
           
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
           
                 const Text(
                   "Upcoming Battles",
@@ -306,7 +309,7 @@ class StudentDashboard extends StatelessWidget {
       String title,
       ) {
     return Container(
-      height: 110,
+      height: 120,
 
       decoration: BoxDecoration(
         gradient: LinearGradient(
