@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "Roboto",
       ),
-      home: player_navigationbar(),
+      home: SplashScreen(),
     );
   }
 }
