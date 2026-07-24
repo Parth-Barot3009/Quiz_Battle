@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/Admin_Deshboard.dart';
 import 'package:quiz_battle/admin/Navigation(Admin).dart';
 import 'package:quiz_battle/organizer/organizer_dashboard.dart';
+import 'package:quiz_battle/player/user_dashboard.dart';
 
 
 
@@ -12,14 +13,18 @@ class Checkrole extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if ( role == "admin" ){
-        return Admin_Nav();
+      return Admin_Nav();
     }
     else if ( role == "organizer" ){
       return org_dashboard();
     }
-    else
+    else if (role == "player")
     {
-      return AdminDeshboard();
+      return u_dashboard();
+    } else {
+      return Scaffold(
+        body: Text("Invalid user"),
+      );
     }
   }
 }

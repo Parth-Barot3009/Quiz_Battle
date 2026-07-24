@@ -196,7 +196,7 @@ class _Choose_Role_ScreenState extends State<Choose_Role_Screen> {
 
                 GestureDetector(
                   onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "player")));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "users")));
                     //Navigate to Player Login Page
                   },
                   child: Padding(

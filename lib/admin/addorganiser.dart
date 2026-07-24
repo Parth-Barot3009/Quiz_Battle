@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/Admin_Deshboard.dart';
 import 'package:quiz_battle/admin/Navigation(Admin).dart';
@@ -17,6 +19,40 @@ class _AddorganiserState extends State<Addorganiser> {
 
   bool passwordvisible = true;
 
+  Future sighUp() async{
+    try{
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailcontroller.text.trim(),
+        password: passwordcontroller.text.trim(),
+      );
+      
+      //Add organizer Details
+      addOrganizerDetails(
+        namecon.text.trim(),
+        emailcontroller.text.trim(),
+        passwordcontroller.text.trim(),
+        "",
+        role:'organizer',
+      );
+
+    }on FirebaseAuthException catch (e){
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message != null ?"Incorrect email or password":"Login failed try again"))
+      );
+    }
+
+  }
+
+  Future addOrganizerDetails(String name,String email,String password,String profile_img, {required String role}) async{
+    await FirebaseFirestore.instance.collection('organizer').add(
+        {
+          'o_name':name,
+          'o_email':email,
+          'o_profileimage':profile_img,
+        }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -32,23 +68,25 @@ class _AddorganiserState extends State<Addorganiser> {
             color: Colors.white,
           ),
         ),
-        automaticallyImplyLeading: false,
+        iconTheme: IconThemeData(
+          color: Colors.white,
+        ),
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
-        leading: IconButton(
-                onPressed: (){
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Admin_Nav()),
-                  );
-
-                },
-                icon: Icon(
-                  Icons.arrow_back_rounded,
-                  size: 30,
-                  color: Colors.white,
-                )
-            )
+        // leading: IconButton(
+        //         onPressed: (){
+        //           // Navigator.pushReplacement(
+        //           //   context,
+        //           //   MaterialPageRoute(builder: (context) => const Admin_Nav()),
+        //           // );
+        //
+        //         },
+        //         icon: Icon(
+        //           Icons.arrow_back_rounded,
+        //           size: 30,
+        //           color: Colors.white,
+        //         )
+        //     )
       ),
 
       body: SafeArea(
@@ -233,8 +271,9 @@ class _AddorganiserState extends State<Addorganiser> {
                               width: screenWidth*0.70,
                               height: screenHeight*0.07,
                               child: ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async{
                                   if (formKey.currentState!.validate()) {
+                                    await sighUp();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content:

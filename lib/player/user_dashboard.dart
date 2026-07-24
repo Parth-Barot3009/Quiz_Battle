@@ -37,261 +37,263 @@ class StudentDashboard extends StatelessWidget {
       ),
 
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-
-            children: [
-              /// PROFILE CARD
-              Container(
-                width: screenHeight*0.95,
-                height: 170,
-
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors:[
-                    Color(0xFF4A7CFF),
-                    Color(0xFF306AE7),
-                  ]
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+          
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+          
+              children: [
+                /// PROFILE CARD
+                Container(
+                  width: screenHeight*0.95,
+                  height: 170,
+          
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors:[
+                      Color(0xFF4A7CFF),
+                      Color(0xFF306AE7),
+                    ]
+                    ),
+                    borderRadius: BorderRadius.circular(25),
                   ),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-
-                  child: Row(
-                    children: [
-
-                      const CircleAvatar(
-                        radius: 35,
-                        backgroundColor: Colors.white,
-
-                        child: Icon(
-                          Icons.person,
-                          color: Color(0xFF5E90E6),
-                          size: 40,
+          
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+          
+                    child: Row(
+                      children: [
+          
+                        const CircleAvatar(
+                          radius: 35,
+                          backgroundColor: Colors.white,
+          
+                          child: Icon(
+                            Icons.person,
+                            color: Color(0xFF5E90E6),
+                            size: 40,
+                          ),
                         ),
-                      ),
-
-                      const SizedBox(width: 20),
-
-                      const Expanded(
-                        child: Column(
+          
+                        const SizedBox(width: 20),
+          
+                        const Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+          
+          
+                            children: [
+          
+          
+                              Text(
+                                "John Smith",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+          
+                              SizedBox(height: 8),
+          
+                              Text(
+                                "Rank #25",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+          
+                              SizedBox(height: 5),
+          
+                              Text(
+                                "1250 XP",
+                                style: TextStyle(
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+          
+                        const Icon(
+                          Icons.emoji_events,
+                          color: Colors.white54,
+                          size: 90,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+          
+                const SizedBox(height: 25),
+          
+                Row(
+                  children: [
+          
+                    Expanded(
+                      child: Container(
+                        height: 120,
+          
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                          gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors:[
+                                Color(0xFF4A7CFF),
+                                Color(0xFF306AE7),
+                              ]
+                          ),
+                        ),
+          
+                        child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-
-
+          
                           children: [
-
-
+          
+                            Icon(
+                              Icons.flash_on,
+                              color: Colors.white,
+                              size: 45,
+                            ),
+          
+                            SizedBox(height: 10),
+          
                             Text(
-                              "John Smith",
+                              "Quick Battle",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            SizedBox(height: 8),
-
-                            Text(
-                              "Rank #25",
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
-
-                            SizedBox(height: 5),
-
-                            Text(
-                              "1250 XP",
-                              style: TextStyle(
                               ),
                             ),
                           ],
                         ),
                       ),
-
-                      const Icon(
+                    ),
+          
+                    const SizedBox(width: 15),
+          
+                    Expanded(
+                      child: Container(
+                        height: 120,
+          
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                          gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors:[
+                                Color(0xFF4A7CFF),
+                                Color(0xFF306AE7),
+                              ]
+                          ),
+                        ),
+          
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+          
+                          children: [
+          
+                            Icon(
+                              Icons.group,
+                              color: Colors.white,
+                              size: 45,
+                            ),
+          
+                            SizedBox(height: 10),
+          
+                            Text(
+                              "Join Battle",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+          
+                  ],
+                ),
+          
+                const SizedBox(height: 25),
+          
+          
+                /// STATISTICS
+                Row(
+                  children: [
+          
+                    Expanded(
+                      child: statCard(
+                        Icons.sports_esports,
+                        "25",
+                        "Battles",
+                      ),
+                    ),
+          
+                    const SizedBox(width: 10),
+          
+                    Expanded(
+                      child: statCard(
                         Icons.emoji_events,
-                        color: Colors.white54,
-                        size: 90,
+                        "18",
+                        "Wins",
                       ),
-                    ],
+                    ),
+          
+                    const SizedBox(width: 10),
+          
+                    Expanded(
+                      child: statCard(
+                        Icons.trending_up,
+                        "72%",
+                        "Win Rate",
+                      ),
+                    ),
+          
+                  ],
+                ),
+          
+                const SizedBox(height: 30),
+          
+                const Text(
+                  "Upcoming Battles",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 25),
-
-              Row(
-                children: [
-
-                  Expanded(
-                    child: Container(
-                      height: 120,
-
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors:[
-                              Color(0xFF4A7CFF),
-                              Color(0xFF306AE7),
-                            ]
-                        ),
-                      ),
-
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-
-                        children: [
-
-                          Icon(
-                            Icons.flash_on,
-                            color: Colors.white,
-                            size: 45,
-                          ),
-
-                          SizedBox(height: 10),
-
-                          Text(
-                            "Quick Battle",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 15),
-
-                  Expanded(
-                    child: Container(
-                      height: 120,
-
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors:[
-                              Color(0xFF4A7CFF),
-                              Color(0xFF306AE7),
-                            ]
-                        ),
-                      ),
-
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-
-                        children: [
-
-                          Icon(
-                            Icons.group,
-                            color: Colors.white,
-                            size: 45,
-                          ),
-
-                          SizedBox(height: 10),
-
-                          Text(
-                            "Join Battle",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                ],
-              ),
-
-              const SizedBox(height: 25),
-
-
-              /// STATISTICS
-              Row(
-                children: [
-
-                  Expanded(
-                    child: statCard(
-                      Icons.sports_esports,
-                      "25",
-                      "Battles",
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  Expanded(
-                    child: statCard(
-                      Icons.emoji_events,
-                      "18",
-                      "Wins",
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  Expanded(
-                    child: statCard(
-                      Icons.trending_up,
-                      "72%",
-                      "Win Rate",
-                    ),
-                  ),
-
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              const Text(
-                "Upcoming Battles",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+          
+                const SizedBox(height: 15),
+          
+                battleCard(
+                  "Flutter Quiz Battle",
+                  "10 Questions",
+                  "Today • 6:00 PM",
                 ),
-              ),
-
-              const SizedBox(height: 15),
-
-              battleCard(
-                "Flutter Quiz Battle",
-                "10 Questions",
-                "Today • 6:00 PM",
-              ),
-
-              const SizedBox(height: 15),
-
-              battleCard(
-                "Java Challenge",
-                "15 Questions",
-                "Tomorrow • 4:30 PM",
-              ),
-
-              const SizedBox(height: 15),
-
-              battleCard(
-                "Database Battle",
-                "20 Questions",
-                "Friday • 7:00 PM",
-              ),
-            ],
+          
+                const SizedBox(height: 15),
+          
+                battleCard(
+                  "Java Challenge",
+                  "15 Questions",
+                  "Tomorrow • 4:30 PM",
+                ),
+          
+                const SizedBox(height: 15),
+          
+                battleCard(
+                  "Database Battle",
+                  "20 Questions",
+                  "Friday • 7:00 PM",
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/Admin_Deshboard.dart';
 import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
 import 'package:quiz_battle/admin/Student_ListScreen.dart';
+import 'package:quiz_battle/admin/addmin_setting.dart';
 
 
 class Admin_Nav extends StatefulWidget {
@@ -21,7 +22,7 @@ class _Admin_NavState extends State<Admin_Nav> {
     AdminDeshboard(),
     Org_List(),
     Stu_List(),
-    Stu_List(),
+    Admin_setting(),
   ];
 
   @override
@@ -50,7 +51,7 @@ class _Admin_NavState extends State<Admin_Nav> {
               setState(() {
                 _currentIndex = value;
               });
-              controller.jumpToPage(_currentIndex);
+              // controller.jumpToPage(_currentIndex);
           },
           destinations: [
           NavigationDestination(icon: Icon(Icons.home), label: "Home"),
@@ -62,14 +63,3 @@ class _Admin_NavState extends State<Admin_Nav> {
     );
   }
 }
-
-
-// PageView(
-// controller: controller,
-// onPageChanged: (index) {
-// setState(() {
-// _currentIndex = index;
-// });
-// },
-// children: _screen,
-// )

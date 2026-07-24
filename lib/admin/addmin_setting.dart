@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 // import 'package:quiz_battle/admin/GeneralSettingScreen.dart';
 import 'package:quiz_battle/admin/about_app_setting.dart';
@@ -13,6 +14,11 @@ class Admin_setting extends StatefulWidget {
 }
 
 class _Admin_settingState extends State<Admin_setting> {
+
+  Future<void> logout() async{
+    await FirebaseAuth.instance.signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,7 +163,9 @@ class _Admin_settingState extends State<Admin_setting> {
                     SizedBox(
                       height: 60,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async{
+                          await FirebaseAuth.instance.signOut();
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
                           Navigator.push(context,MaterialPageRoute(builder: (context) => SplashScreen()));
                         },
                         style: ElevatedButton.styleFrom(

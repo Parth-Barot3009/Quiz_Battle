@@ -32,7 +32,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
 
           ),
         ),
-        // automaticallyImplyLeading: false,
+
         backgroundColor: Color(0xFF306AE7),
         toolbarHeight: 80,
       ),

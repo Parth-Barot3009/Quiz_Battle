@@ -56,6 +56,10 @@ class _Register extends State<Register>
 
   @override
   Widget build(BuildContext context) {
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body:Container(
         height: double.infinity,
@@ -72,8 +76,8 @@ class _Register extends State<Register>
         ),
         child: Center(
             child: Container(
-              width: 300,
-              height: 460,
+              width: screenWidth*0.85,
+              height: screenHeight*0.60,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(20.00)),

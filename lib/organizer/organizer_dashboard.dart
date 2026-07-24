@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 
 class org_dashboard extends StatefulWidget {
   const org_dashboard({super.key});
@@ -32,6 +34,7 @@ class _org_dashboardState extends State<org_dashboard> {
             ),
           ),
         ),
+        automaticallyImplyLeading: false,
         title: Text("Dashboard",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
         actions: [IconButton(onPressed: (){}, icon:Icon(Icons.account_circle_rounded),iconSize: 60,color: Colors.white,  ),
         ],
@@ -371,7 +374,19 @@ class _org_dashboardState extends State<org_dashboard> {
                   ),
                 ),
 
-
+                ElevatedButton(
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Choose_Role_Screen(),
+                      ),
+                          (route) => false,
+                    );
+                  },
+                  child: const Text("Sign Out"),
+                ),
 
 
               ],

@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/auth/CheckRole.dart';
 import 'package:quiz_battle/auth/User_Registration.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 
@@ -15,7 +17,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final  emailController = TextEditingController();
   final  passwordController = TextEditingController();
 
@@ -37,11 +38,15 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      var temp = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential user =  await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      print(temp);
+
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('role', widget.role!);
+
 
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Checkrole(role: widget.role,)));
 
