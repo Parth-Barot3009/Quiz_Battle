@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 
 class UserProfileInfo extends StatefulWidget {
   const UserProfileInfo({super.key});
@@ -10,6 +12,10 @@ class UserProfileInfo extends StatefulWidget {
 
 class _UserProfileInfoState extends State<UserProfileInfo> {
   final formKey = GlobalKey<FormState>();
+
+  Future<void> logout() async{
+    await FirebaseAuth.instance.signOut();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +192,10 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                             width: screenWidth*0.95,
                             height: screenHeight*0.06,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () async{
+                                await FirebaseAuth.instance.signOut();
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: Colors.black,

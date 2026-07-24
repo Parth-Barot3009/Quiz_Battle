@@ -375,19 +375,19 @@ class _org_dashboardState extends State<org_dashboard> {
                   ),
                 ),
 
-                ElevatedButton(
-                  onPressed: () async {
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Choose_Role_Screen(),
-                      ),
-                          (route) => false,
-                    );
-                  },
-                  child: const Text("Sign Out"),
-                ),
+                // ElevatedButton(
+                //   onPressed: () async {
+                //     await FirebaseAuth.instance.signOut();
+                //     Navigator.pushAndRemoveUntil(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => Choose_Role_Screen(),
+                //       ),
+                //           (route) => false,
+                //     );
+                //   },
+                //   child: const Text("Sign Out"),
+                // ),
 
 
               ],

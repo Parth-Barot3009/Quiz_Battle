@@ -31,6 +31,7 @@ class _Admin_settingState extends State<Admin_setting> {
           fontWeight:FontWeight.bold
           ),
         ),
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         child: Column(

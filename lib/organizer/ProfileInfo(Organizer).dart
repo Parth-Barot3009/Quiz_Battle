@@ -33,6 +33,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
             color: Colors.white,
           ),
         ),
+        automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
       ),
