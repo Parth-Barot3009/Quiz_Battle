@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quiz_battle/admin/addorganiser.dart';
 import 'package:quiz_battle/auth/Authantication.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
+import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:quiz_battle/organizer/ProfileInfo(Organizer).dart';
 import 'package:quiz_battle/organizer/create_battle.dart';
 import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
@@ -27,7 +29,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "Roboto",
       ),
-      home: SplashScreen(),
+      home: Choose_Role_Screen(),
     );
   }
 }

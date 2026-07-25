@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> login(role) async {
+  Future<void> login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -38,23 +38,69 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      UserCredential user =  await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+      String email = emailController.text.trim();
 
+      if (widget.role == "admin")
+        {
+          var adm = await FirebaseFirestore.instance.collection('admin').where('email',isEqualTo: email).get();
+          if (adm.docs.isEmpty){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("This account is not an admin")),
+            );
+          }
+          else{
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login Successful"),
+              ),
+            );
+          }
+        }
+
+      if (widget.role == "organizer")
+        {
+          var org = await FirebaseFirestore.instance.collection('organizer').where('o_email',isEqualTo: email).get();
+          if (org.docs.isEmpty){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("This account is not an organizer")),
+            );
+          }
+          else{
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login Successful"),
+              ),
+            );
+          }
+        }
+
+      if (widget.role == "player")
+        {
+          var ply = await FirebaseFirestore.instance.collection('player').where('player_email',isEqualTo: email).get();
+          if (ply.docs.isEmpty){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("This account is not an player")),
+            );
+          }
+          else{
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login Successful"),
+              ),
+            );
+          }
+        }
 
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('role', widget.role!);
 
-
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Login Successful"),
-        ),
-      );
 
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,6 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               elevation: 8,
                             ),
-                            onPressed: isLoading ? null : ()=>login(widget.role),
+                            onPressed: isLoading ? null : ()=>login(),
                             child: isLoading
                                 ? const SizedBox(
                               width: 25,

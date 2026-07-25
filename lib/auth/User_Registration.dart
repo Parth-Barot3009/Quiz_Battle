@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
@@ -32,12 +33,27 @@ class _Register extends State<Register>
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
       email: emailcontroller.text.trim(),
       password: passwordcontroller.text.trim(),
-      ); 
+      );
+
+      addUserDetails(
+          namecon.text.trim(),
+          emailcontroller.text.trim(),
+          role:'player',
+      );
+
     }on FirebaseAuthException catch (e){
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message != null ?"Incorrect email or password":"Login failed try again"))
+        SnackBar(content: Text(e.message ?? "Something Went Wrong"))
       );
     }
+  }
+
+  Future addUserDetails(String name,String email,{required String? role}) async{
+    await FirebaseFirestore.instance.collection('player').add({
+      'player_email':email,
+      'player_name':name,
+      'role':role,
+    });
   }
 
   // final ImagePicker picker = ImagePicker();
@@ -113,6 +129,7 @@ class _Register extends State<Register>
                         child: Column(
                             children: [
                               TextFormField(
+                                controller: namecon,
                                 decoration:InputDecoration(
                                     border:
                                     OutlineInputBorder(
@@ -201,16 +218,16 @@ class _Register extends State<Register>
                                 width: 228,
                                 child:
 
-                                ElevatedButton(onPressed: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "player")));
-
+                                ElevatedButton(onPressed: () async{
                                   if (formkey.currentState!.validate()){
+                                    await sighUp();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text("registretion Successful"),
                                       ),
                                     );
                                   }
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "player")));
                                 },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(0xFF5E90E6),

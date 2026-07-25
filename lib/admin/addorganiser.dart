@@ -49,6 +49,7 @@ class _AddorganiserState extends State<Addorganiser> {
           'o_name':name,
           'o_email':email,
           'o_profileimage':profile_img,
+          'role':role,
         }
     );
   }
@@ -280,6 +281,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                             Text("Add Organiser Successful"),
                                       ),
                                     );
+                                    Navigator.pop(context);
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
