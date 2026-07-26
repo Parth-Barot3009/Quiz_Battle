@@ -1,8 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/admin/Admin_Deshboard.dart';
-import 'package:quiz_battle/admin/Navigation(Admin).dart';
 
 class Addorganiser extends StatefulWidget {
   const Addorganiser({super.key});
@@ -19,41 +15,6 @@ class _AddorganiserState extends State<Addorganiser> {
 
   bool passwordvisible = true;
 
-  Future sighUp() async{
-    try{
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailcontroller.text.trim(),
-        password: passwordcontroller.text.trim(),
-      );
-      
-      //Add organizer Details
-      addOrganizerDetails(
-        namecon.text.trim(),
-        emailcontroller.text.trim(),
-        passwordcontroller.text.trim(),
-        "",
-        role:'organizer',
-      );
-
-    }on FirebaseAuthException catch (e){
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message != null ?"Incorrect email or password":"Login failed try again"))
-      );
-    }
-
-  }
-
-  Future addOrganizerDetails(String name,String email,String password,String profile_img, {required String role}) async{
-    await FirebaseFirestore.instance.collection('organizer').add(
-        {
-          'o_name':name,
-          'o_email':email,
-          'o_profileimage':profile_img,
-          'role':role,
-        }
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -64,30 +25,13 @@ class _AddorganiserState extends State<Addorganiser> {
       appBar: AppBar(
         title: Text("Add Organizer",
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 30,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        iconTheme: IconThemeData(
-          color: Colors.white,
-        ),
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
-        // leading: IconButton(
-        //         onPressed: (){
-        //           // Navigator.pushReplacement(
-        //           //   context,
-        //           //   MaterialPageRoute(builder: (context) => const Admin_Nav()),
-        //           // );
-        //
-        //         },
-        //         icon: Icon(
-        //           Icons.arrow_back_rounded,
-        //           size: 30,
-        //           color: Colors.white,
-        //         )
-        //     )
       ),
 
       body: SafeArea(
@@ -114,33 +58,17 @@ class _AddorganiserState extends State<Addorganiser> {
 
                   const SizedBox(height: 20),
 
-                  Stack(
-                    children: [
-                      IconButton(
-                        onPressed: (){},
-                        icon: CircleAvatar(
-                          radius: 60,
-                          backgroundColor: Color(0xFF306AE7),
-                          child: Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 90,
-                        bottom: 10,
-                        child: CircleAvatar(
-                          backgroundColor: Color(0xFFE9ECFF),
-                          foregroundColor: Color(0xFF4A7CFF),
-                          child: Icon(
-                              Icons.edit_outlined
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  IconButton(
+                    onPressed: (){},
+                    icon: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Color(0xFF306AE7),
+                    child: Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Colors.white,
+                    ),
+                  ),),
 
                   SizedBox(height: 10),
 
@@ -165,7 +93,7 @@ class _AddorganiserState extends State<Addorganiser> {
                             TextFormField(
                               controller: namecon,
                               decoration: InputDecoration(
-                                label: Text("Full Name",style: TextStyle(fontWeight: FontWeight.bold,),),
+                                label: Text("Email",style: TextStyle(fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Full Name",
                                 hintStyle: TextStyle(fontWeight: FontWeight.bold,),
                                 prefixIcon: const Icon(
@@ -272,29 +200,27 @@ class _AddorganiserState extends State<Addorganiser> {
                               width: screenWidth*0.70,
                               height: screenHeight*0.07,
                               child: ElevatedButton(
-                                onPressed: () async{
+                                onPressed: () {
                                   if (formKey.currentState!.validate()) {
-                                    await sighUp();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content:
                                             Text("Add Organiser Successful"),
                                       ),
                                     );
-                                    Navigator.pop(context);
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF306AE7),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
+                                    borderRadius: BorderRadius.circular(50),
                                   ),
                                 ),
                                 child: const Text(
                                   "Add Organiser",
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 20,
+                                    fontSize: 26,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

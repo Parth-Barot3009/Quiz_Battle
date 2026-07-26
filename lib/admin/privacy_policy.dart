@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/admin/addmin_setting.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
