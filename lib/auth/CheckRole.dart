@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/Admin_Deshboard.dart';
-import 'package:quiz_battle/admin/Navigation(Admin).dart';
+import 'package:quiz_battle/admin/Navigation_Admin.dart';
 import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 
 

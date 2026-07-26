@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-// import 'package:quiz_battle/admin/GeneralSettingScreen.dart';
+import 'package:quiz_battle/admin/GeneralSettingScreen.dart';
 import 'package:quiz_battle/admin/about_app_setting.dart';
 import 'package:quiz_battle/admin/privacy_policy.dart';
-import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
 
 class Admin_setting extends StatefulWidget {
@@ -39,7 +38,7 @@ class _Admin_settingState extends State<Admin_setting> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Navigator.push(context,MaterialPageRoute(builder: (context) => GeneralSettingScreen()));
+                          Navigator.push(context,MaterialPageRoute(builder: (context) => GeneralSettingScreen()));
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
