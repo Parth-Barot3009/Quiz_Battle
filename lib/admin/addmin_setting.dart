@@ -126,6 +126,8 @@ class _Admin_settingState extends State<Admin_setting> {
                                 fontSize: 22,
                               ),
                             ),
+                            Spacer(),
+                            Icon(Icons.arrow_forward_ios),
                           ],
                         ),
                       ),

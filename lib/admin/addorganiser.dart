@@ -46,6 +46,15 @@ class _AddorganiserState extends State<Addorganiser> {
         ),
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
 
       body: SafeArea(
@@ -215,9 +224,7 @@ class _AddorganiserState extends State<Addorganiser> {
                               height: screenHeight*0.07,
                               child: ElevatedButton(
                                 onPressed: () async{
-
                                   if (formKey.currentState!.validate()) {
-
                                     await createOrg();
                                     await addOrganizerDetail("organizer");
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -226,6 +233,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                             Text("Add Organiser Successful"),
                                       ),
                                     );
+                                    Navigator.pop(context);
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(

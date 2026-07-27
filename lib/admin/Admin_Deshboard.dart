@@ -429,20 +429,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       ),
                     ),
                   ),
-
-                  // ElevatedButton(
-                  //   onPressed: () async {
-                  //     await FirebaseAuth.instance.signOut();
-                  //     Navigator.pushAndRemoveUntil(
-                  //       context,
-                  //       MaterialPageRoute(
-                  //         builder: (context) => Choose_Role_Screen(),
-                  //       ),
-                  //           (route) => false,
-                  //     );
-                  //   },
-                  //   child: const Text("Sign Out"),
-                  // ),
                 ],
               ),
             ),
