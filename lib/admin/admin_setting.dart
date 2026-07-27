@@ -33,7 +33,7 @@ class _Admin_settingState extends State<Admin_setting> {
               child: Container(
                 child: Column(
                     children: [
-                      Container(    
+                      SizedBox(    
                       height: 60,
                       width: double.infinity,
                       child: ElevatedButton(
@@ -64,7 +64,7 @@ class _Admin_settingState extends State<Admin_setting> {
                     ),
 
                     SizedBox(height: 20,),
-                    Container(    
+                    SizedBox(    
                       height: 60,
                       width: double.infinity,
                       child: ElevatedButton(
@@ -95,7 +95,7 @@ class _Admin_settingState extends State<Admin_setting> {
                     ),
 
                     SizedBox(height: 20),
-                    Container(    
+                    SizedBox(    
                       height: 60,
                       width: double.infinity,
                       child: ElevatedButton(
