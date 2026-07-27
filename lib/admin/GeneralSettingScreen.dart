@@ -55,6 +55,10 @@ class _GeneralSettingScreenState
                       notification = value;
                     });
                   },
+                  activeColor: Colors.white,          
+                  activeTrackColor: Colors.blueAccent, 
+                  inactiveThumbColor: Colors.grey,   
+                  inactiveTrackColor: Colors.grey.shade300,
                 ),
 
                 Divider(),
@@ -75,6 +79,10 @@ class _GeneralSettingScreenState
                       darkMode = value;
                     });
                   },
+                  activeColor: Colors.white,          
+                  activeTrackColor: Colors.blueAccent, 
+                  inactiveThumbColor: Colors.grey,   
+                  inactiveTrackColor: Colors.grey.shade300, 
                 ),
 
                 Divider(),
