@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
           else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Login Successful"),
@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
           else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Login Successful"),
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
           else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Login Successful"),

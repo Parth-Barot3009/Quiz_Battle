@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/organizer/ProfileInfo(Organizer).dart';
-import 'package:quiz_battle/organizer/battle_history.dart';
+import 'package:quiz_battle/organizer/Organizer_Battle_History.dart';
+import 'package:quiz_battle/organizer/ProfileInfo_Organizer.dart';
 import 'package:quiz_battle/organizer/create_battle.dart';
 import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 
@@ -18,7 +18,7 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> {
   final List<Widget> _screen = [
     org_dashboard(),
     create_battle(),
-    BattleHistory(),
+    OrganizerBattleHistory(),
     OrganiserProfileInfo()
   ];
 

@@ -11,6 +11,9 @@ class OrganizerBattleHistory extends StatefulWidget {
 class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Battle History",
@@ -20,12 +23,9 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
               // fontWeight: FontWeight.bold
             ),
         ),
-        leading:IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: ()=>Navigator.push(context,MaterialPageRoute(builder: (context) => OrganiserProfileInfo())),
-        ),
+        automaticallyImplyLeading: false,
         iconTheme: IconThemeData(color: Colors.white),
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF306AE7),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -34,12 +34,12 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                 Padding(
                 padding:EdgeInsetsGeometry.all(20), 
                 child: Container(
-                  width: double.infinity,
-                  height: 220,
+                  width: screenWidth,
+                  height: screenHeight*0.35,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.all(Radius.circular(15)),
-                    // border: Border.all(color: Colors.black),
+
                     boxShadow:[
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
