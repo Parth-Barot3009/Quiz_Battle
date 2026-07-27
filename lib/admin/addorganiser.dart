@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Addorganiser extends StatefulWidget {
   const Addorganiser({super.key});
@@ -14,6 +16,18 @@ class _AddorganiserState extends State<Addorganiser> {
   final passwordcontroller = TextEditingController();
 
   bool passwordvisible = true;
+
+  Future createOrg() async{
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailcontroller.text.trim(), password: passwordcontroller.text.trim());
+  }
+
+  addOrganizerDetail(String? role) async{
+    await FirebaseFirestore.instance.collection('organizer').add({
+      'o_name':namecon.text.trim(),
+      'o_email':emailcontroller.text.trim(),
+      'role':role
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +46,15 @@ class _AddorganiserState extends State<Addorganiser> {
         ),
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
 
       body: SafeArea(
@@ -93,7 +116,7 @@ class _AddorganiserState extends State<Addorganiser> {
                             TextFormField(
                               controller: namecon,
                               decoration: InputDecoration(
-                                label: Text("Email",style: TextStyle(fontWeight: FontWeight.bold,),),
+                                label: Text("Name",style: TextStyle(fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Full Name",
                                 hintStyle: TextStyle(fontWeight: FontWeight.bold,),
                                 prefixIcon: const Icon(
@@ -200,14 +223,17 @@ class _AddorganiserState extends State<Addorganiser> {
                               width: screenWidth*0.70,
                               height: screenHeight*0.07,
                               child: ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async{
                                   if (formKey.currentState!.validate()) {
+                                    await createOrg();
+                                    await addOrganizerDetail("organizer");
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content:
                                             Text("Add Organiser Successful"),
                                       ),
                                     );
+                                    Navigator.pop(context);
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(

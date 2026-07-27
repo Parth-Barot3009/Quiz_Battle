@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
           else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Login Successful"),
@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
           else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Login Successful"),
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
           else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication(role: widget.role,)));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Login Successful"),
@@ -237,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerLeft,
                         child: TextButton(
                           onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => user_Register()));
                           },
                           child: Text(
                             "Create Account",

@@ -14,7 +14,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             color: Colors.white,
           ),
           onPressed: () {
-            Navigator.push(context,MaterialPageRoute(builder: (context) => SplashScreen()));
+            Navigator.pop(context);
           },
         ),
         title: const Text(

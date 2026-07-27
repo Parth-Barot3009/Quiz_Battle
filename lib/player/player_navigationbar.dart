@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/organizer/ProfileInfo(Organizer).dart';
-import 'package:quiz_battle/organizer/battle_history.dart';
 import 'package:quiz_battle/organizer/create_battle.dart';
 import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 import 'package:quiz_battle/player/user_dashboard.dart';

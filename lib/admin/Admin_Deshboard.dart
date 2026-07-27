@@ -21,8 +21,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Text("Admin Deshboard\nManage your quiz platform",style: TextStyle(color: Colors.white),),
-
     return Scaffold(
       appBar: AppBar(
         title: Text("ADMIN DASHBOARD",
@@ -429,20 +427,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       ),
                     ),
                   ),
-
-                  // ElevatedButton(
-                  //   onPressed: () async {
-                  //     await FirebaseAuth.instance.signOut();
-                  //     Navigator.pushAndRemoveUntil(
-                  //       context,
-                  //       MaterialPageRoute(
-                  //         builder: (context) => Choose_Role_Screen(),
-                  //       ),
-                  //           (route) => false,
-                  //     );
-                  //   },
-                  //   child: const Text("Sign Out"),
-                  // ),
                 ],
               ),
             ),
