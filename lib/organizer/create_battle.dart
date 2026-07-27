@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:math';
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -15,6 +16,7 @@ class _create_battleState extends State<create_battle> {
   TimeOfDay? endTime;
   String? selectedFileName;
   DateTime? selectedDate;
+  final TextEditingController roomCodeController = TextEditingController();
 
   //time pick class
 
@@ -76,6 +78,27 @@ class _create_battleState extends State<create_battle> {
     }
   }
 
+  //room code
+
+  void generateRoomCode() {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    final random = Random();
+
+    String code = "";
+
+    for (int i = 0; i < 6; i++) {
+      code += characters[random.nextInt(characters.length)];
+    }
+
+    roomCodeController.text = code;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    generateRoomCode();
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -99,7 +122,7 @@ class _create_battleState extends State<create_battle> {
             ),
           ),
         ),
-        title: Text("Create Battle Room",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
+        title: Text("Create Battle Room",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,),),
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
@@ -148,7 +171,7 @@ class _create_battleState extends State<create_battle> {
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
-                          fontFamily: "BaiJamjuree",
+
                         ),
                         ),
 
@@ -224,8 +247,11 @@ class _create_battleState extends State<create_battle> {
                         SizedBox(height: 15),
 
                         TextFormField(
+                          controller: roomCodeController,
+                          readOnly: true,
+
                           decoration: InputDecoration(
-                            hintText: "Enter Room Code",
+                            hintText: "Room Code",
 
                             prefixIcon: Padding(
                               padding: const EdgeInsets.all(10),
@@ -238,7 +264,7 @@ class _create_battleState extends State<create_battle> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Icon(
-                                  Icons.numbers_rounded,
+                                  Icons.vpn_key_rounded,
                                   color: Color(0xFF4A6CF7),
                                   size: 22,
                                 ),
@@ -265,19 +291,8 @@ class _create_battleState extends State<create_battle> {
 
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(18),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                 color: Color(0xFFE0E0E0),
-                              ),
-                            ),
-
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                // Your refresh code here
-                              },
-                              icon: const Icon(
-                                Icons.refresh,
-                                color: Color(0xFF4A6CF7),
-                                size: 26,
                               ),
                             ),
 
@@ -285,6 +300,19 @@ class _create_battleState extends State<create_battle> {
                               borderRadius: BorderRadius.circular(18),
                               borderSide: const BorderSide(
                                 color: Color(0xFF4A6CF7),
+                              ),
+                            ),
+
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  generateRoomCode();
+                                });
+                              },
+                              icon: const Icon(
+                                Icons.refresh_rounded,
+                                color: Color(0xFF4A6CF7),
+                                size: 28,
                               ),
                             ),
                           ),
@@ -617,6 +645,46 @@ class _create_battleState extends State<create_battle> {
                               ),
                             ),
                           ],
+                        ),
+
+                        //create battle button
+
+                        const SizedBox(height: 30),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 60,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Create Battle Logic
+                              print("Create Battle Clicked");
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4A6CF7),
+                              foregroundColor: Colors.white,
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.sports_esports_rounded,
+                                  size: 24,
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  "Create Battle",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
