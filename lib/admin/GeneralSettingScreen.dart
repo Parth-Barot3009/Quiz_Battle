@@ -26,6 +26,7 @@ class _GeneralSettingScreenState
         ),
         backgroundColor: Colors.blue,
         toolbarHeight: 80,
+        leading: Icon(Icons.arrow_back_ios_new_rounded),
         iconTheme: IconThemeData(color: Colors.white),
       ),
 
