@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:file_picker/file_picker.dart';
+import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -12,13 +13,13 @@ class create_battle extends StatefulWidget {
 }
 
 class _create_battleState extends State<create_battle> {
-
+  final formKey = GlobalKey<FormState>();
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   String? selectedFileName;
   DateTime? selectedDate;
-  int totalQuestions = 20;
-  final TextEditingController totalQuestionController = TextEditingController();
+  int totalQuestions = 0;
+  final TextEditingController  roomname = TextEditingController();
   final TextEditingController roomCodeController = TextEditingController();
 
   //time pick class
@@ -96,15 +97,27 @@ class _create_battleState extends State<create_battle> {
     roomCodeController.text = code;
   }
 
-  // addCreateRoomDetails() async{
-  //   await FirebaseFirestore.instance.collection('Battle_Room_Details').add(
-  //       {
-  //         'room_name':,
-  //         'room_code':,
-  //
-  //       }
-  //   );
-  // }
+  Future<void> addCreateRoomDetails() async {
+
+    await FirebaseFirestore.instance
+        .collection("Battle_Room_Details")
+        .add({
+
+      "room_name": roomname.text.trim(),
+
+      "room_code": roomCodeController.text.trim(),
+
+      "questions": totalQuestions,
+
+      "start_time": startTime?.format(context),
+
+      "end_time": endTime?.format(context),
+
+      "battle_date": selectedDate,
+
+      "question_file": selectedFileName,
+    });
+  }
 
   @override
   void initState() {
@@ -138,7 +151,6 @@ class _create_battleState extends State<create_battle> {
       ),
 
       body: SingleChildScrollView(
-
         //main container
         child: Container(
           color: Color(0xFF306AE7),
@@ -173,6 +185,7 @@ class _create_battleState extends State<create_battle> {
                         SizedBox(height: 15),
 
                         TextFormField(
+                          controller: roomname,
                           decoration: InputDecoration(
                             hintText: "Enter Room Name",
                             prefixIcon: Padding(
@@ -767,9 +780,15 @@ class _create_battleState extends State<create_battle> {
                               width: double.infinity,
                               height: 60,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  int battleQuestions = int.tryParse(totalQuestionController.text) ?? 0;
-                                  print("Battle Questions : $battleQuestions");
+                                onPressed: () async{
+                                  if(selectedDate == null){
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text("Please select date"))
+                                    );
+                                    return;
+                                  }
+                                  await addCreateRoomDetails();
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_BattleRoom()));
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A6CF7),
