@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
-import 'package:quiz_battle/organizer/Organizer_Battle_History.dart';
 import 'package:quiz_battle/organizer/create_battle.dart';
 import 'firebase_options.dart';
 
@@ -23,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "Roboto",
       ),
-      home: OrganizerBattleHistory(),
+      home: create_battle(),
     );
   }
 }

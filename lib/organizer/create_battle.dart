@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -94,6 +95,16 @@ class _create_battleState extends State<create_battle> {
 
     roomCodeController.text = code;
   }
+
+  // addCreateRoomDetails() async{
+  //   await FirebaseFirestore.instance.collection('Battle_Room_Details').add(
+  //       {
+  //         'room_name':,
+  //         'room_code':,
+  //
+  //       }
+  //   );
+  // }
 
   @override
   void initState() {
@@ -757,8 +768,8 @@ class _create_battleState extends State<create_battle> {
                               height: 60,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  // int battleQuestions = int.tryParse(totalQuestionController.text) ?? 0;
-                                  // print("Battle Questions : $battleQuestions");
+                                  int battleQuestions = int.tryParse(totalQuestionController.text) ?? 0;
+                                  print("Battle Questions : $battleQuestions");
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A6CF7),
