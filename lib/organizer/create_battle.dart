@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:file_picker/file_picker.dart';
-import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -18,7 +17,7 @@ class _create_battleState extends State<create_battle> {
   String? selectedFileName;
   DateTime? selectedDate;
   int totalQuestions = 20;
-  final TextEditingController roomname = TextEditingController();
+  final TextEditingController totalQuestionController = TextEditingController();
   final TextEditingController roomCodeController = TextEditingController();
 
   //time pick class
@@ -123,7 +122,7 @@ class _create_battleState extends State<create_battle> {
             ),
           ),
         ),
-        title: Text("Create Battle Room",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,),),
+        title: Text("Create Battle Room",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
         automaticallyImplyLeading: false,
       ),
 
@@ -156,13 +155,13 @@ class _create_battleState extends State<create_battle> {
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
+                          fontFamily: "BaiJamjuree",
                         ),
                         ),
 
                         SizedBox(height: 15),
 
                         TextFormField(
-                          controller: roomname,
                           decoration: InputDecoration(
                             hintText: "Enter Room Name",
                             prefixIcon: Padding(
@@ -387,6 +386,8 @@ class _create_battleState extends State<create_battle> {
                         ),
 
                         // Total Questions
+
+                        const SizedBox(height: 15),
 
                         const SizedBox(height: 20),
 
@@ -756,7 +757,8 @@ class _create_battleState extends State<create_battle> {
                               height: 60,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_BattleRoom()));
+                                  // int battleQuestions = int.tryParse(totalQuestionController.text) ?? 0;
+                                  // print("Battle Questions : $battleQuestions");
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A6CF7),
