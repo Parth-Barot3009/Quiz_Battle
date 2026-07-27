@@ -237,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerLeft,
                         child: TextButton(
                           onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => user_Register()));
                           },
                           child: Text(
                             "Create Account",
