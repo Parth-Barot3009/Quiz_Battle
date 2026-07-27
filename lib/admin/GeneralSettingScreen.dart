@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class GeneralSettingScreen extends StatefulWidget {
-  GeneralSettingScreen({super.key});
+  const GeneralSettingScreen({super.key});
 
   @override
   State<GeneralSettingScreen> createState() =>
@@ -26,6 +26,7 @@ class _GeneralSettingScreenState
         ),
         backgroundColor: Colors.blue,
         toolbarHeight: 80,
+        leading: Icon(Icons.arrow_back_ios_new_rounded),
         iconTheme: IconThemeData(color: Colors.white),
       ),
 
@@ -55,6 +56,10 @@ class _GeneralSettingScreenState
                       notification = value;
                     });
                   },
+                  activeColor: Colors.white,          
+                  activeTrackColor: Colors.blueAccent, 
+                  inactiveThumbColor: Colors.grey,   
+                  inactiveTrackColor: Colors.grey.shade300,
                 ),
 
                 Divider(),
@@ -75,6 +80,10 @@ class _GeneralSettingScreenState
                       darkMode = value;
                     });
                   },
+                  activeColor: Colors.white,          
+                  activeTrackColor: Colors.blueAccent, 
+                  inactiveThumbColor: Colors.grey,   
+                  inactiveTrackColor: Colors.grey.shade300, 
                 ),
 
                 Divider(),
