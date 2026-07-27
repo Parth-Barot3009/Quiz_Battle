@@ -137,7 +137,7 @@ class _Org_ListState extends State<Org_List> {
                             children: [
                               Text("Organiser 1",
                                 style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
