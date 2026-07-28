@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
+import 'package:quiz_battle/admin/Student_ListScreen.dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 import 'package:quiz_battle/organizer/create_battle.dart';
 import 'firebase_options.dart';
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "Roboto",
       ),
-      home: create_battle(),
+      home: Choose_Role_Screen(),
     );
   }
 }
