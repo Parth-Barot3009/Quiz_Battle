@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/addorganiser.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 class Org_List extends StatefulWidget {
@@ -11,6 +13,7 @@ class Org_List extends StatefulWidget {
 
 class _Org_ListState extends State<Org_List> {
   final search_organizer = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
@@ -92,32 +95,53 @@ class _Org_ListState extends State<Org_List> {
             ),
         
             // Container of Organiser's list
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Container(
-                child: Column(
-                  children: [
-                    // Organiser Image
-                    Container(
-                      height: screenHeight*0.09,
-                      width: screenWidth,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            blurRadius: 8,
-                            offset: Offset(0, 5)
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 15.0),
-                              child: CircleAvatar(
+            Expanded(
+              child: StreamBuilder(
+                  stream: FirebaseFirestore.instance.collection('organizer').snapshots(),
+                  builder: (context,snapshot){
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text("Something went wrong"),
+                      );
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(
+                        child: Text("No Organizer Found"),
+                      );
+                    }
+
+                    var organizerList = snapshot.data!.docs;
+
+                    return ListView.builder(
+                      itemCount: organizerList.length,
+                      itemBuilder:(context,index){
+                        var organizer = organizerList[index];
+
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            height: screenHeight*0.09,
+                            width: screenWidth,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(25),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey,
+                                    blurRadius: 8,
+                                    offset: Offset(0, 5)
+                                ),
+                              ],
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
                                 backgroundColor: Color(0xFF4A7CFF),
                                 radius:30,
                                 child: Icon(
@@ -126,136 +150,18 @@ class _Org_ListState extends State<Org_List> {
                                   color: Colors.white,
                                 ),
                               ),
-                            ),
-                          SizedBox(width: 25,),
-        
-        
-                          // Organiser Name and Email
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Organiser 1",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-        
-                              Text("Organiser Email",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        Spacer(),
-                        //   Delete Organiser
-                          Container(
-                              height: 45,
-                              width: 45,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [BoxShadow(
-                                  color: Colors.grey,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                )],
-                              ),
-                              child: Icon(
-                                color: Color(0xFF4A7CFF),
-                                Icons.delete_outline,
-                                size: 30,
-                              ),
-                            ),
-                          SizedBox(width: 10,),
-                        ],
-                      ),
-                    ),
-        
-                  SizedBox(height: 20,),
-                  //   2nd Organiser
-
-                    Container(
-                      height: screenHeight*0.09,
-                      width: screenWidth,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey,
-                              blurRadius: 8,
-                              offset: Offset(0, 5)
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 15.0),
-                            child: CircleAvatar(
-                              backgroundColor: Color(0xFF4A7CFF),
-                              radius:30,
-                              child: Icon(
-                                Icons.person_rounded,
-                                size: 40,
-                                color: Colors.white,
-                              ),
+                              title: Text(organizer['o_name']),
+                              subtitle: Text(organizer['o_email']),
+                              trailing: IconButton(onPressed: () async{
+                                print("Document ID: ${organizer.id}");
+                                await FirebaseFirestore.instance.collection('organizer').doc(organizer.id).delete();
+                              }, icon: Icon(Icons.delete)),
                             ),
                           ),
-                          SizedBox(width: 25,),
-
-
-                          // Organiser Name and Email
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Organiser 2",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-
-                              Text("Organiser Email",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Spacer(),
-                          //   Delete Organiser
-                          Container(
-                            height: 45,
-                            width: 45,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                              boxShadow: [BoxShadow(
-                                color: Colors.grey,
-                                blurRadius: 10,
-                                offset: Offset(0, 4),
-                              )],
-                            ),
-                            child: Icon(
-                              color: Color(0xFF4A7CFF),
-                              Icons.delete_outline,
-                              size: 30,
-                            ),
-                          ),
-                          SizedBox(width: 10,),
-                        ],
-                      ),
-                    ),
-
-                  ],
-                ),
-              ),
+                        );
+                      }
+                    );
+                  }),
             ),
           ],
         ),
