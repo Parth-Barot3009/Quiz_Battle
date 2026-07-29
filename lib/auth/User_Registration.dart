@@ -213,13 +213,15 @@ class _user_RegisterState extends State<user_Register>
                                 ElevatedButton(onPressed: ()async{
                                   if (formkey.currentState!.validate()){
                                     await sighUp();
+                                  }
+                                  if(await sighUp()){
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text("registretion Successful"),
                                       ),
                                     );
+                                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginScreen(role: "player")));
                                   }
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "player")));
                                 },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(0xFF5E90E6),
