@@ -6,7 +6,10 @@ import 'package:quiz_battle/auth/User_Registration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-
+void main()
+{
+  runApp(LoginScreen(role:"player" ));
+}
 class LoginScreen extends StatefulWidget {
   final String? role;
   const LoginScreen({super.key,required this.role});
@@ -205,6 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 35),
 
                       buildTextField(
+                        
                         controller: emailController,
                         hint: "Email",
                         icon: Icons.person_outline,
@@ -303,6 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
     TextInputType keyboardType = TextInputType.text,
   }) {
     return TextFormField(
+      cursorColor: Color(0xFF306AE7),
       controller: controller,
       keyboardType: keyboardType,
       obscureText: isPassword ? !isPasswordVisible : false,
