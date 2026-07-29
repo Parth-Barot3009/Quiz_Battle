@@ -1,8 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/addorganiser.dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
-
 
 class AdminDeshboard extends StatefulWidget {
   const AdminDeshboard({super.key});
@@ -12,23 +12,18 @@ class AdminDeshboard extends StatefulWidget {
 }
 
 class _AdminDeshboardState extends State<AdminDeshboard> {
-
   final user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
-
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("ADMIN DASHBOARD",
-          style: TextStyle(
-            fontSize: 24,
-            color: Colors.white,
-
-          ),
+        title: Text(
+          "ADMIN DASHBOARD",
+          style: TextStyle(fontSize: 24, color: Colors.white),
         ),
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF306AE7),
@@ -42,71 +37,95 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
             padding: const EdgeInsets.only(),
             child: Container(
               height: screenHeight,
-              decoration: BoxDecoration(
-                color: Colors.white,
-              ),
+              decoration: BoxDecoration(color: Colors.white),
               child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Container(
                       width: screenWidth,
-                      height: screenHeight*0.18,
+                      height: screenHeight * 0.18,
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF4A7CFF),
-                                Color(0xFF306AE7),
-                              ]
-                          )
+                        borderRadius: BorderRadius.circular(30),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
+                        ),
                       ),
 
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                      child: StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('admin')
+                            .where(
+                              'email',
+                              isEqualTo:
+                                  FirebaseAuth.instance.currentUser!.email,
+                            )
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData ||
+                              snapshot.data!.docs.isEmpty) {
+                            return const Text("Admin not found");
+                          }
+                          var data = snapshot.data!.docs.first.data();
+                          return Column(
                             children: [
-                              Container(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 25),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 15,top: 20),
-                                        child: Text("Welcome,",style: TextStyle(
-                                          fontSize: 24,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.normal,
-                                        ),),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 25,
                                       ),
-                                      Text("Admin",style: TextStyle(
-                                        fontSize: 30,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 15,
+                                              top: 20,
+                                            ),
+                                            child: Text(
+                                              "Welcome,",
+                                              style: TextStyle(
+                                                fontSize: 24,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.normal,
+                                              ),
+                                            ),
+                                          ),
+                                          Text(
+                                            data['name'],
+                                            style: TextStyle(
+                                              fontSize: 30,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Spacer(),
+                                  Opacity(
+                                    opacity: 0.5,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 15),
+                                      child: Icon(
+                                        Icons.shield_outlined,
+                                        size: 120,
                                         color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),),
-                                    ],
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                              Spacer(),
-                              Opacity(
-                                opacity: 0.5,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 15),
-                                  child: Icon(
-                                    Icons.shield_outlined,
-                                    size: 120,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -119,13 +138,10 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                         //Organizer Card
                         SizedBox(
                           child: Container(
-                            width: screenWidth*0.45,
-                            height: screenHeight*0.15,
+                            width: screenWidth * 0.45,
+                            height: screenHeight * 0.15,
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.red,
-                                width: 3,
-                              ),
+                              border: Border.all(color: Colors.red, width: 3),
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -134,7 +150,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               child: Row(
                                 children: [
                                   CircleAvatar(
-                                    radius:25,
+                                    radius: 25,
                                     backgroundColor: Colors.red[100],
                                     child: Icon(
                                       Icons.group_outlined,
@@ -142,21 +158,41 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                       color: Colors.redAccent,
                                     ),
                                   ),
-                                  SizedBox(width: 6,),
+                                  SizedBox(width: 6),
 
                                   // View Oranizer number and add number of organizer number from database.
                                   Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text("36",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                      StreamBuilder(
+                                        stream: FirebaseFirestore.instance
+                                            .collection('organizer')
+                                            .snapshots(),
+                                        builder: (context, snapshot) {
+                                          if (!snapshot.hasData ||
+                                              snapshot.data!.docs.isEmpty) {
+                                            return const Text(
+                                              "Organizer Data found",
+                                            );
+                                          }
+
+                                          var totalOrg =
+                                              snapshot.data!.docs.length;
+                                          return Text(
+                                            "$totalOrg",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          );
+                                        },
                                       ),
-                                      Text("Organizer",
+
+                                      Text(
+                                        "Organizer",
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontSize: 14,
@@ -171,17 +207,14 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                           ),
                         ),
                         Spacer(),
-                        // Student Card
 
+                        // Student Card
                         SizedBox(
                           child: Container(
-                            width: screenWidth*0.45,
-                            height: screenHeight*0.15,
+                            width: screenWidth * 0.45,
+                            height: screenHeight * 0.15,
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.green,
-                                width: 3,
-                              ),
+                              border: Border.all(color: Colors.green, width: 3),
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -190,28 +223,48 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               child: Row(
                                 children: [
                                   CircleAvatar(
-                                    radius:25,
-                                    backgroundColor: Colors.lightGreenAccent[100],
+                                    radius: 25,
+                                    backgroundColor:
+                                        Colors.lightGreenAccent[100],
                                     child: Icon(
                                       Icons.person,
                                       size: 30,
                                       color: Colors.green,
                                     ),
                                   ),
-                                  SizedBox(width: 9,),
+                                  SizedBox(width: 9),
                                   // View Oranizer number and add number of organizer number from database.
                                   Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text("36",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                      StreamBuilder(
+                                        stream: FirebaseFirestore.instance
+                                            .collection('player')
+                                            .snapshots(),
+                                        builder: (context, snapshot) {
+                                          if (!snapshot.hasData ||
+                                              snapshot.data!.docs.isEmpty) {
+                                            return const Text(
+                                              "Player Data found",
+                                            );
+                                          }
+
+                                          var totalPlyer =
+                                              snapshot.data!.docs.length;
+                                          return Text(
+                                            "$totalPlyer",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          );
+                                        },
                                       ),
-                                      Text("Student",
+                                      Text(
+                                        "Student",
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontSize: 14,
@@ -228,9 +281,9 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 10,),
-                  // 2nd Section
+                  SizedBox(height: 10),
 
+                  // 2nd Section
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -238,13 +291,10 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                         //Active Battle Card
                         SizedBox(
                           child: Container(
-                            width: screenWidth*0.45,
-                            height: screenHeight*0.15,
+                            width: screenWidth * 0.45,
+                            height: screenHeight * 0.15,
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.red,
-                                width: 3,
-                              ),
+                              border: Border.all(color: Colors.red, width: 3),
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -253,7 +303,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               child: Row(
                                 children: [
                                   CircleAvatar(
-                                    radius:25,
+                                    radius: 25,
                                     backgroundColor: Colors.deepOrange[100],
                                     child: Icon(
                                       Icons.crop_square,
@@ -261,22 +311,41 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                       color: Colors.orange,
                                     ),
                                   ),
-                                  SizedBox(width: 6,),
+                                  SizedBox(width: 6),
 
                                   // View Oranizer number and add number of organizer number from database.
                                   Expanded(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text("36",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                        StreamBuilder(
+                                          stream: FirebaseFirestore.instance
+                                              .collection('organizer')
+                                              .snapshots(),
+                                          builder: (context, snapshot) {
+                                            if (!snapshot.hasData ||
+                                                snapshot.data!.docs.isEmpty) {
+                                              return const Text(
+                                                "Active Battle Data found",
+                                              );
+                                            }
+
+                                            // var totalOrg = snapshot.data!.docs.length;
+                                            return Text(
+                                              "Add Total Active Battle",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            );
+                                          },
                                         ),
-                                        Text("Active Battles",
+                                        Text(
+                                          "Active Battles",
                                           style: TextStyle(
                                             color: Colors.black,
                                             fontSize: 14,
@@ -292,17 +361,14 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                           ),
                         ),
                         Spacer(),
-                        // Student Card
 
+                        // Student Card
                         SizedBox(
                           child: Container(
-                            width: screenWidth*0.45,
-                            height: screenHeight*0.15,
+                            width: screenWidth * 0.45,
+                            height: screenHeight * 0.15,
                             decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.blue,
-                                width: 3,
-                              ),
+                              border: Border.all(color: Colors.blue, width: 3),
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -311,29 +377,49 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               child: Row(
                                 children: [
                                   CircleAvatar(
-                                    radius:25,
-                                    backgroundColor: Colors.lightBlueAccent[100],
+                                    radius: 25,
+                                    backgroundColor:
+                                        Colors.lightBlueAccent[100],
                                     child: Icon(
                                       Icons.book_outlined,
                                       size: 30,
                                       color: Colors.blueAccent,
                                     ),
                                   ),
-                                  SizedBox(width: 9,),
+                                  SizedBox(width: 9),
                                   // View Oranizer number and add number of organizer number from database.
                                   Expanded(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text("36",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                        StreamBuilder(
+                                          stream: FirebaseFirestore.instance
+                                              .collection('Battle_Room_Details')
+                                              .snapshots(),
+                                          builder: (context, snapshot) {
+                                            if (!snapshot.hasData ||
+                                                snapshot.data!.docs.isEmpty) {
+                                              return const Text(
+                                                "Battle Room Data found",
+                                              );
+                                            }
+                                            var totalBattleRoom =
+                                                snapshot.data!.docs.length;
+                                            return Text(
+                                              "$totalBattleRoom",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            );
+                                          },
                                         ),
-                                        Text("Total Battles",
+                                        Text(
+                                          "Total Battles",
                                           style: TextStyle(
                                             color: Colors.black,
                                             fontSize: 14,
@@ -352,13 +438,13 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                     ),
                   ),
 
-
                   // Quick Actions Text
                   Padding(
-                    padding: const EdgeInsets.only(left: 15,top: 25),
+                    padding: const EdgeInsets.only(left: 15, top: 25),
                     child: Container(
                       alignment: Alignment.centerLeft,
-                      child: Text("QUICK ACTIONS",
+                      child: Text(
+                        "QUICK ACTIONS",
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -372,48 +458,54 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                   Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: GestureDetector(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => Addorganiser()));
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Addorganiser(),
+                          ),
+                        );
                       },
                       child: Container(
-                        width: screenWidth*70,
-                        height: screenHeight*0.09,
+                        width: screenWidth * 70,
+                        height: screenHeight * 0.09,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0xFF4A7CFF),
-                              Color(0xFF306AE7),
-                            ],
+                            colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
                           ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.only(right: 10,left: 12),
-                              child:Icon(
-                                  Icons.person_add_alt_1,
-                                  size: 45,
-                                  color: Colors.white,
-                                ),
-
+                              padding: const EdgeInsets.only(
+                                right: 10,
+                                left: 12,
+                              ),
+                              child: Icon(
+                                Icons.person_add_alt_1,
+                                size: 45,
+                                color: Colors.white,
+                              ),
                             ),
-                            SizedBox(width: 10,),
+                            SizedBox(width: 10),
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Add Organizer",
+                                Text(
+                                  "Add Organizer",
                                   style: TextStyle(
                                     fontSize: 20,
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                Text("Create new organizer account",
+                                Text(
+                                  "Create new organizer account",
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.white,

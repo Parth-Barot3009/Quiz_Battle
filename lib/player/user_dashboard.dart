@@ -1,23 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-class u_dashboard extends StatelessWidget {
-  const u_dashboard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: StudentDashboard(),
-    );
-  }
-}
 
 class StudentDashboard extends StatelessWidget {
   const StudentDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -27,142 +16,142 @@ class StudentDashboard extends StatelessWidget {
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: Color(0xFF306AE7),
-        title: Text("Hello, Student",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
+        title: Text(
+          "DASHBOARD",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
 
         // Add Profile Image Circle
-        actions: [
-
-        ],
-
+        actions: [],
       ),
 
       body: SingleChildScrollView(
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(10),
-          
+
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-          
               children: [
                 /// PROFILE CARD
                 Container(
-                  width: screenHeight*0.95,
-                  height: screenHeight*0.20,
-          
+                  width: screenWidth,
+                  height: screenHeight * 0.20,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors:[
-                      Color(0xFF4A7CFF),
-                      Color(0xFF306AE7),
-                    ]
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
                     ),
                     borderRadius: BorderRadius.circular(25),
                   ),
-          
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-          
-                    child: Row(
-                      children: [
-          
-                        const CircleAvatar(
-                          radius: 35,
-                          backgroundColor: Colors.white,
-          
-                          child: Icon(
-                            Icons.person,
-                            color: Color(0xFF5E90E6),
-                            size: 40,
+
+                  child: StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection('player')
+                        .where(
+                          'player_email',
+                          isEqualTo: FirebaseAuth.instance.currentUser!.email,
+                        )
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        );
+                      }
+
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            "Player not found",
+                            style: TextStyle(color: Colors.white),
                           ),
-                        ),
-          
-                        const SizedBox(width: 20),
-          
-                        const Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-          
-          
-                            children: [
-          
-          
-                              Text(
-                                "John Smith",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        );
+                      }
+
+                      var data = snapshot.data!.docs.first.data();
+
+                      return Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: [
+                            const CircleAvatar(
+                              radius: 35,
+                              backgroundColor: Colors.white,
+                              child: Icon(
+                                Icons.person,
+                                color: Color(0xFF5E90E6),
+                                size: 40,
                               ),
-          
-                              SizedBox(height: 8),
-          
-                              Text(
-                                "Rank #25",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                ),
+                            ),
+
+                            const SizedBox(width: 20),
+
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Hello,",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+
+                                  Text(
+                                    data['player_name'],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
-          
-                              SizedBox(height: 5),
-          
-                              Text(
-                                "1250 XP",
-                                style: TextStyle(
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+
+                            const Icon(
+                              Icons.emoji_events,
+                              color: Colors.white54,
+                              size: 80,
+                            ),
+                          ],
                         ),
-          
-                        const Icon(
-                          Icons.emoji_events,
-                          color: Colors.white54,
-                          size: 90,
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ),
-          
+
                 const SizedBox(height: 25),
-          
+
                 Row(
                   children: [
-          
                     Expanded(
                       child: Container(
-                        height: screenHeight*0.12,
-          
+                        height: screenHeight * 0.12,
+
                         decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(20),
                           gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors:[
-                                Color(0xFF4A7CFF),
-                                Color(0xFF306AE7),
-                              ]
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
                           ),
                         ),
-          
+
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-          
+
                           children: [
-          
-                            Icon(
-                              Icons.flash_on,
-                              color: Colors.white,
-                              size: 45,
-                            ),
-          
+                            Icon(Icons.flash_on, color: Colors.white, size: 45),
+
                             SizedBox(height: 10),
-          
+
                             Text(
                               "Quick Battle",
                               style: TextStyle(
@@ -174,38 +163,30 @@ class StudentDashboard extends StatelessWidget {
                         ),
                       ),
                     ),
-          
+
                     const SizedBox(width: 15),
-          
+
                     Expanded(
                       child: Container(
-                        height: screenHeight*0.12,
-          
+                        height: screenHeight * 0.12,
+
                         decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(20),
                           gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors:[
-                                Color(0xFF4A7CFF),
-                                Color(0xFF306AE7),
-                              ]
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
                           ),
                         ),
-          
+
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-          
+
                           children: [
-          
-                            Icon(
-                              Icons.group,
-                              color: Colors.white,
-                              size: 45,
-                            ),
-          
+                            Icon(Icons.group, color: Colors.white, size: 45),
+
                             SizedBox(height: 10),
-          
+
                             Text(
                               "Join Battle",
                               style: TextStyle(
@@ -217,83 +198,47 @@ class StudentDashboard extends StatelessWidget {
                         ),
                       ),
                     ),
-          
                   ],
                 ),
-          
+
                 const SizedBox(height: 20),
-          
-          
+
                 /// STATISTICS
                 Container(
-
                   child: Row(
                     children: [
-
                       Expanded(
-                        child: statCard(
-                          Icons.sports_esports,
-                          "25",
-                          "Battles",
-                        ),
+                        child: statCard(Icons.sports_esports, "25", "Battles"),
                       ),
 
                       const SizedBox(width: 10),
 
                       Expanded(
-                        child: statCard(
-                          Icons.emoji_events,
-                          "18",
-                          "Wins",
-                        ),
+                        child: statCard(Icons.emoji_events, "18", "Wins"),
                       ),
 
                       const SizedBox(width: 10),
 
                       Expanded(
-                        child: statCard(
-                          Icons.trending_up,
-                          "72%",
-                          "Win Rate",
-                        ),
+                        child: statCard(Icons.trending_up, "72%", "Win Rate"),
                       ),
-
                     ],
                   ),
                 ),
-          
+
                 const SizedBox(height: 20),
-          
+
                 const Text(
                   "Upcoming Battles",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-          
+
                 const SizedBox(height: 15),
-          
+
                 battleCard(
                   "Flutter Quiz Battle",
                   "10 Questions",
                   "Today • 6:00 PM",
-                ),
-          
-                const SizedBox(height: 15),
-          
-                battleCard(
-                  "Java Challenge",
-                  "15 Questions",
-                  "Tomorrow • 4:30 PM",
-                ),
-          
-                const SizedBox(height: 15),
-          
-                battleCard(
-                  "Database Battle",
-                  "20 Questions",
-                  "Friday • 7:00 PM",
                 ),
               ],
             ),
@@ -303,42 +248,24 @@ class StudentDashboard extends StatelessWidget {
     );
   }
 
-  Widget statCard(
-      IconData icon,
-      String number,
-      String title,
-      ) {
+  Widget statCard(IconData icon, String number, String title) {
     return Container(
       height: 120,
-
       decoration: BoxDecoration(
         gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors:[
-              Color(0xFF4A7CFF),
-              Color(0xFF306AE7),
-            ]
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
         ),
         borderRadius: BorderRadius.circular(20),
 
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-          ),
-        ],
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
       ),
 
-      child:Column(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-
-          Icon(
-            icon,
-            color: Colors.white,
-            size: 32,
-          ),
+          Icon(icon, color: Colors.white, size: 32),
 
           const SizedBox(height: 8),
 
@@ -353,23 +280,13 @@ class StudentDashboard extends StatelessWidget {
 
           const SizedBox(height: 5),
 
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-            ),
-          ),
-
+          Text(title, style: const TextStyle(color: Colors.white)),
         ],
       ),
     );
   }
 
-  Widget battleCard(
-      String title,
-      String questions,
-      String time,
-      ) {
+  Widget battleCard(String title, String questions, String time) {
     return Container(
       padding: const EdgeInsets.all(15),
 
@@ -377,36 +294,24 @@ class StudentDashboard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
 
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-          ),
-        ],
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
       ),
 
       child: Row(
         children: [
-
           Container(
             padding: const EdgeInsets.all(12),
 
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
               gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors:[
-                    Color(0xFF4A7CFF),
-                    Color(0xFF306AE7),
-                  ]
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
               ),
             ),
 
-            child: const Icon(
-              Icons.sports_esports,
-              color: Colors.white,
-            ),
+            child: const Icon(Icons.sports_esports, color: Colors.white),
           ),
 
           const SizedBox(width: 15),
@@ -416,7 +321,6 @@ class StudentDashboard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
-
                 Text(
                   title,
                   style: const TextStyle(
@@ -429,28 +333,15 @@ class StudentDashboard extends StatelessWidget {
 
                 Text(questions),
 
-                Text(
-                  time,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                  ),
-                ),
-
+                Text(time, style: const TextStyle(color: Colors.grey)),
               ],
             ),
           ),
 
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
             onPressed: () {},
-            child: const Text(
-              "JOIN",
-              style: TextStyle(
-                color: Colors.white,
-              ),
-            ),
+            child: const Text("JOIN", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

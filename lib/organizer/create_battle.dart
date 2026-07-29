@@ -4,6 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
+import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -19,7 +22,7 @@ class _create_battleState extends State<create_battle> {
   String? selectedFileName;
   DateTime? selectedDate;
   int totalQuestions = 0;
-  final TextEditingController  roomname = TextEditingController();
+  final TextEditingController roomname = TextEditingController();
   final TextEditingController roomCodeController = TextEditingController();
 
   //time pick class
@@ -97,13 +100,12 @@ class _create_battleState extends State<create_battle> {
     roomCodeController.text = code;
   }
 
+  // Download Excel file function
+
+
   // Add Data of
   Future<void> addCreateRoomDetails() async {
-
-    await FirebaseFirestore.instance
-        .collection("Battle_Room_Details")
-        .add({
-
+    await FirebaseFirestore.instance.collection("Battle_Room_Details").add({
       "room_name": roomname.text.trim(),
 
       "room_code": roomCodeController.text.trim(),
@@ -125,13 +127,12 @@ class _create_battleState extends State<create_battle> {
     super.initState();
     generateRoomCode();
   }
-  Widget build(BuildContext context) {
 
+  Widget build(BuildContext context) {
     // final screenWidth = MediaQuery.of(context).size.width;
     // final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-
       appBar: AppBar(
         toolbarHeight: 80,
         flexibleSpace: Container(
@@ -139,15 +140,19 @@ class _create_battleState extends State<create_battle> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              stops: [0.0,0.45],
-              colors: [
-                Color(0xFF4A7CFF),
-                Color(0xFF306AE7),
-              ],
+              stops: [0.0, 0.45],
+              colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
             ),
           ),
         ),
-        title: Text("Create Battle Room",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
+        title: Text(
+          "Create Battle Room",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontFamily: "BaiJamjuree",
+          ),
+        ),
         automaticallyImplyLeading: false,
       ),
 
@@ -159,9 +164,7 @@ class _create_battleState extends State<create_battle> {
           //child container
           child: Container(
             width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-            ),
+            decoration: const BoxDecoration(color: Colors.white),
 
             child: Column(
               children: [
@@ -172,15 +175,15 @@ class _create_battleState extends State<create_battle> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         //room name
-
-                        Text("Room Name", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          fontFamily: "BaiJamjuree",
-                        ),
+                        Text(
+                          "Room Name",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            fontFamily: "BaiJamjuree",
+                          ),
                         ),
 
                         SizedBox(height: 15),
@@ -227,9 +230,7 @@ class _create_battleState extends State<create_battle> {
 
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(18),
-                              borderSide: BorderSide(
-                                color: Color(0xFFE0E0E0),
-                              ),
+                              borderSide: BorderSide(color: Color(0xFFE0E0E0)),
                             ),
 
                             focusedBorder: OutlineInputBorder(
@@ -244,12 +245,13 @@ class _create_battleState extends State<create_battle> {
                         SizedBox(height: 20),
 
                         //room code
-
-                        Text("Room Code", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
+                        Text(
+                          "Room Code",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         ),
 
                         SizedBox(height: 15),
@@ -329,14 +331,12 @@ class _create_battleState extends State<create_battle> {
                         SizedBox(height: 20),
 
                         // Total Questions
-
                         const Text(
                           "Questions for Battle",
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
-
                           ),
                         ),
 
@@ -348,13 +348,10 @@ class _create_battleState extends State<create_battle> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: const Color(0xFFE0E0E0),
-                            ),
+                            border: Border.all(color: const Color(0xFFE0E0E0)),
                           ),
                           child: Row(
                             children: [
-
                               // Left Icon
                               Container(
                                 width: 44,
@@ -377,7 +374,6 @@ class _create_battleState extends State<create_battle> {
                                   style: TextStyle(
                                     fontSize: 18,
                                     color: Colors.grey,
-
                                   ),
                                 ),
                               ),
@@ -449,12 +445,13 @@ class _create_battleState extends State<create_battle> {
                         SizedBox(height: 20),
 
                         //start time
-
-                        Text("Start Time", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
+                        Text(
+                          "Start Time",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         ),
 
                         SizedBox(height: 15),
@@ -465,9 +462,7 @@ class _create_battleState extends State<create_battle> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: const Color(0xFFE0E0E0),
-                            ),
+                            border: Border.all(color: const Color(0xFFE0E0E0)),
                           ),
                           child: Row(
                             children: [
@@ -479,14 +474,14 @@ class _create_battleState extends State<create_battle> {
                                   color: const Color(0xFFE9ECFF),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child:IconButton(
-                                onPressed: () => pickTime(true),
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                  size: 28,
+                                child: IconButton(
+                                  onPressed: () => pickTime(true),
+                                  icon: const Icon(
+                                    Icons.schedule_rounded,
+                                    color: Color(0xFF4A6CF7),
+                                    size: 28,
+                                  ),
                                 ),
-                              ),
                               ),
 
                               const SizedBox(width: 15),
@@ -520,12 +515,13 @@ class _create_battleState extends State<create_battle> {
                         SizedBox(height: 20),
 
                         //End time
-
-                        Text("End Time", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
+                        Text(
+                          "End Time",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         ),
 
                         SizedBox(height: 15),
@@ -536,13 +532,10 @@ class _create_battleState extends State<create_battle> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: const Color(0xFFE0E0E0),
-                            ),
+                            border: Border.all(color: const Color(0xFFE0E0E0)),
                           ),
                           child: Row(
                             children: [
-
                               // Left Icon
                               Container(
                                 width: 44,
@@ -552,13 +545,13 @@ class _create_battleState extends State<create_battle> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: IconButton(
-                                onPressed: () => pickTime(false),
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                  size: 28,
+                                  onPressed: () => pickTime(false),
+                                  icon: const Icon(
+                                    Icons.schedule_rounded,
+                                    color: Color(0xFF4A6CF7),
+                                    size: 28,
+                                  ),
                                 ),
-                              ),
                               ),
 
                               const SizedBox(width: 15),
@@ -592,11 +585,9 @@ class _create_battleState extends State<create_battle> {
                         const SizedBox(height: 15),
 
                         //date
-
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-
                             const Text(
                               "Quiz Date",
                               style: TextStyle(
@@ -610,7 +601,9 @@ class _create_battleState extends State<create_battle> {
 
                             Container(
                               height: 65,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(18),
@@ -620,7 +613,6 @@ class _create_battleState extends State<create_battle> {
                               ),
                               child: Row(
                                 children: [
-
                                   // Left Icon
                                   Container(
                                     width: 44,
@@ -630,13 +622,13 @@ class _create_battleState extends State<create_battle> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: IconButton(
-                                    onPressed: pickDate,
-                                    icon: const Icon(
-                                      Icons.date_range_rounded,
-                                      color: Color(0xFF4A6CF7),
-                                      size: 28,
+                                      onPressed: pickDate,
+                                      icon: const Icon(
+                                        Icons.date_range_rounded,
+                                        color: Color(0xFF4A6CF7),
+                                        size: 28,
+                                      ),
                                     ),
-                                  ),
                                   ),
 
                                   const SizedBox(width: 15),
@@ -669,8 +661,9 @@ class _create_battleState extends State<create_battle> {
                             const SizedBox(height: 15),
 
                             //question file
-
-                            Text("Question File", style: TextStyle(
+                            Text(
+                              "Question File",
+                              style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20,
@@ -684,7 +677,9 @@ class _create_battleState extends State<create_battle> {
                               children: [
                                 Container(
                                   height: 65,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(18),
@@ -703,14 +698,16 @@ class _create_battleState extends State<create_battle> {
                                   child: Row(
                                     children: [
                                       // Left Icon
-                                        Container(
-                                          width: 44,
-                                          height: 44,
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFE9ECFF),
-                                            borderRadius: BorderRadius.circular(10),
+                                      Container(
+                                        width: 44,
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE9ECFF),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
                                           ),
-                                          child: IconButton(
+                                        ),
+                                        child: IconButton(
                                           onPressed: pickExcelFile,
                                           icon: const Icon(
                                             Icons.folder_open_rounded,
@@ -725,7 +722,8 @@ class _create_battleState extends State<create_battle> {
                                       // File Name
                                       Expanded(
                                         child: Text(
-                                          selectedFileName ?? "Upload Excel File",
+                                          selectedFileName ??
+                                              "Upload Excel File",
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 16,
@@ -742,21 +740,31 @@ class _create_battleState extends State<create_battle> {
                               ],
                             ),
 
-                            SizedBox(height: 20,),
 
+                            SizedBox(height: 20),
+                            //   Download Demo Question file
+                            ElevatedButton(onPressed: (){}, child: Text("Download")),
+                            SizedBox(height: 20),
                             SizedBox(
                               width: double.infinity,
                               height: 60,
                               child: ElevatedButton(
-                                onPressed: () async{
-                                  if(selectedDate == null){
+                                onPressed: () async {
+                                  if (selectedDate == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text("Please select date"))
+                                      SnackBar(
+                                        content: Text("Please select date"),
+                                      ),
                                     );
                                     return;
                                   }
                                   await addCreateRoomDetails();
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_BattleRoom()));
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => Org_BattleRoom(),
+                                    ),
+                                  );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A6CF7),
@@ -790,7 +798,7 @@ class _create_battleState extends State<create_battle> {
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

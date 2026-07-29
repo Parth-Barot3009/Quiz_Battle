@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
@@ -51,15 +53,19 @@ class _user_RegisterState extends State<user_Register>
     }
 
 
-  final ImagePicker picker = ImagePicker();
 
+
+  File? selectedImage;
   Future<void> pickImage() async {
-    final XFile? image = await picker.pickImage(
+    final picker = ImagePicker();
+
+    final XFile? pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
+      imageQuality: 80,
     );
 
-    if (image != null) {
-      print(image.path);
+    if (pickedFile != null) {
+      selectedImage = File(pickedFile.path);
     }
   }
 
@@ -67,6 +73,8 @@ class _user_RegisterState extends State<user_Register>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       body:Container(
         height: double.infinity,
@@ -83,8 +91,8 @@ class _user_RegisterState extends State<user_Register>
         ),
         child: Center(
             child: Container(
-              width: 300,
-              height: 460,
+              width: screenWidth*0.90,
+              height: screenHeight*0.60,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(20.00)),
@@ -95,8 +103,9 @@ class _user_RegisterState extends State<user_Register>
                   SizedBox(height: 20,),
                   Container(
                     child: GestureDetector(
-                      onTap: () {
-                        pickImage();
+                      onTap: () async{
+                        print("HEllo");
+                        await pickImage();
                       },
                       child: const CircleAvatar(
                           radius: 45,

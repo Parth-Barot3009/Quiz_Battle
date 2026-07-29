@@ -36,7 +36,9 @@ class Authantication extends StatelessWidget {
             if (snapshot.hasData) {
               return snapshot.data!;
             }
-            return const Choose_Role_Screen();
+            else {
+              return const Choose_Role_Screen();
+            }
           },
       )
     );

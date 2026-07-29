@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/organizer/create_battle.dart';
 import 'package:quiz_battle/organizer/organizer_dashboard.dart';
+import 'package:quiz_battle/player/join_battle.dart';
 import 'package:quiz_battle/player/user_dashboard.dart';
 import 'package:quiz_battle/player/user_leaderboard.dart';
 import 'package:quiz_battle/player/user_profile.dart';
@@ -17,8 +18,8 @@ class _player_navigationbarState extends State<player_navigationbar> {
   int _currentIndex = 0;
 
   final List<Widget> _screen = [
-    u_dashboard(),
-    create_battle(),
+    StudentDashboard(),
+    JoinBattleScreen(),
     LeaderboardScreen(),
     UserProfileInfo()
   ];

@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quiz_battle/admin/Admin_Deshboard.dart';
+import 'package:quiz_battle/admin/Navigation(Admin).dart';
 import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
 import 'package:quiz_battle/admin/Student_ListScreen.dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
+import 'package:quiz_battle/auth/Splash_Screen.dart';
+import 'package:quiz_battle/auth/login_admin_organiser.dart';
+import 'package:quiz_battle/organizer/Organizer_Battle_History.dart';
+import 'package:quiz_battle/organizer/ProfileInfo_Organizer.dart';
 import 'package:quiz_battle/organizer/create_battle.dart';
+import 'package:quiz_battle/organizer/organizer_dashboard.dart';
+import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
+import 'package:quiz_battle/player/quiz_screen.dart';
+import 'package:quiz_battle/player/user_dashboard.dart';
+import 'package:quiz_battle/player/user_profile.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -12,7 +23,6 @@ void main() async {
 
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -24,7 +34,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "Roboto",
       ),
-      home: Choose_Role_Screen(),
+      home: create_battle(),
     );
   }
 }

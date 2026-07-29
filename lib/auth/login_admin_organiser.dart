@@ -48,58 +48,58 @@ class _LoginScreenState extends State<LoginScreen> {
       String email = emailController.text.trim();
 
       if (widget.role == "admin")
-        {
-          var adm = await FirebaseFirestore.instance.collection('admin').where('email',isEqualTo: email).get();
-          if (adm.docs.isEmpty){
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("This account is not an admin")),
-            );
-          }
-          else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Login Successful"),
-              ),
-            );
-          }
+      {
+        var adm = await FirebaseFirestore.instance.collection('admin').where('email',isEqualTo: email).get();
+        if (adm.docs.isEmpty){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("This account is not an admin")),
+          );
         }
+        else{
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Login Successful"),
+            ),
+          );
+        }
+      }
 
       if (widget.role == "organizer")
-        {
-          var org = await FirebaseFirestore.instance.collection('organizer').where('o_email',isEqualTo: email).get();
-          if (org.docs.isEmpty){
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("This account is not an organizer")),
-            );
-          }
-          else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Login Successful"),
-              ),
-            );
-          }
+      {
+        var org = await FirebaseFirestore.instance.collection('organizer').where('o_email',isEqualTo: email).get();
+        if (org.docs.isEmpty){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("This account is not an organizer")),
+          );
         }
+        else{
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Login Successful"),
+            ),
+          );
+        }
+      }
 
       if (widget.role == "player")
-        {
-          var ply = await FirebaseFirestore.instance.collection('player').where('player_email',isEqualTo: email).get();
-          if (ply.docs.isEmpty){
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("This account is not an player")),
-            );
-          }
-          else{
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Login Successful"),
-              ),
-            );
-          }
+      {
+        var ply = await FirebaseFirestore.instance.collection('player').where('player_email',isEqualTo: email).get();
+        if (ply.docs.isEmpty){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("This account is not an player")),
+          );
         }
+        else{
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Login Successful"),
+            ),
+          );
+        }
+      }
 
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('role', widget.role!);
@@ -149,6 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Form(
                   key: _formKey,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       const SizedBox(height: 55),
 
@@ -208,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 35),
 
                       buildTextField(
-                        
+
                         controller: emailController,
                         hint: "Email",
                         icon: Icons.person_outline,
@@ -237,7 +238,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      ?widget.role == "player" ? Align(
+                      ?widget.role == "player" ?
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
                           onPressed: (){
@@ -256,36 +258,36 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 35),
 
                       Container(
-                          width: double.infinity,
-                          height: 60,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF306AE7),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              elevation: 8,
+                        width: double.infinity,
+                        height: 60,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF306AE7),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            onPressed: isLoading ? null : ()=>login(),
-                            child: isLoading
-                                ? const SizedBox(
-                              width: 25,
-                              height: 25,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                color: Colors.white,
-                              ),
-                            )
-                                : const Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            elevation: 8,
+                          ),
+                          onPressed: isLoading ? null : ()=>login(),
+                          child: isLoading
+                              ? const SizedBox(
+                            width: 25,
+                            height: 25,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.white,
+                            ),
+                          )
+                              : const Text(
+                            "Login",
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
+                      ),
 
                       const SizedBox(height: 30),
                     ],
