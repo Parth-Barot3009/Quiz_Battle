@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/auth/CheckRole.dart';
+import 'package:quiz_battle/auth/Authantication.dart';
 import 'package:quiz_battle/auth/User_Registration.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 
@@ -15,7 +17,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final  emailController = TextEditingController();
   final  passwordController = TextEditingController();
 
@@ -29,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> login(role) async {
+  Future<void> login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -37,19 +38,69 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      var temp = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      print(temp);
+      String email = emailController.text.trim();
 
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Checkrole(role: widget.role,)));
+      if (widget.role == "admin")
+        {
+          var adm = await FirebaseFirestore.instance.collection('admin').where('email',isEqualTo: email).get();
+          if (adm.docs.isEmpty){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("This account is not an admin")),
+            );
+          }
+          else{
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login Successful"),
+              ),
+            );
+          }
+        }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Login Successful"),
-        ),
-      );
+      if (widget.role == "organizer")
+        {
+          var org = await FirebaseFirestore.instance.collection('organizer').where('o_email',isEqualTo: email).get();
+          if (org.docs.isEmpty){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("This account is not an organizer")),
+            );
+          }
+          else{
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login Successful"),
+              ),
+            );
+          }
+        }
+
+      if (widget.role == "player")
+        {
+          var ply = await FirebaseFirestore.instance.collection('player').where('player_email',isEqualTo: email).get();
+          if (ply.docs.isEmpty){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("This account is not an player")),
+            );
+          }
+          else{
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Authantication()));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login Successful"),
+              ),
+            );
+          }
+        }
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('role', widget.role!);
+
 
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,6 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerLeft,
                         child: TextButton(
                           onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => user_Register()));
                           },
                           child: Text(
                             "Create Account",
@@ -210,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               elevation: 8,
                             ),
-                            onPressed: isLoading ? null : ()=>login(widget.role),
+                            onPressed: isLoading ? null : ()=>login(),
                             child: isLoading
                                 ? const SizedBox(
                               width: 25,

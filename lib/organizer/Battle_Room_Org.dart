@@ -100,11 +100,13 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                 ),
         
                 SizedBox(height: 10,),
+
+
                 // Container of Quiz Details
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child:Container(
-                      height: screenHeight*0.38,
+                      height: screenHeight*0.35,
                       width: screenWidth*0.95,
                       decoration: BoxDecoration(
                         color: Colors.white60,
@@ -138,7 +140,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                   padding: const EdgeInsets.only(left: 10.0,top: 10.0),
                                   child: Text("Quiz Details",
                                     style: TextStyle(
-                                      fontSize: 28,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -178,7 +180,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                           SizedBox(width: 10,),
                                           Text("Quiz",
                                             style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -187,7 +189,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                     ),
                                     Text("Flutter",
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF306AE7),
                                       ),
@@ -228,7 +230,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                           SizedBox(width: 10,),
                                           Text("Questions",
                                             style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -237,7 +239,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                     ),
                                     Text("10",
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF306AE7),
                                       ),
@@ -278,7 +280,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                           SizedBox(width: 10,),
                                           Text("Time/Duration",
                                             style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -287,7 +289,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                     ),
                                     Text("10",
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         color: Color(0xFF306AE7),
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -325,18 +327,18 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                           SizedBox(width: 10,),
                                           Text("Status",
                                             style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    Text("Waiting For Player",
+                                    Text("Waiting",
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF306AE7),
+                                        color: Colors.red,
                                       ),
                                     ),
                                   ],
@@ -348,7 +350,8 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                       ),
                     ),
                 ),
-        
+
+
               //  Saction of Player who is playing
                 SizedBox(height: 10,),
                 Container(

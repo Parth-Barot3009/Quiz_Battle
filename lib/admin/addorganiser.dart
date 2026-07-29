@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Addorganiser extends StatefulWidget {
   const Addorganiser({super.key});
@@ -14,6 +16,18 @@ class _AddorganiserState extends State<Addorganiser> {
   final passwordcontroller = TextEditingController();
 
   bool passwordvisible = true;
+
+  Future createOrg() async{
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailcontroller.text.trim(), password: passwordcontroller.text.trim());
+  }
+
+  addOrganizerDetail(String? role) async{
+    await FirebaseFirestore.instance.collection('organizer').add({
+      'o_name':namecon.text.trim(),
+      'o_email':emailcontroller.text.trim(),
+      'role':role
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +46,15 @@ class _AddorganiserState extends State<Addorganiser> {
         ),
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
 
       body: SafeArea(
@@ -93,20 +116,16 @@ class _AddorganiserState extends State<Addorganiser> {
                             TextFormField(
                               controller: namecon,
                               decoration: InputDecoration(
-                                label: Text("Name",style: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold,),),
+                                label: Text("Name",style: TextStyle(fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Full Name",
-                                hintStyle: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold,),
+                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
                                 prefixIcon: const Icon(
                                   Icons.person_outline,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF5E90E6),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey
-                                  ),
-                                  borderRadius: BorderRadius.all(Radius.circular(15))
-                                ),
+                                filled: true,
+                                fillColor: Colors.white,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 ),
@@ -124,25 +143,17 @@ class _AddorganiserState extends State<Addorganiser> {
                             TextFormField(
                               controller: emailcontroller,
                               decoration: InputDecoration(
-                                focusColor: Colors.grey,
-                                label: Text("Email",style: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold,),),
+                                label: Text("Email",style: TextStyle(fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Email",
-                                hintStyle: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,),
-                                prefixIcon: Icon(
+                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
+                                prefixIcon: const Icon(
                                   Icons.email_outlined,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF5E90E6),
                                 ),
-                          
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.grey,
-                                ),
-
-                                borderRadius: BorderRadius.all(Radius.circular(15))
-                              ),
+                                filled: true,
+                                fillColor: Colors.white,
                                 border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                               ),
@@ -167,9 +178,9 @@ class _AddorganiserState extends State<Addorganiser> {
                               controller: passwordcontroller,
                               obscureText: passwordvisible,
                               decoration: InputDecoration(
-                                label: Text("Password",style: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold,),),
+                                label: Text("Password",style: TextStyle(fontWeight: FontWeight.bold,),),
                                 hintText: "Enter Password",
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold,color:Colors.grey,),
+                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
                                 prefixIcon: const Icon(
                                   Icons.lock_outline,
                                   fontWeight: FontWeight.bold,
@@ -187,12 +198,9 @@ class _AddorganiserState extends State<Addorganiser> {
                                         : Icons.visibility,
                                   ),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey),
-                                  borderRadius: BorderRadius.all(Radius.circular(15))
-                                ),
+                                filled: true,
+                                fillColor: Colors.white,
                                 border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                               ),
@@ -215,14 +223,17 @@ class _AddorganiserState extends State<Addorganiser> {
                               width: screenWidth*0.70,
                               height: screenHeight*0.07,
                               child: ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async{
                                   if (formKey.currentState!.validate()) {
+                                    await createOrg();
+                                    await addOrganizerDetail("organizer");
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content:
                                             Text("Add Organiser Successful"),
                                       ),
                                     );
+                                    Navigator.pop(context);
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(

@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/GeneralSettingScreen.dart';
+// import 'package:quiz_battle/admin/GeneralSettingScreen.dart';
 import 'package:quiz_battle/admin/about_app_setting.dart';
 import 'package:quiz_battle/admin/privacy_policy.dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
@@ -13,18 +15,27 @@ class Admin_setting extends StatefulWidget {
 }
 
 class _Admin_settingState extends State<Admin_setting> {
+
+  Future<void> logout() async{
+    await FirebaseAuth.instance.signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 100,
+        backgroundColor: Color(0xFF306AE7),
+        toolbarHeight: 80,
         iconTheme: IconThemeData(color: Colors.white),
-        backgroundColor: Colors.blue,
         title: Text("System Setting",
         style: TextStyle(color: Colors.white,
           fontWeight:FontWeight.bold
           ),
         ),
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         child: Column(
@@ -35,14 +46,14 @@ class _Admin_settingState extends State<Admin_setting> {
                 child: Column(
                     children: [
                       Container(    
-                      height: 60,
-                      width: double.infinity,
+                      height: screenHeight*0.10,
+                      width: screenWidth,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.push(context,MaterialPageRoute(builder: (context) => GeneralSettingScreen()));
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Color(0xFF306AE7),
                           foregroundColor: Colors.white,
                           elevation: 6,
                           shape: RoundedRectangleBorder(
@@ -65,15 +76,15 @@ class _Admin_settingState extends State<Admin_setting> {
                     ),
 
                     SizedBox(height: 20,),
-                    Container(    
-                      height: 60,
-                      width: double.infinity,
+                    Container(
+                      height: screenHeight*0.10,
+                      width: screenWidth,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.push(context,MaterialPageRoute(builder: (context) => const AboutAppSetting()));
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Color(0xFF306AE7),
                           foregroundColor: Colors.white,
                           elevation: 6,
                           shape: RoundedRectangleBorder(
@@ -96,15 +107,15 @@ class _Admin_settingState extends State<Admin_setting> {
                     ),
 
                     SizedBox(height: 20),
-                    Container(    
-                      height: 60,
-                      width: double.infinity,
+                    Container(
+                      height: screenHeight*0.10,
+                      width: screenWidth,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.push(context,MaterialPageRoute(builder: (context) =>PrivacyPolicyScreen()));
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Color(0xFF306AE7),
                           foregroundColor: Colors.white,
                           elevation: 6,
                           shape: RoundedRectangleBorder(
@@ -119,6 +130,8 @@ class _Admin_settingState extends State<Admin_setting> {
                                 fontSize: 22,
                               ),
                             ),
+                            Spacer(),
+                            Icon(Icons.arrow_forward_ios),
                           ],
                         ),
                       ),
@@ -126,10 +139,12 @@ class _Admin_settingState extends State<Admin_setting> {
 
                     Padding(padding: EdgeInsetsDirectional.only(top: 30)),
                     SizedBox(
-                      height: 60,
+                      height: screenHeight*0.10,
+                      width: screenWidth,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(context,MaterialPageRoute(builder: (context) => SplashScreen()));
+                        onPressed: () async{
+                          await FirebaseAuth.instance.signOut();
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,

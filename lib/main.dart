@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-
-import 'package:quiz_battle/organizer/ProfileInfo(Organizer).dart';
-import 'package:quiz_battle/player/user_profile.dart';
-import 'package:quiz_battle/player/waiting_room.dart';
+import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
+import 'package:quiz_battle/admin/Student_ListScreen.dart';
+import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
+import 'package:quiz_battle/organizer/create_battle.dart';
 import 'firebase_options.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,12 +19,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'QuizX',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: "BaiJamjuree",
+        fontFamily: "Roboto",
       ),
-      home: WaitingRoom(),
+      home: Choose_Role_Screen(),
     );
   }
 }

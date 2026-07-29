@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class Stu_List extends StatefulWidget {
@@ -13,6 +14,10 @@ class _Stu_ListState extends State<Stu_List> {
 
   @override
   Widget build(BuildContext context) {
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Color(0xFF4A7CFF),
       appBar: AppBar(
@@ -23,6 +28,7 @@ class _Stu_ListState extends State<Stu_List> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        automaticallyImplyLeading: false,
         backgroundColor: Color(0xFF4A7CFF),
         toolbarHeight: 80,
       ),
@@ -70,127 +76,70 @@ class _Stu_ListState extends State<Stu_List> {
               ),
             ),
 
-            // Container of Student's list
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Container(
-                child: Column(
-                  children: [
-                    // Student Image
-                    Container(
-                      height: 90,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey,
-                              blurRadius: 8,
-                              offset: Offset(0, 5)
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 15.0),
-                            child: CircleAvatar(
-                              backgroundColor: Color(0xFF4A7CFF),
-                              radius:30,
-                              child: Icon(
-                                Icons.person_rounded,
-                                size: 40,
+            Expanded(
+              child: StreamBuilder(
+                  stream: FirebaseFirestore.instance.collection('player').snapshots(),
+                  builder: (context,snapshot){
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text("Something went wrong"),
+                      );
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(
+                        child: Text("No Player Found"),
+                      );
+                    }
+
+                    var playerList = snapshot.data!.docs;
+
+                    return ListView.builder(
+                        itemCount: playerList.length,
+                        itemBuilder:(context,index){
+                          var player = playerList[index];
+
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              height: screenHeight*0.09,
+                              width: screenWidth,
+                              decoration: BoxDecoration(
                                 color: Colors.white,
+                                borderRadius: BorderRadius.circular(25),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.grey,
+                                      blurRadius: 8,
+                                      offset: Offset(0, 5)
+                                  ),
+                                ],
+                              ),
+                              child: ListTile(
+                                contentPadding: EdgeInsets.symmetric(vertical: 8,horizontal: 10),
+                                leading: CircleAvatar(
+                                  backgroundColor: Color(0xFF4A7CFF),
+                                  radius:30,
+                                  child: Icon(
+                                    Icons.person_rounded,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                title: Text(player['player_name']),
+                                subtitle: Text(player['player_email']),
                               ),
                             ),
-                          ),
-                          SizedBox(width: 25,),
-
-
-                          // Student Name,total battles and win
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Student 1",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-
-                              Text("25 battles , 5 wins",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: 20,),
-                    //   2nd Student
-                    Container(
-                      height: 90,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.grey,
-                              blurRadius: 8,
-                              offset: Offset(0, 5)
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 15.0),
-                            child: CircleAvatar(
-                              backgroundColor: Color(0xFF4A7CFF),
-                              radius:30,
-                              child: Icon(
-                                Icons.person_rounded,
-                                size: 40,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 25,),
-
-
-                          // Student Name,total battles and win
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Student 2",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-
-                              Text("25 battles , 5 wins",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
+                          );
+                        }
+                    );
+                  }),
             ),
           ],
         ),

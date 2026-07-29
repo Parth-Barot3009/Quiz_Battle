@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
-import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 
 class org_dashboard extends StatefulWidget {
   const org_dashboard({super.key});
@@ -14,6 +12,8 @@ class _org_dashboardState extends State<org_dashboard> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
 
       //title
@@ -32,8 +32,9 @@ class _org_dashboardState extends State<org_dashboard> {
             ),
           ),
         ),
-        title: Text("Organizer\nDashboard",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
-        actions: [IconButton(onPressed: (){Navigator.push(context,MaterialPageRoute(builder: (context) => Choose_Role_Screen()));}, icon:Icon(Icons.account_circle_rounded),iconSize: 60,color: Colors.white,  ),
+        automaticallyImplyLeading: false,
+        title: Text("Dashboard",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
+        actions: [IconButton(onPressed: (){}, icon:Icon(Icons.account_circle_rounded),iconSize: 60,color: Colors.white,  ),
         ],
       ),
 
@@ -46,7 +47,7 @@ class _org_dashboardState extends State<org_dashboard> {
         child: Container(
           color: Color(0xFF306AE7),
           child: Container(
-            width: double.infinity,
+            width: screenWidth,
             decoration: const BoxDecoration(
               color: Colors.white,
             ),
@@ -67,55 +68,58 @@ class _org_dashboardState extends State<org_dashboard> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     width: screenWidth,
-                    height: 160,
+                    height: screenHeight*0.20,
                     child: Column(
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          // mainAxisAlignment: MainAxisAlignment.center,
                           children: [
 
                             //--
-                            Expanded(
-
-                              child: Padding(
+                            // Expanded(
+                            //
+                            //   child:
+                            Padding(
+                              //--
+                              padding: const EdgeInsets.only(left: 20),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 //--
-                                padding: const EdgeInsets.only(left: 20),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  //--
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 15,top: 30),
-                                      child: Column(
-                                        children: [
-                                          Text("Welcome Back !",style: TextStyle(
-                                            fontSize: 24,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.normal,
-                                            fontFamily: "BaiJamjuree",
-                                          ),),
-                                          //--
-                                          SizedBox(height: 8),
-                                          Text("pro.xyz",style: TextStyle(
-                                            fontSize: 30,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),),
-                                          //--
-                                          SizedBox(height: 5),
-                                          Text("xyz@gmail.com",style: TextStyle(
-                                            fontSize: 15,
-                                            color: Colors.white,
-                                          ),),
-                                        ],
-                                      ),
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 30),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text("Welcome Back !",style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.normal,
+
+                                        ),),
+                                        //--
+                                        // SizedBox(height: 8),
+                                        Text("pro.xyz",style: TextStyle(
+                                          fontSize: 30,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),),
+                                        //--
+                                        SizedBox(height: 5),
+                                        Text("xyz@gmail.com",style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.white,
+                                        ),),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
+                            // ),
 
+                            Spacer(),
                             Opacity(
                               opacity: 0.5,
                               child: Padding(
@@ -271,12 +275,11 @@ class _org_dashboardState extends State<org_dashboard> {
 
                 //quizzes list
 
-
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
                       width: screenWidth,
-                      height: 100,
+                      height: screenHeight*0.10,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(28),
                         gradient: const LinearGradient(
@@ -331,7 +334,7 @@ class _org_dashboardState extends State<org_dashboard> {
                                   Text(
                                     "Flutter Battle 2026",
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
@@ -342,209 +345,7 @@ class _org_dashboardState extends State<org_dashboard> {
                                   Text(
                                     "10 Questions • Technology",
                                     style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Right button
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 10,
-                                ),
-                              ),
-                              child: Text("Active"),
-                            )
-                          ],
-                        ),
-                      )
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                      width: screenWidth,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(28),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF4A7CFF),
-                            Color(0xFF306AE7),
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x332E7BFF),
-                            blurRadius: 24,
-                            offset: Offset(0, 12),
-                          ),
-                        ],
-                      ),
-
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                        ),
-                        child: Row(
-                          children: [
-
-                            // Left icon
-                            Container(
-                              width: 62,
-                              height: 62,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(18),
-                                color: Colors.white.withValues(alpha: 0.18), // Low opacity white box
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  width: 1,
-                                ),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.quiz_rounded, // or Icons.menu_book_rounded
-                                  color: Colors.white,
-                                  size: 34,
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(width: 15),
-
-                            // Middle text section
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-
-                                  Text(
-                                    "Flutter Battle 2026",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-
-                                  SizedBox(height: 5),
-
-                                  Text(
-                                    "10 Questions • Technology",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Right button
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 10,
-                                ),
-                              ),
-                              child: Text("Active"),
-                            )
-                          ],
-                        ),
-                      )
-                  ),
-                ),
-
-
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                      width: screenWidth,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(28),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF4A7CFF),
-                            Color(0xFF306AE7),
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x332E7BFF),
-                            blurRadius: 24,
-                            offset: Offset(0, 12),
-                          ),
-                        ],
-                      ),
-
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                        ),
-                        child: Row(
-                          children: [
-
-                            // Left icon
-                            Container(
-                              width: 62,
-                              height: 62,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(18),
-                                color: Colors.white.withValues(alpha: 0.15), // Low opacity white box
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  width: 1,
-                                ),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.quiz_rounded, // or Icons.menu_book_rounded
-                                  color: Colors.white,
-                                  size: 34,
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(width: 15),
-
-                            // Middle text section
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-
-                                  Text(
-                                    "Flutter Battle 2026",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-
-                                  SizedBox(height: 5),
-
-                                  Text(
-                                    "10 Questions • Technology",
-                                    style: TextStyle(
+                                      fontSize: 10,
                                       color: Colors.white,
                                     ),
                                   ),
@@ -575,32 +376,6 @@ class _org_dashboardState extends State<org_dashboard> {
           ),
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   currentIndex: 0,
-      //   selectedItemColor: Color(0xFF2E7BFF),
-      //   unselectedItemColor: Colors.grey,
-      //   items: [
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.home),
-      //       label: "Home",
-      //     ),
-      //
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.quiz),
-      //       label: "Quizzes",
-      //     ),
-      //
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.people),
-      //       label: "Students",
-      //     ),
-      //
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.person),
-      //       label: "Profile",
-      //     ),
-      //   ],
-      // ),
     );
   }
 }

@@ -1,19 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // import 'package:image_picker/image_picker.dart';
 
 
-class Register extends StatefulWidget {
-  const Register({super.key});
+class user_Register extends StatefulWidget {
+  const user_Register({super.key});
 
   @override
-  State<Register> createState() => _Register();
+  State<user_Register> createState() => _user_RegisterState();
 }
 
-class _Register extends State<Register>
+class _user_RegisterState extends State<user_Register>
 {
   final formkey = GlobalKey<FormState>();
   final namecon = TextEditingController();
@@ -33,7 +33,9 @@ class _Register extends State<Register>
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
       email: emailcontroller.text.trim(),
       password: passwordcontroller.text.trim(),
-      ); 
+      );
+
+      addPlayerDetail("player");
     }on FirebaseAuthException catch (e){
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message != null ?"Incorrect email or password":"Login failed try again"))
@@ -41,17 +43,26 @@ class _Register extends State<Register>
     }
   }
 
-  final ImagePicker picker = ImagePicker();
+    Future<void> addPlayerDetail(String? role) async{
+      await FirebaseFirestore.instance.collection('player').add({
+        'player_name':namecon.text.trim(),
+        'player_email':emailcontroller.text.trim(),
+        'role':role
+      });
+    }
 
-  Future<void> pickImage() async {
-  final XFile? image = await picker.pickImage(
-    source: ImageSource.gallery,
-  );
 
-  if (image != null) {
-    print(image.path);
-  }
-}
+  // final ImagePicker picker = ImagePicker();
+
+// Future<void> pickImage() async {
+//   final XFile? image = await picker.pickImage(
+//     source: ImageSource.gallery,
+//   );
+
+//   if (image != null) {
+//     print(image.path);
+//   }
+// }
 
   bool passwordvisible = false;
 
@@ -86,7 +97,7 @@ class _Register extends State<Register>
                   Container(
                     child: GestureDetector(
                       onTap: () {
-                        pickImage();
+                        print("Profile Image Clicked");
                       },
                       child: const CircleAvatar(
                           radius: 45,
@@ -110,16 +121,17 @@ class _Register extends State<Register>
                         child: Column(
                             children: [
                               TextFormField(
+                                controller: namecon,
                                 decoration:InputDecoration(
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(15))
-                                  ),
                                     border:
                                     OutlineInputBorder(
                                         borderRadius: BorderRadius.all(Radius.circular(15.0)),
                                         borderSide: BorderSide(color:Color(0xFF4E3F3F))
                                     ),
                                     hintText: "Name",
+
+                                    filled: true ,
+                                    fillColor:Colors.white,
                                     prefixIcon: Icon(
                                       Icons.person_outline,
                                       color: Color(0xFF5E90E6),
@@ -137,14 +149,9 @@ class _Register extends State<Register>
                                           Icons.email_outlined,color: Color(0xFF5E90E6)
                                       ),
                                       hintText: "Email",
-                                      focusedBorder:OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(15))
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Colors.grey
-                                        ),
-                                        borderRadius: BorderRadius.circular(15.0)
+                                      filled: true ,
+                                      fillColor: Colors.white,
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)
                                       )
                                   ),
                                   validator: (value){
@@ -171,13 +178,12 @@ class _Register extends State<Register>
                                       ),
 
                                       hintText: "Password",
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(15))
-                                      ),
+                                      filled: true ,
+                                      fillColor:Colors.white,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.all(Radius.circular(15.0)),
                                       ),
-                                      
+
 
                                       suffixIcon: IconButton(onPressed: (){
                                         setState(() {
@@ -204,16 +210,16 @@ class _Register extends State<Register>
                                 width: 228,
                                 child:
 
-                                ElevatedButton(onPressed: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "player")));
-
+                                ElevatedButton(onPressed: ()async{
                                   if (formkey.currentState!.validate()){
+                                    await sighUp();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text("registretion Successful"),
                                       ),
                                     );
                                   }
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen(role: "player")));
                                 },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(0xFF5E90E6),
