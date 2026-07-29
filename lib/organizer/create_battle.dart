@@ -328,93 +328,7 @@ class _create_battleState extends State<create_battle> {
 
                         SizedBox(height: 20),
 
-                        //question file
-
-                        Text("Question File", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                        ),
-
-                        SizedBox(height: 15),
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-
-                            Container(
-                              height: 65,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: const Color(0xFFE0E0E0),
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-
-                              child: Row(
-                                children: [
-
-                                  // Left Icon
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE9ECFF),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.upload_file_rounded,
-                                      color: Color(0xFF4A6CF7),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 15),
-
-                                  // File Name
-                                  Expanded(
-                                    child: Text(
-                                      selectedFileName ?? "Upload Excel File",
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: selectedFileName == null
-                                            ? Colors.grey
-                                            : Colors.black,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-
-                                  // Folder Button
-                                  IconButton(
-                                    onPressed: pickExcelFile,
-                                    icon: const Icon(
-                                      Icons.folder_open_rounded,
-                                      color: Color(0xFF4A6CF7),
-                                      size: 28,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
                         // Total Questions
-
-                        const SizedBox(height: 15),
-
-                        const SizedBox(height: 20),
 
                         const Text(
                           "Questions for Battle",
@@ -565,10 +479,14 @@ class _create_battleState extends State<create_battle> {
                                   color: const Color(0xFFE9ECFF),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(
-                                  Icons.access_time_rounded,
+                                child:IconButton(
+                                onPressed: () => pickTime(true),
+                                icon: const Icon(
+                                  Icons.schedule_rounded,
                                   color: Color(0xFF4A6CF7),
+                                  size: 28,
                                 ),
+                              ),
                               ),
 
                               const SizedBox(width: 15),
@@ -593,18 +511,6 @@ class _create_battleState extends State<create_battle> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF4A6CF7),
-                                ),
-                              ),
-
-                              const SizedBox(width: 5),
-
-                              // Clock Button
-                              IconButton(
-                                onPressed: () => pickTime(true),
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                  size: 28,
                                 ),
                               ),
                             ],
@@ -645,10 +551,14 @@ class _create_battleState extends State<create_battle> {
                                   color: const Color(0xFFE9ECFF),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(
-                                  Icons.access_time_rounded,
+                                child: IconButton(
+                                onPressed: () => pickTime(false),
+                                icon: const Icon(
+                                  Icons.schedule_rounded,
                                   color: Color(0xFF4A6CF7),
+                                  size: 28,
                                 ),
+                              ),
                               ),
 
                               const SizedBox(width: 15),
@@ -673,19 +583,6 @@ class _create_battleState extends State<create_battle> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF4A6CF7),
-                                ),
-                              ),
-
-                              const SizedBox(width: 5),
-
-                              // Clock Button
-
-                              IconButton(
-                                onPressed: () => pickTime(false),
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                  size: 28,
                                 ),
                               ),
                             ],
@@ -732,10 +629,14 @@ class _create_battleState extends State<create_battle> {
                                       color: const Color(0xFFE9ECFF),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: const Icon(
-                                      Icons.calendar_month_rounded,
+                                    child: IconButton(
+                                    onPressed: pickDate,
+                                    icon: const Icon(
+                                      Icons.date_range_rounded,
                                       color: Color(0xFF4A6CF7),
+                                      size: 28,
                                     ),
+                                  ),
                                   ),
 
                                   const SizedBox(width: 15),
@@ -762,20 +663,86 @@ class _create_battleState extends State<create_battle> {
                                       color: Color(0xFF4A6CF7),
                                     ),
                                   ),
-
-                                  // Calendar Button
-                                  IconButton(
-                                    onPressed: pickDate,
-                                    icon: const Icon(
-                                      Icons.date_range_rounded,
-                                      color: Color(0xFF4A6CF7),
-                                      size: 28,
-                                    ),
-                                  ),
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 30),
+                            const SizedBox(height: 15),
+
+                            //question file
+
+                            Text("Question File", style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+
+                            SizedBox(height: 15),
+
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  height: 65,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: const Color(0xFFE0E0E0),
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 6,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+
+                                  child: Row(
+                                    children: [
+                                      // Left Icon
+                                        Container(
+                                          width: 44,
+                                          height: 44,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFE9ECFF),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: IconButton(
+                                          onPressed: pickExcelFile,
+                                          icon: const Icon(
+                                            Icons.folder_open_rounded,
+                                            color: Color(0xFF4A6CF7),
+                                            size: 28,
+                                          ),
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 15),
+
+                                      // File Name
+                                      Expanded(
+                                        child: Text(
+                                          selectedFileName ?? "Upload Excel File",
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: selectedFileName == null
+                                                ? Colors.grey
+                                                : Colors.black,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: 20,),
 
                             SizedBox(
                               width: double.infinity,
