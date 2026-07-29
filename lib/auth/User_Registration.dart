@@ -2,8 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-// import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 
 class user_Register extends StatefulWidget {
@@ -52,17 +51,17 @@ class _user_RegisterState extends State<user_Register>
     }
 
 
-  // final ImagePicker picker = ImagePicker();
+  final ImagePicker picker = ImagePicker();
 
-// Future<void> pickImage() async {
-//   final XFile? image = await picker.pickImage(
-//     source: ImageSource.gallery,
-//   );
+  Future<void> pickImage() async {
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
 
-//   if (image != null) {
-//     print(image.path);
-//   }
-// }
+    if (image != null) {
+      print(image.path);
+    }
+  }
 
   bool passwordvisible = false;
 
@@ -97,7 +96,7 @@ class _user_RegisterState extends State<user_Register>
                   Container(
                     child: GestureDetector(
                       onTap: () {
-                        print("Profile Image Clicked");
+                        pickImage();
                       },
                       child: const CircleAvatar(
                           radius: 45,
@@ -121,17 +120,19 @@ class _user_RegisterState extends State<user_Register>
                         child: Column(
                             children: [
                               TextFormField(
+                                cursorColor: Colors.blue,
                                 controller: namecon,
                                 decoration:InputDecoration(
                                     border:
                                     OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                                        borderSide: BorderSide(color:Color(0xFF4E3F3F))
+                                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                        borderSide: BorderSide(color:Colors.black)
                                     ),
                                     hintText: "Name",
-
-                                    filled: true ,
-                                    fillColor:Colors.white,
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                                      borderSide: BorderSide(color: Color(0xFF5E90E6))
+                                    ),
                                     prefixIcon: Icon(
                                       Icons.person_outline,
                                       color: Color(0xFF5E90E6),
@@ -143,15 +144,18 @@ class _user_RegisterState extends State<user_Register>
 
                               SizedBox(height: 10,),
                               TextFormField(
+                                cursorColor: Color(0xFF5E90E6),
                                   controller: emailcontroller,
                                   decoration: InputDecoration(
                                       prefixIcon: Icon(
                                           Icons.email_outlined,color: Color(0xFF5E90E6)
                                       ),
                                       hintText: "Email",
-                                      filled: true ,
-                                      fillColor: Colors.white,
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                                        borderSide: BorderSide(color: Color(0xFF5E90E6))
+                                      ),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)
                                       )
                                   ),
                                   validator: (value){
@@ -178,10 +182,12 @@ class _user_RegisterState extends State<user_Register>
                                       ),
 
                                       hintText: "Password",
-                                      filled: true ,
-                                      fillColor:Colors.white,
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                                        borderSide: BorderSide(color: Color(0xFF5E90E6))
+                                      ),
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
                                       ),
 
 
