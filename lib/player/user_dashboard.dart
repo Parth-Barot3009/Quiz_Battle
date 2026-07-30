@@ -2,8 +2,47 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class StudentDashboard extends StatelessWidget {
+class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key});
+
+  @override
+  State<StudentDashboard> createState() => _StudentDashboardState();
+}
+
+class _StudentDashboardState extends State<StudentDashboard> {
+
+  Map<String, dynamic>? userInfo;
+
+  void initState() {
+    // TODO: implement initState
+    getUser();
+    super.initState();
+  }
+
+  void getUser() async{
+    userInfo = await getDocumentById(FirebaseAuth.instance.currentUser!.uid.toString());
+    setState(() {});
+  }
+
+  Future<Map<String, dynamic>?> getDocumentById(String docId) async {
+    try {
+      print(docId);
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('player')
+          .doc(docId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return docSnapshot.data() as Map<String, dynamic>;
+      } else {
+        print("Document does not exist");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching document: $e");
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +63,6 @@ class StudentDashboard extends StatelessWidget {
           ),
         ),
 
-        // Add Profile Image Circle
-        actions: [],
       ),
 
       body: SingleChildScrollView(
@@ -78,13 +115,20 @@ class StudentDashboard extends StatelessWidget {
                         padding: const EdgeInsets.all(20),
                         child: Row(
                           children: [
-                            const CircleAvatar(
-                              radius: 35,
-                              backgroundColor: Colors.white,
-                              child: Icon(
-                                Icons.person,
-                                color: Color(0xFF5E90E6),
+                            Container(
+                              width: 100,
+                              height: 100,
+                              child: userInfo != null
+                                  ? ClipRRect(
+                                borderRadius: BorderRadius.circular(100.0), // Adjust radius size here
+                                child: Image.network(
+                                  userInfo!["image_url"],
+                                  fit: BoxFit.cover, // Ensures the image fills the bounds cleanly
+                                ),
+                              ) : const Icon(
+                                Icons.add_a_photo,
                                 size: 40,
+                                color: Colors.white,
                               ),
                             ),
 

@@ -19,7 +19,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
     await FirebaseAuth.instance.signOut();
   }
 
-  @override
   void initState() {
     // TODO: implement initState
     getUser();
@@ -93,16 +92,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                 child:Column(
                   children: [
                     const SizedBox(height: 40),
-
-                    // const CircleAvatar(
-                    //   radius: 58,
-                    //   backgroundColor: Colors.white,
-                    //   child: Icon(
-                    //     Icons.person,
-                    //     size: 58,
-                    //     color: Colors.grey,
-                    //   ),
-                    // ),
 
                     Container(
                       width: 100,

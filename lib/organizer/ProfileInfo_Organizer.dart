@@ -13,9 +13,42 @@ class OrganiserProfileInfo extends StatefulWidget {
 
 class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
   final formKey = GlobalKey<FormState>();
+  Map<String, dynamic>? userInfo;
 
   Future<void> logout() async{
     await FirebaseAuth.instance.signOut();
+  }
+
+  Future<Map<String, dynamic>?> getDocumentById(String docId) async {
+    try {
+      print(docId);
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('organizer')
+          .doc(docId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return docSnapshot.data() as Map<String, dynamic>;
+      } else {
+        print("Document does not exist");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching document: $e");
+      return null;
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getOrganizer();
+    super.initState();
+  }
+
+  void getOrganizer() async{
+    userInfo = await getDocumentById(FirebaseAuth.instance.currentUser!.uid.toString());
+    setState(() {});
   }
 
   @override
@@ -61,13 +94,20 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                   children: [
                     const SizedBox(height: 40),
 
-                    const CircleAvatar(
-                      radius: 58,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 58,
-                        color: Colors.grey,
+                    Container(
+                      width: 100,
+                      height: 100,
+                      child: userInfo != null
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0), // Adjust radius size here
+                        child: Image.network(
+                          userInfo!["image_url"],
+                          fit: BoxFit.cover, // Ensures the image fills the bounds cleanly
+                        ),
+                      ) : const Icon(
+                        Icons.add_a_photo,
+                        size: 40,
+                        color: Colors.white,
                       ),
                     ),
 

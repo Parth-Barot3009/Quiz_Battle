@@ -11,6 +11,36 @@ class org_dashboard extends StatefulWidget {
 
 class _org_dashboardState extends State<org_dashboard> {
   final currentUser = FirebaseAuth.instance.currentUser;
+  Map<String, dynamic>? userInfo;
+  void initState() {
+    // TODO: implement initState
+    getUser();
+    super.initState();
+  }
+  void getUser() async{
+    userInfo = await getDocumentById(FirebaseAuth.instance.currentUser!.uid.toString());
+    setState(() {});
+  }
+
+  Future<Map<String, dynamic>?> getDocumentById(String docId) async {
+    try {
+      print(docId);
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('player')
+          .doc(docId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return docSnapshot.data() as Map<String, dynamic>;
+      } else {
+        print("Document does not exist");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching document: $e");
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +67,21 @@ class _org_dashboardState extends State<org_dashboard> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.account_circle_rounded),
-            iconSize: 60,
-            color: Colors.white,
+          Container(
+            width: 80,
+            height: 80,
+            child: userInfo != null
+                ? ClipRRect(
+              borderRadius: BorderRadius.circular(100.0), // Adjust radius size here
+              child: Image.network(
+                userInfo!["image_url"],
+                fit: BoxFit.cover, // Ensures the image fills the bounds cleanly
+              ),
+            ) : const Icon(
+              Icons.add_a_photo,
+              size: 40,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
