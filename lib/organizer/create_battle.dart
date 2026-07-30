@@ -122,71 +122,103 @@ class _create_battleState extends State<create_battle> {
   }
 
   Future<void> showSampleExcel() async {
+    try {
+      // 1. Load asset bytes
+      final data = await rootBundle.load("assets/sample/sample_file.xlsx");
+      final bytes = data.buffer.asUint8List();
 
-    final data = await rootBundle.load(
-      "assets/sample/sample_file.xlsx",
-    );
+      // 2. Decode the excel file
+      final excelFile = excel.Excel.decodeBytes(bytes);
 
-    final bytes = data.buffer.asUint8List();
+      List<List<String>> rows = [];
 
-    final excelFile = excel.Excel.decodeBytes(bytes);
-
-    List<List<String>> rows = [];
-
-    for (var sheet in excelFile.tables.keys) {
-
-      for (var row in excelFile.tables[sheet]!.rows) {
-
-        rows.add(
-          row.map((e) => e?.value.toString() ?? "").toList(),
-        );
-
+      // 3. Parse rows from the first sheet
+      for (var sheet in excelFile.tables.keys) {
+        for (var row in excelFile.tables[sheet]!.rows) {
+          rows.add(
+            row.map((e) => e?.value.toString() ?? "").toList(),
+          );
+        }
+        break; // Remove this break if you want to merge multiple sheets
       }
 
-    }
+      if (rows.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("The sample file is empty.")),
+        );
+        return;
+      }
 
-    //show sample file
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-
-        title: const Text("Sample Excel"),
-
-        content: SizedBox(
-
-          width: double.maxFinite,
-          height: 400,
-
-          child: SingleChildScrollView(
-
-            scrollDirection: Axis.horizontal,
-
-            child: DataTable(
-
-              columns: rows.first
-                  .map(
-                    (e) => DataColumn(label: Text(e)),
-              )
-                  .toList(),
-
-              rows: rows
-                  .skip(1)
-                  .map(
-                    (row) => DataRow(
-                  cells: row
-                      .map(
-                        (e) => DataCell(Text(e)),
-                  )
-                      .toList(),
-                ),
-              )
-                  .toList(),
+      // 4. Show a custom preview dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text(
+              "Sample File Format",
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-          ),
-        ),
-      ),
-    );
+            content: SizedBox(
+              width: double.maxFinite,
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Table(
+                    border: TableBorder.all(color: Colors.grey.shade300),
+                    defaultColumnWidth: const IntrinsicColumnWidth(),
+                    children: rows.asMap().entries.map((entry) {
+                      int rowIndex = entry.key;
+                      List<String> row = entry.value;
+
+                      return TableRow(
+                        // Highlight the header row
+                        decoration: BoxDecoration(
+                          color: rowIndex == 0
+                              ? const Color(0xFFE9ECFF)
+                              : Colors.transparent,
+                        ),
+                        children: row.map((cellValue) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                              vertical: 8.0,
+                            ),
+                            child: Text(
+                              cellValue,
+                              style: TextStyle(
+                                fontWeight: rowIndex == 0
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: rowIndex == 0
+                                    ? const Color(0xFF4A6CF7)
+                                    : Colors.black,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Close"),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      print("ERROR loading sample excel: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load sample file: $e")),
+      );
+    }
   }
 
   //date picker
