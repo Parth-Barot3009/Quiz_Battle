@@ -21,9 +21,9 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
      DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
      AggregateQuerySnapshot snapshot = await FirebaseFirestore.instance
-         .collection('battles')
-         .where('startDate', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-         .where('startDate', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+         .collection('Battle_Room_Details')
+         .where('battle_date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+         .where('battle_date', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
          .count()
          .get();
 
