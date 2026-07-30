@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quiz_battle/admin/Navigation(Admin).dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
+import 'package:quiz_battle/organizer/organizer_dashboard.dart';
+import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -21,7 +24,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "Roboto",
       ),
-      home: SplashScreen(),
+      home: Choose_Role_Screen(),
     );
   }
 }

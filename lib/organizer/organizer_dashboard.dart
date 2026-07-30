@@ -258,12 +258,18 @@ class _org_dashboardState extends State<org_dashboard> {
                             children: [
                               StreamBuilder(
                                 stream: FirebaseFirestore.instance
-                                    .collection('Battle_Room_Details')
+                                    .collection('Battle_Room_Details').where('o_email', isEqualTo: FirebaseAuth.instance.currentUser?.email)
                                     .snapshots(),
                                 builder: (context, snapshot) {
-                                  if (!snapshot.hasData ||
-                                      snapshot.data!.docs.isEmpty) {
-                                    return const Text("Battle Room Data found");
+                                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                    return const Text(
+                                      "0",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
                                   }
 
                                   var totalBattleRoom =

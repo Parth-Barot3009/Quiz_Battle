@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/admin/addmin_setting.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
@@ -10,11 +11,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(
-            Icons.arrow_back,
+            Icons.arrow_back_ios_new_rounded,
             color: Colors.white,
           ),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => Admin_setting()));
           },
         ),
         title: const Text(
@@ -70,9 +71,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
             const Text(
               "• Name and email address during registration.\n"
-              "• Login credentials for secure authentication.\n"
-              "• Quiz scores and participation history.\n"
-              "• Basic device information to improve application performance.",
+                  "• Login credentials for secure authentication.\n"
+                  "• Quiz scores and participation history.\n"
+                  "• Basic device information to improve application performance.",
               style: TextStyle(
                 fontSize: 16,
                 height: 1.8,
@@ -226,9 +227,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
             const Text(
               "If you have any questions regarding this Privacy Policy, please contact the Quiz Battle Team.\n\n"
-              "Email: support@quizbattle.com\n"
-              "Version: 1.0.0\n\n"
-              "Last Updated: July 2026",
+                  "Email: support@quizbattle.com\n"
+                  "Version: 1.0.0\n\n"
+                  "Last Updated: July 2026",
               style: TextStyle(
                 fontSize: 16,
                 height: 1.8,

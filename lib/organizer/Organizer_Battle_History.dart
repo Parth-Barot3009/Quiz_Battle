@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class OrganizerBattleHistory extends StatefulWidget {
@@ -30,7 +31,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
-            .collection('Battle_Room_Details')
+            .collection('Battle_Room_Details').where('o_email', isEqualTo: FirebaseAuth.instance.currentUser?.email)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

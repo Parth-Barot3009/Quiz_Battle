@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/admin/addmin_setting.dart';
 
 class GeneralSettingScreen extends StatefulWidget {
   const GeneralSettingScreen({super.key});
@@ -26,8 +27,15 @@ class _GeneralSettingScreenState
         ),
         backgroundColor: Colors.blue,
         toolbarHeight: 80,
-        leading: Icon(Icons.arrow_back_ios_new_rounded),
-        iconTheme: IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => Admin_setting()));
+          },
+        ),
       ),
 
       body: SingleChildScrollView(
@@ -56,9 +64,9 @@ class _GeneralSettingScreenState
                       notification = value;
                     });
                   },
-                  activeColor: Colors.white,          
-                  activeTrackColor: Colors.blueAccent, 
-                  inactiveThumbColor: Colors.grey,   
+                  activeColor: Colors.white,
+                  activeTrackColor: Colors.blueAccent,
+                  inactiveThumbColor: Colors.grey,
                   inactiveTrackColor: Colors.grey.shade300,
                 ),
 
@@ -80,10 +88,10 @@ class _GeneralSettingScreenState
                       darkMode = value;
                     });
                   },
-                  activeColor: Colors.white,          
-                  activeTrackColor: Colors.blueAccent, 
-                  inactiveThumbColor: Colors.grey,   
-                  inactiveTrackColor: Colors.grey.shade300, 
+                  activeColor: Colors.white,
+                  activeTrackColor: Colors.blueAccent,
+                  inactiveThumbColor: Colors.grey,
+                  inactiveTrackColor: Colors.grey.shade300,
                 ),
 
                 Divider(),

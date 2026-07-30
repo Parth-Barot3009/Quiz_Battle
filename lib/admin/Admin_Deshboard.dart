@@ -14,6 +14,22 @@ class AdminDeshboard extends StatefulWidget {
 class _AdminDeshboardState extends State<AdminDeshboard> {
   final user = FirebaseAuth.instance.currentUser;
 
+  Future<int> getActiveBattleCount() async {
+     DateTime now = DateTime.now();
+
+     DateTime startOfDay = DateTime(now.year, now.month, now.day, 0, 0, 0);
+     DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+     AggregateQuerySnapshot snapshot = await FirebaseFirestore.instance
+         .collection('battles')
+         .where('startDate', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+         .where('startDate', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+         .count()
+         .get();
+
+     return snapshot.count ?? 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -321,28 +337,30 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        StreamBuilder(
-                                          stream: FirebaseFirestore.instance
-                                              .collection('organizer')
-                                              .snapshots(),
-                                          builder: (context, snapshot) {
-                                            if (!snapshot.hasData ||
-                                                snapshot.data!.docs.isEmpty) {
-                                              return const Text(
-                                                "Active Battle Data found",
+
+                                        FutureBuilder(
+                                            future: getActiveBattleCount(),
+                                            builder: (context, snapshot){
+                                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                                return const Text(
+                                                  "...",
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                );
+                                              }
+                                              int activeCount = snapshot.data ?? 0;
+                                              return Text(
+                                                "$activeCount",
+                                                style: const TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               );
                                             }
-
-                                            // var totalOrg = snapshot.data!.docs.length;
-                                            return Text(
-                                              "Add Total Active Battle",
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            );
-                                          },
                                         ),
                                         Text(
                                           "Active Battles",

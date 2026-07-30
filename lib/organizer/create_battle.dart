@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
+import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 
 
 class create_battle extends StatefulWidget {
@@ -22,6 +23,7 @@ class _create_battleState extends State<create_battle> {
   int totalQuestions = 0;
   final TextEditingController roomname = TextEditingController();
   final TextEditingController roomCodeController = TextEditingController();
+
 
   //time pick class
 
@@ -103,6 +105,15 @@ class _create_battleState extends State<create_battle> {
 
   // Add Data of
   Future<void> addCreateRoomDetails() async {
+    final userEmail = FirebaseAuth.instance.currentUser?.email;
+
+    if (userEmail == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Organizer account not authenticated!")),
+      );
+      return;
+    }
+
     await FirebaseFirestore.instance.collection("Battle_Room_Details").add({
       "room_name": roomname.text.trim(),
 
@@ -757,12 +768,13 @@ class _create_battleState extends State<create_battle> {
                                     return;
                                   }
                                   await addCreateRoomDetails();
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Org_BattleRoom(),
-                                    ),
-                                  );
+                                  Navigator.pop(context);
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => org_dashboard(),
+                                  //   ),
+                                  // );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A6CF7),
