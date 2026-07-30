@@ -277,7 +277,7 @@ class _create_battleState extends State<create_battle> {
         "end_time": endTime?.format(context),
         "battle_date": selectedDate,
         "question_file": excelUrl,
-        "o_email":FirebaseAuth.instance.currentUser?.email,
+        "o_email":currentUser?.email,
       });
 
       print("Firestore Saved Successfully");
