@@ -428,7 +428,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const u_dashboard(),
+                          builder: (_) => const StudentDashboard(),
                         ),
                         (route) => false,
                       );

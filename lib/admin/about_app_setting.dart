@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/admin/addmin_setting.dart';
 
 class AboutAppSetting extends StatelessWidget {
   const AboutAppSetting({super.key});
@@ -7,19 +8,28 @@ class AboutAppSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => Admin_setting()));
+          },
+        ),
         toolbarHeight: 80,
         backgroundColor: Colors.blue,
         iconTheme: IconThemeData(
           color: Colors.white,
         ),
         title:
-          Text(
-            "About App",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+        Text(
+          "About App",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
+        ),
       ),
 
       body: SingleChildScrollView(
@@ -73,10 +83,10 @@ class AboutAppSetting extends StatelessWidget {
                 ),
               ),
 
-               SizedBox(height: 30),
+              SizedBox(height: 30),
 
               /// Privacy
-               Text(
+              Text(
                 "Privacy and Security",
                 style: TextStyle(
                   color: Colors.blue,
@@ -85,9 +95,9 @@ class AboutAppSetting extends StatelessWidget {
                 ),
               ),
 
-               SizedBox(height: 12),
+              SizedBox(height: 12),
 
-               Text(
+              Text(
                 "Quiz Battle values user privacy and data security. User information is protected, and the application is designed to provide a secure and reliable experience for all participants and organizers.",
                 textAlign: TextAlign.justify,
                 style: TextStyle(
@@ -96,10 +106,10 @@ class AboutAppSetting extends StatelessWidget {
                 ),
               ),
 
-               SizedBox(height: 30),
+              SizedBox(height: 30),
 
               /// Technologies
-               Text(
+              Text(
                 "Technologies Used",
                 style: TextStyle(
                   color: Colors.blue,
@@ -108,14 +118,14 @@ class AboutAppSetting extends StatelessWidget {
                 ),
               ),
 
-               SizedBox(height: 12),
+              SizedBox(height: 12),
 
-               Text(
+              Text(
                 "• Flutter\n"
-                "• Dart\n"
-                "• REST API\n"
-                "• Firebase Database\n"
-                "• Android Platform",
+                    "• Dart\n"
+                    "• REST API\n"
+                    "• Firebase Database\n"
+                    "• Android Platform",
                 style: TextStyle(
                   fontSize: 16,
                   height: 1.8,
@@ -138,7 +148,7 @@ class AboutAppSetting extends StatelessWidget {
 
               const Text(
                 "Application Name : Quiz Battle\n"
-                "Version : 1.0.0",
+                    "Version : 1.0.0",
                 style: TextStyle(
                   fontSize: 16,
                   height: 1.8,

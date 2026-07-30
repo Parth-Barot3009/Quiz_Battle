@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Addorganiser extends StatefulWidget {
   const Addorganiser({super.key});
@@ -15,17 +19,68 @@ class _AddorganiserState extends State<Addorganiser> {
   final emailcontroller = TextEditingController();
   final passwordcontroller = TextEditingController();
 
+  static const String cloudName = "bjcbyn5j";
+  static const String uploadPreset = "quizx-app";
+  static final Uri _uploadUrl = Uri.parse(
+    "https://api.cloudinary.com/v1_1/$cloudName/image/upload",
+  );
+
+  File? selectedImage;
+
   bool passwordvisible = true;
+
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+
+    XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null) {
+      selectedImage = File(pickedFile.path);
+      setState(() {});
+    }
+  }
+
+  static Future<String> uploadImage(File imageFile) async {
+    try {
+      final request = http.MultipartRequest("POST", _uploadUrl);
+      request.fields["upload_preset"] = uploadPreset;
+      request.files.add(
+        await http.MultipartFile.fromPath("file", imageFile.path),
+      );
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> data = jsonDecode(responseBody);
+        return data["secure_url"] as String;
+      }
+      throw Exception(
+        "Cloudinary Upload Failed (${response.statusCode})\n$responseBody",
+      );
+    } catch (e) {
+      throw Exception("Image upload failed: $e");
+    }
+  }
+
 
   Future createOrg() async{
     await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailcontroller.text.trim(), password: passwordcontroller.text.trim());
+
   }
 
-  addOrganizerDetail(String? role) async{
-    await FirebaseFirestore.instance.collection('organizer').add({
+
+  Future<void> addOrganizerDetail(String? role, String imageUrl) async {
+
+    await FirebaseFirestore.instance
+        .collection('organizer')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set({
       'o_name':namecon.text.trim(),
       'o_email':emailcontroller.text.trim(),
-      'role':role
+      'role': role,
+      'image_url': imageUrl,
     });
   }
 
@@ -80,18 +135,39 @@ class _AddorganiserState extends State<Addorganiser> {
                   const SizedBox(height: 40),
 
                   const SizedBox(height: 20),
-
-                  IconButton(
-                    onPressed: (){},
-                    icon: CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Color(0xFF306AE7),
-                    child: Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.white,
+                  Container(
+                    child: GestureDetector(
+                      onTap: () async {
+                        print("Hello");
+                        await pickImage();
+                      },
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Colors.blue,
+                        ),
+                        child: selectedImage != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          // Adjust radius size here
+                          child: Image.file(
+                            selectedImage!,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit
+                                .cover, // Ensures the image fills the bounds cleanly
+                          ),
+                        )
+                            : const Icon(
+                          Icons.add_a_photo,
+                          size: 40,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  ),),
+                  ),
 
                   SizedBox(height: 10),
 
@@ -223,17 +299,43 @@ class _AddorganiserState extends State<Addorganiser> {
                               width: screenWidth*0.70,
                               height: screenHeight*0.07,
                               child: ElevatedButton(
-                                onPressed: () async{
-                                  if (formKey.currentState!.validate()) {
+                                onPressed: () async {
+                                  try {
+                                    if (!formKey.currentState!.validate()) return;
+
+                                    if (selectedImage == null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Please Select Image"),
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    String imageUrl = await uploadImage(selectedImage!);
+                                    print("Image Uploaded");
+
                                     await createOrg();
-                                    await addOrganizerDetail("organizer");
+                                    print("Auth Created");
+
+                                    await addOrganizerDetail("organizer", imageUrl);
+                                    print("Firestore Added");
+
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content:
-                                            Text("Add Organiser Successful"),
+                                        content: Text("Add Organiser Successful"),
                                       ),
                                     );
+
                                     Navigator.pop(context);
+                                  } catch (e) {
+                                    print("ERROR: $e");
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(e.toString()),
+                                      ),
+                                    );
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(

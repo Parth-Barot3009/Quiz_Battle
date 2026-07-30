@@ -1,48 +1,85 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProfileInfo extends StatefulWidget {
   const UserProfileInfo({super.key});
 
   @override
-  State<UserProfileInfo> createState() =>
-      _UserProfileInfoState();
+  State<UserProfileInfo> createState() => _UserProfileInfoState();
 }
 
 class _UserProfileInfoState extends State<UserProfileInfo> {
   final formKey = GlobalKey<FormState>();
+  Map<String, dynamic>? userInfo;
 
-  Future<void> logout() async{
+  @override
+  void initState() {
+    super.initState();
+    getUser();
+  }
+
+  void getUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userInfo = await getDocumentById(user.uid);
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>?> getDocumentById(String docId) async {
+    try {
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('player')
+          .doc(docId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return docSnapshot.data() as Map<String, dynamic>;
+      } else {
+        print("Document does not exist");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching document: $e");
+      return null;
+    }
+  }
+
+  Future<void> logout() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('role'); // Clear saved role
     await FirebaseAuth.instance.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
-
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-
       appBar: AppBar(
-        title: Text("Player Profile",
+        title: const Text(
+          "Player Profile",
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        backgroundColor: Color(0xFF4A7CFF),
+        backgroundColor: const Color(0xFF4A7CFF),
         toolbarHeight: 80,
+        automaticallyImplyLeading: false,
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-
-              // Organizer Profile Image Saction
+              // Profile Header Section
               Container(
                 width: screenWidth,
                 decoration: const BoxDecoration(
@@ -55,17 +92,38 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                     ],
                   ),
                 ),
-                child:Column(
+                child: Column(
                   children: [
                     const SizedBox(height: 40),
 
-                    const CircleAvatar(
-                      radius: 58,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 58,
-                        color: Colors.grey,
+                    // Profile Image Container
+                    Container(
+                      width: 116,
+                      height: 116,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(3.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: (userInfo != null && userInfo!["image_url"] != null && userInfo!["image_url"].toString().isNotEmpty)
+                              ? Image.network(
+                            userInfo!["image_url"],
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Icon(
+                              Icons.person,
+                              size: 58,
+                              color: Colors.grey,
+                            ),
+                          )
+                              : const Icon(
+                            Icons.person,
+                            size: 58,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
                     ),
 
@@ -82,6 +140,7 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
                     const SizedBox(height: 25),
 
+                    // Details Container
                     Container(
                       width: screenWidth,
                       height: screenHeight,
@@ -96,132 +155,154 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                           topRight: Radius.circular(30),
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Full Name *",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
+                      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        stream: FirebaseFirestore.instance
+                            .collection('player')
+                            .where(
+                          'player_email',
+                          isEqualTo: FirebaseAuth.instance.currentUser?.email,
+                        )
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                            return const Center(child: Text("Player not found"));
+                          }
 
-                          const SizedBox(height: 10),
+                          var data = snapshot.data!.docs.first.data();
 
-                          Container(
-                            width: screenWidth*0.95,
-                            height: screenHeight*0.06,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                  offset: Offset(0, 0),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          const Text(
-                            "Email Name *",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          Container(
-                            width: screenWidth*0.95,
-                            height: screenHeight*0.06,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                  offset: Offset(0, 0),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(height: 30),
-
-                          Container(
-                            width: screenWidth*0.95,
-                            height: screenHeight*0.06,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black,
-                                elevation: 6,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Full Name *",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
                               ),
-                              child: const Row(
-                                children: [
-                                  Text(
-                                    "Battle History",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
+
+                              const SizedBox(height: 10),
+
+                              Container(
+                                width: screenWidth * 0.95,
+                                height: screenHeight * 0.06,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
+                                      offset: Offset(0, 0),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    data['player_name'] ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w300,
                                     ),
                                   ),
-                                  Spacer(),
-                                  Icon(Icons.arrow_forward_ios),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 30),
-
-                          SizedBox(
-                            width: screenWidth*0.95,
-                            height: screenHeight*0.06,
-                            child: ElevatedButton(
-                              onPressed: () async{
-                                await FirebaseAuth.instance.signOut();
-                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black,
-                                elevation: 6,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.logout,size: 30,color: Colors.blue,),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    "Logout",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueAccent,
+
+                              const SizedBox(height: 20),
+
+                              const Text(
+                                "Email Name *",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              Container(
+                                width: screenWidth * 0.95,
+                                height: screenHeight * 0.06,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
+                                      offset: Offset(0, 0),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    data['player_email'] ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w300,
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
+
+                              const SizedBox(height: 30),
+
+                              SizedBox(
+                                width: screenWidth * 0.95,
+                                height: screenHeight * 0.08,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    await logout();
+                                    if (!context.mounted) return;
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const Choose_Role_Screen(),
+                                      ),
+                                          (route) => false,
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF306AE7),
+                                    elevation: 6,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.logout,
+                                        size: 30,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        "Logout",
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ],

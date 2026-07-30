@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
@@ -12,9 +13,42 @@ class OrganiserProfileInfo extends StatefulWidget {
 
 class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
   final formKey = GlobalKey<FormState>();
+  Map<String, dynamic>? userInfo;
 
   Future<void> logout() async{
     await FirebaseAuth.instance.signOut();
+  }
+
+  Future<Map<String, dynamic>?> getDocumentById(String docId) async {
+    try {
+      print(docId);
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('organizer')
+          .doc(docId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return docSnapshot.data() as Map<String, dynamic>;
+      } else {
+        print("Document does not exist");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching document: $e");
+      return null;
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getOrganizer();
+    super.initState();
+  }
+
+  void getOrganizer() async{
+    userInfo = await getDocumentById(FirebaseAuth.instance.currentUser!.uid.toString());
+    setState(() {});
   }
 
   @override
@@ -60,13 +94,20 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                   children: [
                     const SizedBox(height: 40),
 
-                    const CircleAvatar(
-                      radius: 58,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 58,
-                        color: Colors.grey,
+                    Container(
+                      width: 100,
+                      height: 100,
+                      child: userInfo != null
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0), // Adjust radius size here
+                        child: Image.network(
+                          userInfo!["image_url"],
+                          fit: BoxFit.cover, // Ensures the image fills the bounds cleanly
+                        ),
+                      ) : const Icon(
+                        Icons.add_a_photo,
+                        size: 40,
+                        color: Colors.white,
                       ),
                     ),
 
@@ -97,102 +138,133 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                           topRight: Radius.circular(30),
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Full Name *",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          Container(
-                            width: screenWidth*0.95,
-                            height: screenHeight*0.06,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                  offset: Offset(0, 0),
+                      child: StreamBuilder(
+                          stream: FirebaseFirestore.instance
+                              .collection('organizer')
+                              .where('o_email', isEqualTo: FirebaseAuth.instance.currentUser!.email,)
+                              .snapshots(),
+                          builder: (context,snapshot){
+                            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                              return const Text("Organizer not found");
+                            }
+                            var data = snapshot.data!.docs.first.data();
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Full Name *",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
 
-                          const SizedBox(height: 20),
+                                const SizedBox(height: 10),
 
-                          const Text(
-                            "Email Name *",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          Container(
-                            width: screenWidth*0.95,
-                            height: screenHeight*0.06,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                  offset: Offset(0, 0),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(height: 30),
-
-                          SizedBox(
-                            width: screenWidth*0.95,
-                            height: screenHeight*0.08,
-                            child: ElevatedButton(
-                              onPressed: () async{
-                                await FirebaseAuth.instance.signOut();
-                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF306AE7),
-
-                                elevation: 6,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.logout,size: 30,color: Colors.white,),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    "Logout",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                Container(
+                                  width: screenWidth*0.95,
+                                  height: screenHeight*0.06,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 10,
+                                        spreadRadius: 2,
+                                        offset: Offset(0, 0),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 8),
+                                    child: Text(
+                                        data['o_name'],
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w200
+                                      ),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                const Text(
+                                  "Email Name *",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                Container(
+                                  width: screenWidth*0.95,
+                                  height: screenHeight*0.06,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 10,
+                                        spreadRadius: 2,
+                                        offset: Offset(0, 0),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 8),
+                                    child: Text(
+                                      data['o_email'],
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w200
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(height: 30),
+
+                                SizedBox(
+                                  width: screenWidth*0.95,
+                                  height: screenHeight*0.08,
+                                  child: ElevatedButton(
+                                    onPressed: () async{
+                                      await FirebaseAuth.instance.signOut();
+                                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFF306AE7),
+
+                                      elevation: 6,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.logout,size: 30,color: Colors.white,),
+                                        SizedBox(width: 10),
+                                        Text(
+                                          "Logout",
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
                     ),
                   ],
                 ),

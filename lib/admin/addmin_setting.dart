@@ -26,157 +26,157 @@ class _Admin_settingState extends State<Admin_setting> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF306AE7),
-        toolbarHeight: 80,
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text("System Setting",
-        style: TextStyle(color: Colors.white,
-          fontWeight:FontWeight.bold
-          ),
-        ),
-        automaticallyImplyLeading: false,
-      ),
-      body: Container(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsetsGeometry.all(25),
-              child: Container(
-                child: Column(
-                    children: [
-                      Container(    
-                      height: screenHeight*0.10,
-                      width: screenWidth,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(context,MaterialPageRoute(builder: (context) => GeneralSettingScreen()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF306AE7),
-                          foregroundColor: Colors.white,
-                          elevation: 6,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: const Row(
-                          children: [
-                            Text(
-                              "General Setting",
-                              style: TextStyle(
-                                fontSize: 22,
-                              ),
-                            ),
-                            Spacer(),
-                            Icon(Icons.arrow_forward_ios),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 20,),
-                    Container(
-                      height: screenHeight*0.10,
-                      width: screenWidth,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(context,MaterialPageRoute(builder: (context) => const AboutAppSetting()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF306AE7),
-                          foregroundColor: Colors.white,
-                          elevation: 6,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: const Row(
-                          children: [
-                            Text(
-                              "About App",
-                              style: TextStyle(
-                                fontSize: 22,
-                              ),
-                            ),
-                            Spacer(),
-                            Icon(Icons.arrow_forward_ios),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 20),
-                    Container(
-                      height: screenHeight*0.10,
-                      width: screenWidth,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(context,MaterialPageRoute(builder: (context) =>PrivacyPolicyScreen()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF306AE7),
-                          foregroundColor: Colors.white,
-                          elevation: 6,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: const Row(
-                          children: [
-                            Text(
-                              "Privacy Policy",
-                              style: TextStyle(
-                                fontSize: 22,
-                              ),
-                            ),
-                            Spacer(),
-                            Icon(Icons.arrow_forward_ios),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    Padding(padding: EdgeInsetsDirectional.only(top: 30)),
-                    SizedBox(
-                      height: screenHeight*0.10,
-                      width: screenWidth,
-                      child: ElevatedButton(
-                        onPressed: () async{
-                          await FirebaseAuth.instance.signOut();
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          elevation: 6,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.logout,size:40,color: Colors.blue,),
-                            SizedBox(width: 10),
-                            Text(
-                              "Logout",
-                              style: TextStyle(
-                                fontSize: 25,
-                                color: Colors.blueAccent,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ]
-                )
-              ),
+        appBar: AppBar(
+          backgroundColor: Color(0xFF306AE7),
+          toolbarHeight: 80,
+          iconTheme: IconThemeData(color: Colors.white),
+          title: Text("System Setting",
+            style: TextStyle(color: Colors.white,
+                fontWeight:FontWeight.bold
             ),
-          ]
+          ),
+          automaticallyImplyLeading: false,
+        ),
+        body: Container(
+            child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsetsGeometry.all(25),
+                    child: Container(
+                        child: Column(
+                            children: [
+                              Container(
+                                height: screenHeight*0.10,
+                                width: screenWidth,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(context,MaterialPageRoute(builder: (context) => GeneralSettingScreen()));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF306AE7),
+                                    foregroundColor: Colors.white,
+                                    elevation: 6,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Text(
+                                        "General Setting",
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Icon(Icons.arrow_forward_ios),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: 20,),
+                              Container(
+                                height: screenHeight*0.10,
+                                width: screenWidth,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(context,MaterialPageRoute(builder: (context) => const AboutAppSetting()));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF306AE7),
+                                    foregroundColor: Colors.white,
+                                    elevation: 6,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Text(
+                                        "About App",
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Icon(Icons.arrow_forward_ios),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: 20),
+                              Container(
+                                height: screenHeight*0.10,
+                                width: screenWidth,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(context,MaterialPageRoute(builder: (context) =>PrivacyPolicyScreen()));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF306AE7),
+                                    foregroundColor: Colors.white,
+                                    elevation: 6,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Text(
+                                        "Privacy Policy",
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Icon(Icons.arrow_forward_ios),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              Padding(padding: EdgeInsetsDirectional.only(top: 30)),
+                              SizedBox(
+                                height: screenHeight*0.10,
+                                width: screenWidth,
+                                child: ElevatedButton(
+                                  onPressed: () async{
+                                    await FirebaseAuth.instance.signOut();
+                                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF306AE7),
+                                    foregroundColor: Colors.black,
+                                    elevation: 6,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.logout,size:40,color: Colors.white,),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        "Logout",
+                                        style: TextStyle(
+                                          fontSize: 25,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ]
+                        )
+                    ),
+                  ),
+                ]
+            )
         )
-      )
     );
   }
 }

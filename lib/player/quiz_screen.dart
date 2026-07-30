@@ -14,8 +14,6 @@ class Question {
   });
 }
 
-
-
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
 

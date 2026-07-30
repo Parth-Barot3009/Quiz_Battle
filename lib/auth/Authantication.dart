@@ -8,37 +8,43 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Authantication extends StatelessWidget {
   const Authantication({super.key});
-  Future<Widget> authenticat() async{
-    if(FirebaseAuth.instance.currentUser!=null){
+
+  Future<Widget> authenticate() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? role = await prefs.getString('role');
-      if(role=="admin"){
-        return Admin_Nav();
-      } else if(role=="organizer"){
-        return Org_Navigationbar();
-      } else if(role=="player"){
-        return player_navigationbar();
+      String? role = prefs.getString('role');
+
+      if (role == "admin") {
+        return const Admin_Nav();
+      } else if (role == "organizer") {
+        return const Org_Navigationbar();
+      } else if (role == "player") {
+        return const player_navigationbar();
       }
     }
-    return Choose_Role_Screen();
+
+    return const Choose_Role_Screen();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<Widget>(
-          future: authenticat(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            if (snapshot.hasData) {
-              return snapshot.data!;
-            }
-            return const Choose_Role_Screen();
-          },
-      )
+        future: authenticate(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (snapshot.hasData) {
+            return snapshot.data!;
+          }
+          return const Choose_Role_Screen();
+        },
+      ),
     );
   }
 }

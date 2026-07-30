@@ -131,13 +131,15 @@ class _Org_ListState extends State<Org_List> {
                             width: screenWidth,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(25),
-                              boxShadow: [
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+
+                              boxShadow:[
                                 BoxShadow(
-                                    color: Colors.grey,
-                                    blurRadius: 8,
-                                    offset: Offset(0, 5)
-                                ),
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
+                                  offset: Offset(0, 10),
+                                )
                               ],
                             ),
                             child: ListTile(

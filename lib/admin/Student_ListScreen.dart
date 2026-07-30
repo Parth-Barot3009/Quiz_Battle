@@ -112,17 +112,17 @@ class _Stu_ListState extends State<Stu_List> {
                               width: screenWidth,
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(25),
-                                boxShadow: [
+                                borderRadius: BorderRadius.all(Radius.circular(15)),
+                                boxShadow:[
                                   BoxShadow(
-                                      color: Colors.grey,
-                                      blurRadius: 8,
-                                      offset: Offset(0, 5)
-                                  ),
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    spreadRadius: 2,
+                                    offset: Offset(0, 10),
+                                  )
                                 ],
                               ),
                               child: ListTile(
-                                contentPadding: EdgeInsets.symmetric(vertical: 8,horizontal: 10),
                                 leading: CircleAvatar(
                                   backgroundColor: Color(0xFF4A7CFF),
                                   radius:30,
