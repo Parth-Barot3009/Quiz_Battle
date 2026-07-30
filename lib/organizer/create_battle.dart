@@ -1,9 +1,15 @@
+import 'package:excel/excel.dart' as excel;
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -17,6 +23,7 @@ class _create_battleState extends State<create_battle> {
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   String? selectedFileName;
+  File? selectedExcelFile;
   DateTime? selectedDate;
   int totalQuestions = 0;
   final TextEditingController  roomname = TextEditingController();
@@ -57,12 +64,129 @@ class _create_battleState extends State<create_battle> {
     if (result != null) {
       setState(() {
         selectedFileName = result.files.single.name;
+        selectedExcelFile = File(result.files.single.path!);
       });
 
       print("Path: ${result.files.single.path}");
     } else {
       print("User cancelled");
     }
+  }
+
+  //add in cloudinary
+
+  Future<String?> uploadExcelToCloudinary() async {
+
+    if (selectedExcelFile == null) return null;
+
+    var uri = Uri.parse(
+      "https://api.cloudinary.com/v1_1/mios4bnz/raw/upload",
+    );
+
+    var request = http.MultipartRequest("POST", uri);
+
+    request.fields["upload_preset"] = "quiz_excel";
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        "file",
+        selectedExcelFile!.path,
+      ),
+    );
+
+    var response = await request.send();
+    print("Uploading to Cloudinary...");
+    print(selectedExcelFile!.path);
+
+    print(response.statusCode);
+
+    String body = await response.stream.bytesToString();
+
+    print(body);
+
+    if (response.statusCode == 200) {
+      var data = jsonDecode(body);
+      return data["secure_url"];
+    }
+
+    if (response.statusCode == 200) {
+
+      var data =
+      jsonDecode(await response.stream.bytesToString());
+
+      return data["secure_url"];
+    }
+
+
+    return null;
+  }
+
+  Future<void> showSampleExcel() async {
+
+    final data = await rootBundle.load(
+      "assets/sample/sample_file.xlsx",
+    );
+
+    final bytes = data.buffer.asUint8List();
+
+    final excelFile = excel.Excel.decodeBytes(bytes);
+
+    List<List<String>> rows = [];
+
+    for (var sheet in excelFile.tables.keys) {
+
+      for (var row in excelFile.tables[sheet]!.rows) {
+
+        rows.add(
+          row.map((e) => e?.value.toString() ?? "").toList(),
+        );
+
+      }
+
+    }
+
+    //show sample file
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+
+        title: const Text("Sample Excel"),
+
+        content: SizedBox(
+
+          width: double.maxFinite,
+          height: 400,
+
+          child: SingleChildScrollView(
+
+            scrollDirection: Axis.horizontal,
+
+            child: DataTable(
+
+              columns: rows.first
+                  .map(
+                    (e) => DataColumn(label: Text(e)),
+              )
+                  .toList(),
+
+              rows: rows
+                  .skip(1)
+                  .map(
+                    (row) => DataRow(
+                  cells: row
+                      .map(
+                        (e) => DataCell(Text(e)),
+                  )
+                      .toList(),
+                ),
+              )
+                  .toList(),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   //date picker
@@ -97,27 +221,34 @@ class _create_battleState extends State<create_battle> {
     roomCodeController.text = code;
   }
 
-  // Add Data of
   Future<void> addCreateRoomDetails() async {
+    try {
+      print("Uploading file...");
 
-    await FirebaseFirestore.instance
-        .collection("Battle_Room_Details")
-        .add({
+      String? excelUrl = await uploadExcelToCloudinary();
 
-      "room_name": roomname.text.trim(),
+      print("Excel URL: $excelUrl");
 
-      "room_code": roomCodeController.text.trim(),
+      print("Saving Firestore...");
 
-      "questions": totalQuestions,
+      await FirebaseFirestore.instance
+          .collection("Battle_Room_Details")
+          .add({
+        "room_name": roomname.text.trim(),
+        "room_code": roomCodeController.text.trim(),
+        "questions": totalQuestions,
+        "start_time": startTime?.format(context),
+        "end_time": endTime?.format(context),
+        "battle_date": selectedDate,
+        "question_file": excelUrl,
+      });
 
-      "start_time": startTime?.format(context),
-
-      "end_time": endTime?.format(context),
-
-      "battle_date": selectedDate,
-
-      "question_file": selectedFileName,
-    });
+      print("Firestore Saved Successfully");
+    } catch (e) {
+      print("ERROR:");
+      print(e);
+      rethrow;
+    }
   }
 
   @override
@@ -408,6 +539,31 @@ class _create_battleState extends State<create_battle> {
                               ),
                             ),
                           ],
+                        ),
+
+                        //sample file
+
+                        const SizedBox(height: 10),
+
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+
+                            onPressed: showSampleExcel,
+
+                            icon: const Icon(
+                              Icons.visibility,
+                              color: Color(0xFF4A6CF7),
+                            ),
+
+                            label: const Text(
+                              "View Sample File",
+                              style: TextStyle(
+                                color: Color(0xFF4A6CF7),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
 
                         // Total Questions
