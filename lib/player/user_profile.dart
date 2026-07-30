@@ -13,9 +13,42 @@ class UserProfileInfo extends StatefulWidget {
 
 class _UserProfileInfoState extends State<UserProfileInfo> {
   final formKey = GlobalKey<FormState>();
+  Map<String, dynamic>? userInfo;
 
   Future<void> logout() async{
     await FirebaseAuth.instance.signOut();
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getUser();
+    super.initState();
+  }
+
+  void getUser() async{
+    userInfo = await getDocumentById(FirebaseAuth.instance.currentUser!.uid.toString());
+    setState(() {});
+  }
+
+  Future<Map<String, dynamic>?> getDocumentById(String docId) async {
+    try {
+      print(docId);
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('player')
+          .doc(docId)
+          .get();
+
+      if (docSnapshot.exists) {
+        return docSnapshot.data() as Map<String, dynamic>;
+      } else {
+        print("Document does not exist");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching document: $e");
+      return null;
+    }
   }
 
   @override
@@ -61,13 +94,30 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                   children: [
                     const SizedBox(height: 40),
 
-                    const CircleAvatar(
-                      radius: 58,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 58,
-                        color: Colors.grey,
+                    // const CircleAvatar(
+                    //   radius: 58,
+                    //   backgroundColor: Colors.white,
+                    //   child: Icon(
+                    //     Icons.person,
+                    //     size: 58,
+                    //     color: Colors.grey,
+                    //   ),
+                    // ),
+
+                    Container(
+                      width: 100,
+                      height: 100,
+                      child: userInfo != null
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0), // Adjust radius size here
+                        child: Image.network(
+                          userInfo!["image_url"],
+                          fit: BoxFit.cover, // Ensures the image fills the bounds cleanly
+                        ),
+                      ) : const Icon(
+                        Icons.add_a_photo,
+                        size: 40,
+                        color: Colors.white,
                       ),
                     ),
 
