@@ -9,6 +9,7 @@ import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 
 
 class create_battle extends StatefulWidget {
@@ -28,6 +29,9 @@ class _create_battleState extends State<create_battle> {
   int totalQuestions = 0;
   final TextEditingController  roomname = TextEditingController();
   final TextEditingController roomCodeController = TextEditingController();
+
+  final currentUser = FirebaseAuth.instance.currentUser;
+
 
   //time pick class
 
@@ -273,6 +277,7 @@ class _create_battleState extends State<create_battle> {
         "end_time": endTime?.format(context),
         "battle_date": selectedDate,
         "question_file": excelUrl,
+        "o_email":FirebaseAuth.instance.currentUser?.email,
       });
 
       print("Firestore Saved Successfully");
@@ -977,7 +982,7 @@ class _create_battleState extends State<create_battle> {
                                     return;
                                   }
                                   await addCreateRoomDetails();
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_BattleRoom()));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>org_dashboard()));
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A6CF7),
