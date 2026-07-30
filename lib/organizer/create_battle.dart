@@ -6,10 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
-import 'dart:io';
+// import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 
 
 class create_battle extends StatefulWidget {
@@ -24,14 +23,11 @@ class _create_battleState extends State<create_battle> {
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   String? selectedFileName;
-  File? selectedExcelFile;
+  // File? selectedExcelFile;
   DateTime? selectedDate;
   int totalQuestions = 0;
   final TextEditingController  roomname = TextEditingController();
   final TextEditingController roomCodeController = TextEditingController();
-
-  final currentUser = FirebaseAuth.instance.currentUser;
-
 
   //time pick class
 
@@ -56,173 +52,128 @@ class _create_battleState extends State<create_battle> {
 
   //file pick class
 
+  Uint8List? selectedBytes;
+
   Future<void> pickExcelFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['xlsx', 'xls'],
-      allowMultiple: false,
-      dialogTitle: 'Select Excel File',
-      lockParentWindow: true,
+      withData: true,
     );
 
     if (result != null) {
       setState(() {
         selectedFileName = result.files.single.name;
-        selectedExcelFile = File(result.files.single.path!);
+        selectedBytes = result.files.single.bytes;
       });
-
-      print("Path: ${result.files.single.path}");
-    } else {
-      print("User cancelled");
     }
   }
 
   //add in cloudinary
 
   Future<String?> uploadExcelToCloudinary() async {
-
-    if (selectedExcelFile == null) return null;
+    if (selectedBytes == null) {
+      throw Exception("Please select Excel file");
+    }
 
     var uri = Uri.parse(
-      "https://api.cloudinary.com/v1_1/mios4bnz/raw/upload",
-    );
+        "https://api.cloudinary.com/v1_1/mios4bnz/raw/upload");
 
     var request = http.MultipartRequest("POST", uri);
 
     request.fields["upload_preset"] = "quiz_excel";
 
     request.files.add(
-      await http.MultipartFile.fromPath(
+      http.MultipartFile.fromBytes(
         "file",
-        selectedExcelFile!.path,
+        selectedBytes!,
+        filename: selectedFileName ?? "questions.xlsx",
       ),
     );
 
-    var response = await request.send();
-    print("Uploading to Cloudinary...");
-    print(selectedExcelFile!.path);
+    print("Uploading Excel...");
 
-    print(response.statusCode);
+    var response = await request.send();
 
     String body = await response.stream.bytesToString();
 
+    print(response.statusCode);
     print(body);
 
     if (response.statusCode == 200) {
-      var data = jsonDecode(body);
+      final data = jsonDecode(body);
       return data["secure_url"];
     }
 
-    if (response.statusCode == 200) {
-
-      var data =
-      jsonDecode(await response.stream.bytesToString());
-
-      return data["secure_url"];
-    }
-
-
-    return null;
+    throw Exception(body);
   }
 
   Future<void> showSampleExcel() async {
-    try {
-      // 1. Load asset bytes
-      final data = await rootBundle.load("assets/sample/sample_file.xlsx");
-      final bytes = data.buffer.asUint8List();
 
-      // 2. Decode the excel file
-      final excelFile = excel.Excel.decodeBytes(bytes);
+    final data = await rootBundle.load(
+      "assets/sample/sample_file.xlsx",
+    );
 
-      List<List<String>> rows = [];
+    final bytes = data.buffer.asUint8List();
 
-      // 3. Parse rows from the first sheet
-      for (var sheet in excelFile.tables.keys) {
-        for (var row in excelFile.tables[sheet]!.rows) {
-          rows.add(
-            row.map((e) => e?.value.toString() ?? "").toList(),
-          );
-        }
-        break; // Remove this break if you want to merge multiple sheets
-      }
+    final excelFile = excel.Excel.decodeBytes(bytes);
 
-      if (rows.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("The sample file is empty.")),
+    List<List<String>> rows = [];
+
+    for (var sheet in excelFile.tables.keys) {
+
+      for (var row in excelFile.tables[sheet]!.rows) {
+
+        rows.add(
+          row.map((e) => e?.value.toString() ?? "").toList(),
         );
-        return;
+
       }
 
-      // 4. Show a custom preview dialog
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text(
-              "Sample File Format",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            content: SizedBox(
-              width: double.maxFinite,
-              height: MediaQuery.of(context).size.height * 0.5,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Table(
-                    border: TableBorder.all(color: Colors.grey.shade300),
-                    defaultColumnWidth: const IntrinsicColumnWidth(),
-                    children: rows.asMap().entries.map((entry) {
-                      int rowIndex = entry.key;
-                      List<String> row = entry.value;
-
-                      return TableRow(
-                        // Highlight the header row
-                        decoration: BoxDecoration(
-                          color: rowIndex == 0
-                              ? const Color(0xFFE9ECFF)
-                              : Colors.transparent,
-                        ),
-                        children: row.map((cellValue) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0,
-                              vertical: 8.0,
-                            ),
-                            child: Text(
-                              cellValue,
-                              style: TextStyle(
-                                fontWeight: rowIndex == 0
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: rowIndex == 0
-                                    ? const Color(0xFF4A6CF7)
-                                    : Colors.black,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Close"),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (e) {
-      print("ERROR loading sample excel: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load sample file: $e")),
-      );
     }
+
+    //show sample file
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+
+        title: const Text("Sample Excel"),
+
+        content: SizedBox(
+
+          width: double.maxFinite,
+          height: 400,
+
+          child: SingleChildScrollView(
+
+            scrollDirection: Axis.horizontal,
+
+            child: DataTable(
+
+              columns: rows.first
+                  .map(
+                    (e) => DataColumn(label: Text(e)),
+              )
+                  .toList(),
+
+              rows: rows
+                  .skip(1)
+                  .map(
+                    (row) => DataRow(
+                  cells: row
+                      .map(
+                        (e) => DataCell(Text(e)),
+                  )
+                      .toList(),
+                ),
+              )
+                  .toList(),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   //date picker
@@ -259,17 +210,17 @@ class _create_battleState extends State<create_battle> {
 
   Future<void> addCreateRoomDetails() async {
     try {
-      print("Uploading file...");
+
+      print("Uploading Excel...");
 
       String? excelUrl = await uploadExcelToCloudinary();
 
-      print("Excel URL: $excelUrl");
-
-      print("Saving Firestore...");
+      print(excelUrl);
 
       await FirebaseFirestore.instance
           .collection("Battle_Room_Details")
           .add({
+
         "room_name": roomname.text.trim(),
         "room_code": roomCodeController.text.trim(),
         "questions": totalQuestions,
@@ -277,14 +228,27 @@ class _create_battleState extends State<create_battle> {
         "end_time": endTime?.format(context),
         "battle_date": selectedDate,
         "question_file": excelUrl,
-        "o_email":currentUser?.email,
+        "created_at": FieldValue.serverTimestamp(),
+        "o_email":FirebaseAuth.instance.currentUser?.email,
       });
 
-      print("Firestore Saved Successfully");
+      print("Firestore Saved");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Battle Created Successfully"),
+        ),
+      );
+
     } catch (e) {
-      print("ERROR:");
+
       print(e);
-      rethrow;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
     }
   }
 
@@ -982,7 +946,7 @@ class _create_battleState extends State<create_battle> {
                                     return;
                                   }
                                   await addCreateRoomDetails();
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>org_dashboard()));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_BattleRoom()));
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A6CF7),
