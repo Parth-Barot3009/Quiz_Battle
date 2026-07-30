@@ -272,8 +272,7 @@ class _org_dashboardState extends State<org_dashboard> {
                                     );
                                   }
 
-                                  var totalBattleRoom =
-                                      snapshot.data!.docs.length;
+                                  var totalBattleRoom = snapshot.data!.docs.length;
                                   return Text(
                                     "$totalBattleRoom",
                                     style: TextStyle(
