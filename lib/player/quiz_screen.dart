@@ -345,11 +345,7 @@ borderRadius:
 BorderRadius.circular(16),
 ),
 
-child: const Icon(
-Icons.meeting_room_rounded,
-color: Colors.white,
-size: 30,
-),
+
 ),
 
 const SizedBox(width: 16),
