@@ -210,10 +210,7 @@ color: Colors.grey.shade400,
 fontSize: 18,
 letterSpacing: 1,
 ),
-prefixIcon: const Icon(
-Icons.meeting_room_rounded,
-color: brandBlue,
-),
+
 border: InputBorder.none,
 contentPadding: const EdgeInsets.symmetric(
 vertical: 24,
