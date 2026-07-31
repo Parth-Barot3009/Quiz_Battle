@@ -4,7 +4,6 @@ import 'package:quiz_battle/admin/GeneralSettingScreen.dart';
 // import 'package:quiz_battle/admin/GeneralSettingScreen.dart';
 import 'package:quiz_battle/admin/about_app_setting.dart';
 import 'package:quiz_battle/admin/privacy_policy.dart';
-import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
 
 class Admin_setting extends StatefulWidget {
@@ -144,7 +143,7 @@ class _Admin_settingState extends State<Admin_setting> {
                                 child: ElevatedButton(
                                   onPressed: () async{
                                     await FirebaseAuth.instance.signOut();
-                                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
+                                    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>null));
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(0xFF306AE7),

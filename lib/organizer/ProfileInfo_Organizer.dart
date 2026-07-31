@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
+import 'package:quiz_battle/auth/login_admin_organiser.dart';
 
 class OrganiserProfileInfo extends StatefulWidget {
   const OrganiserProfileInfo({super.key});
@@ -235,7 +235,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                   child: ElevatedButton(
                                     onPressed: () async{
                                       await FirebaseAuth.instance.signOut();
-                                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Choose_Role_Screen()));
+                                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginScreen()));
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Color(0xFF306AE7),

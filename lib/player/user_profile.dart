@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/auth/Choose_Role_Screen.dart';
+import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProfileInfo extends StatefulWidget {
@@ -267,7 +267,7 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                     Navigator.pushAndRemoveUntil(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const Choose_Role_Screen(),
+                                        builder: (context) => const LoginScreen(),
                                       ),
                                           (route) => false,
                                     );

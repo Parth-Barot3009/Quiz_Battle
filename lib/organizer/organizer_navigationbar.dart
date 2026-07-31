@@ -16,7 +16,7 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> {
   int _currentIndex = 0;
 
   final List<Widget> _screen = [
-    org_dashboard(),
+    OrgDashboard(),
     create_battle(),
     OrganizerBattleHistory(),
     OrganiserProfileInfo()

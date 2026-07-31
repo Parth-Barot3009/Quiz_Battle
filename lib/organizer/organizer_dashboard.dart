@@ -2,455 +2,606 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class org_dashboard extends StatefulWidget {
-  const org_dashboard({super.key});
+class OrgDashboard extends StatefulWidget {
+  const OrgDashboard({super.key});
 
   @override
-  State<org_dashboard> createState() => _org_dashboardState();
+  State<OrgDashboard> createState() => _OrgDashboardState();
 }
 
-class _org_dashboardState extends State<org_dashboard> {
+class _OrgDashboardState extends State<OrgDashboard> {
   final currentUser = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? userInfo;
+
+  // Theme Colors
+  static const Color brandBlue = Color(0xFF2563EB);
+  static const Color bgCanvas = Color(0xFFEBF1FF);
+  static const Color surfaceWhite = Color(0xFFFFFFFF);
+  static const Color borderColor = Color(0xFFE2E8F0);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textGrey = Color(0xFF64748B);
+
+  @override
   void initState() {
-    // TODO: implement initState
-    getUser();
     super.initState();
-  }
-  void getUser() async{
-    userInfo = await getDocumentById(FirebaseAuth.instance.currentUser!.uid.toString());
-    setState(() {});
+    _getUser();
   }
 
-  Future<Map<String, dynamic>?> getDocumentById(String docId) async {
+  void _getUser() async {
+    if (currentUser?.uid != null) {
+      final data = await _getDocumentById(currentUser!.uid);
+      if (mounted) {
+        setState(() {
+          userInfo = data;
+        });
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>?> _getDocumentById(String docId) async {
     try {
-      print(docId);
       DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
           .collection('player')
           .doc(docId)
           .get();
 
       if (docSnapshot.exists) {
-        return docSnapshot.data() as Map<String, dynamic>;
-      } else {
-        print("Document does not exist");
-        return null;
+        return docSnapshot.data() as Map<String, dynamic>?;
       }
     } catch (e) {
-      print("Error fetching document: $e");
-      return null;
+      debugPrint("Error fetching document: $e");
     }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-      //title
-      appBar: AppBar(
-        toolbarHeight: 80,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: [0.0, 0.45],
-              colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
+      backgroundColor: bgCanvas,
+      body: Stack(
+        children: [
+          // Decorative Soft Background Blobs
+          Positioned(
+            top: -40,
+            left: -40,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: brandBlue.withOpacity(0.12),
+              ),
             ),
           ),
-        ),
-        automaticallyImplyLeading: false,
-        title: Text(
-          "Dashboard",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          Container(
-            width: 80,
-            height: 80,
-            child: userInfo != null
-                ? ClipRRect(
-              borderRadius: BorderRadius.circular(100.0), // Adjust radius size here
-              child: Image.network(
-                userInfo!["image_url"],
-                fit: BoxFit.cover, // Ensures the image fills the bounds cleanly
+          Positioned(
+            bottom: 100,
+            right: -60,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: brandBlue.withOpacity(0.08),
               ),
-            ) : const Icon(
-              Icons.add_a_photo,
-              size: 40,
-              color: Colors.white,
+            ),
+          ),
+
+          // Main Content
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. TOP HEADER
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "GOOD EVENING",
+                            style: TextStyle(
+                              color: textGrey,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            "Dashboard",
+                            style: TextStyle(
+                              color: textDark,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: brandBlue.withOpacity(0.15),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: brandBlue,
+                              backgroundImage: userInfo != null && userInfo!["image_url"] != null
+                                  ? NetworkImage(userInfo!["image_url"])
+                                  : null,
+                              child: userInfo == null || userInfo!["image_url"] == null
+                                  ? const Text(
+                                "K",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              )
+                                  : null,
+                            ),
+                          ),
+                          Positioned(
+                            right: 2,
+                            bottom: 2,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 1.5),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 2. GREETING CARD
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('organizer')
+                        .where('o_email', isEqualTo: currentUser?.email)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      String name = "Organizer";
+                      if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                        final data = snapshot.data!.docs.first.data() as Map<String, dynamic>?;
+                        name = data?['o_name'] ?? "Organizer";
+                      }
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF3B82F6),
+                              Color(0xFF1D4ED8),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF1D4ED8).withOpacity(0.35),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Welcome back",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  currentUser?.email ?? "",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.75),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.20),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.25),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.menu_book_rounded,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 3. STATS CARDS
+                  Row(
+                    children: [
+                      // Student Card (Cool Blue)
+                      _buildReferenceCard(
+                        title: "Total Students",
+                        icon: Icons.groups_rounded,
+                        accentColor: const Color(0xFF4A7CFF),
+                        badgeBgColor: const Color(0xFFDCE7FF),
+                        gradientColors: [
+                          const Color(0xFFF5F8FF),
+                          const Color(0xFFE8F1FF),
+                        ],
+                        borderColor: const Color(0xFFD0E1FF),
+                        badgeText: "Students",
+                        watermarkIcon: Icons.groups_rounded,
+                        stream: FirebaseFirestore.instance.collection('player').snapshots(),
+                      ),
+                      const SizedBox(width: 14),
+
+                      // Active Rooms Card (Warm Orange)
+                      _buildReferenceCard(
+                        title: "Active Rooms",
+                        icon: Icons.bolt_rounded,
+                        accentColor: const Color(0xFFFF8A00),
+                        badgeBgColor: const Color(0xFFFFEAD8),
+                        gradientColors: [
+                          const Color(0xFFFFF9F3),
+                          const Color(0xFFFFF1E6),
+                        ],
+                        borderColor: const Color(0xFFFFE0C8),
+                        badgeText: "Live Now",
+                        watermarkIcon: Icons.bolt_rounded,
+                        stream: FirebaseFirestore.instance
+                            .collection('Battle_Room_Details')
+                            .where('o_email', isEqualTo: currentUser?.email)
+                            .snapshots(),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // 4. CREATE NEW QUIZ BUTTON
+                  Material(
+                    color: surfaceWhite,
+                    borderRadius: BorderRadius.circular(20),
+                    child: InkWell(
+                      onTap: () {
+                        // Action for creating quiz
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: borderColor, width: 1.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: textDark.withOpacity(0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: brandBlue,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
+                            ),
+                            const SizedBox(width: 14),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Create New Quiz",
+                                    style: TextStyle(
+                                      color: textDark,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    "Upload questions and host a room",
+                                    style: TextStyle(
+                                      color: textGrey,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right_rounded, color: textGrey),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // 5. RECENT QUIZZES SECTION
+                  const Text(
+                    "Recent Quizzes",
+                    style: TextStyle(
+                      color: textDark,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Quiz Item Tile
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: surfaceWhite,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: borderColor, width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: textDark.withOpacity(0.02),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: bgCanvas,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: const Icon(
+                            Icons.quiz_rounded,
+                            color: textGrey,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Flutter Battle 2026",
+                                style: TextStyle(
+                                  color: textDark,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                "10 Questions • Tech",
+                                style: TextStyle(
+                                  color: textGrey,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 3,
+                                backgroundColor: Color(0xFF10B981),
+                              ),
+                              SizedBox(width: 5),
+                              Text(
+                                "Active",
+                                style: TextStyle(
+                                  color: Color(0xFF059669),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
 
-      //nav menu
-
-      //body
-      body: SingleChildScrollView(
-        child: Container(
-          color: Color(0xFF306AE7),
-          child: Container(
-            width: screenWidth,
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    width: screenWidth,
-                    height: screenHeight * 0.20,
-                    child: StreamBuilder(
-                      stream: FirebaseFirestore.instance
-                          .collection('organizer')
-                          .where(
-                            'o_email',
-                            isEqualTo: FirebaseAuth.instance.currentUser!.email,
-                          )
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                          return const Text("Organizer not found");
-                        }
-                        var data = snapshot.data!.docs.first.data();
-                        return Column(
-                          children: [
-                            Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 20),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 30),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "Welcome Back !",
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                            Text(
-                                              data['o_name'],
-                                              style: TextStyle(
-                                                fontSize: 30,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            SizedBox(height: 5),
-                                            Text(
-                                              FirebaseAuth
-                                                      .instance
-                                                      .currentUser
-                                                      ?.email ??
-                                                  "",
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // ),
-                                Spacer(),
-                                Opacity(
-                                  opacity: 0.5,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(right: 15),
-                                    child: Icon(
-                                      Icons.menu_book_sharp,
-                                      size: 90,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
-
-                //students , battle , quizzes
-                Padding(
-                  padding: const EdgeInsets.all(9),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: BoxBorder.all(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              StreamBuilder(
-                                stream: FirebaseFirestore.instance
-                                    .collection('player')
-                                    .snapshots(),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData ||
-                                      snapshot.data!.docs.isEmpty) {
-                                    return const Text("Player Data found");
-                                  }
-
-                                  var totalPlyer = snapshot.data!.docs.length;
-                                  return Text(
-                                    "$totalPlyer",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                },
-                              ),
-                              Text(
-                                "Students",
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(width: 10),
-
-                      Expanded(
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: BoxBorder.all(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              StreamBuilder(
-                                stream: FirebaseFirestore.instance
-                                    .collection('Battle_Room_Details').where('o_email', isEqualTo: FirebaseAuth.instance.currentUser?.email)
-                                    .snapshots(),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                                    return const Text(
-                                      "0",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    );
-                                  }
-
-                                  var totalBattleRoom = snapshot.data!.docs.length;
-                                  return Text(
-                                    "$totalBattleRoom",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                },
-                              ),
-                              Text(
-                                "Battles",
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(width: 10),
-
-                      Expanded(
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: BoxBorder.all(color: Colors.black12),
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "15",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                "Quizzes",
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                //upload quiz
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 15,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "MY QUIZZES",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "BaiJamjuree",
-                        ),
-                      ),
-
-                      GestureDetector(
-                        onTap: () {
-                          // Navigate to upload page
-                        },
-                        child: TextButton.icon(
-                          onPressed: () {
-                            // upload action
-                          },
-                          icon: Icon(Icons.add),
-                          label: Text("Upload Quiz"),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                //quizzes list
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    width: screenWidth,
-                    height: screenHeight * 0.10,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
-                      ),
-                    ),
-
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        children: [
-                          // Left icon
-                          Container(
-                            width: 62,
-                            height: 62,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(18),
-                              color: Colors.white.withValues(alpha: 0.18),
-                              // Low opacity white box
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                width: 1,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.quiz_rounded,
-                                // or Icons.menu_book_rounded
-                                color: Colors.white,
-                                size: 34,
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: 15),
-
-                          // Middle text section
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Flutter Battle 2026",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-
-                                SizedBox(height: 5),
-
-                                Text(
-                                  "10 Questions • Technology",
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Right button
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                            ),
-                            child: Text("Active"),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+  // Soft Metric Card Helper
+  Widget _buildReferenceCard({
+    required String title,
+    required IconData icon,
+    required Color accentColor,
+    required Color badgeBgColor,
+    required List<Color> gradientColors,
+    required Color borderColor,
+    required String badgeText,
+    required IconData watermarkIcon,
+    required Stream<QuerySnapshot> stream,
+  }) {
+    return Expanded(
+      child: Container(
+        height: 135,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+          ),
+          border: Border.all(color: borderColor, width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(
+            children: [
+              // Background Watermark Graphic
+              Positioned(
+                right: -10,
+                bottom: -10,
+                child: Icon(
+                  watermarkIcon,
+                  size: 75,
+                  color: accentColor.withOpacity(0.08),
+                ),
+              ),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: surfaceWhite,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(icon, color: accentColor, size: 18),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: badgeBgColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: TextStyle(
+                              color: accentColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        StreamBuilder<QuerySnapshot>(
+                          stream: stream,
+                          builder: (context, snapshot) {
+                            final count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                            return Text(
+                              "$count",
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                color: textDark,
+                                letterSpacing: -0.5,
+                                height: 1.0,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: textGrey,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

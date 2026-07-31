@@ -1,715 +1,659 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
-import 'package:quiz_battle/auth/login_admin_organiser.dart';
 
-class user_Register extends StatefulWidget {
-  const user_Register({super.key});
+class StudentDashboardScreen extends StatefulWidget {
+  const StudentDashboardScreen({super.key});
 
   @override
-  State<user_Register> createState() => _user_RegisterState();
+  State<StudentDashboardScreen> createState() => _StudentDashboardScreenState();
 }
 
-class _user_RegisterState extends State<user_Register> {
-  final formkey = GlobalKey<FormState>();
-  final namecon = TextEditingController();
-  final emailcontroller = TextEditingController();
-  final passwordcontroller = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
+  final currentUser = FirebaseAuth.instance.currentUser;
+  Map<String, dynamic>? studentInfo;
 
-  static const String cloudName = "bjcbyn5j";
-  static const String uploadPreset = "quizx-app";
-  static final Uri _uploadUrl = Uri.parse(
-    "https://api.cloudinary.com/v1_1/$cloudName/image/upload",
-  );
-
-  File? selectedImage;
-  bool passwordvisible = false;
-  bool confirmPasswordVisible = false;
-  bool isLoading = false;
+  // Theme Palette matching Admin & Organizer Screens
+  static const Color brandBlue = Color(0xFF2563EB);
+  static const Color bgCanvas = Color(0xFFEBF1FF);
+  static const Color surfaceWhite = Color(0xFFFFFFFF);
+  static const Color borderColor = Color(0xFFE2E8F0);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textGrey = Color(0xFF64748B);
 
   @override
-  void dispose() {
-    namecon.dispose();
-    emailcontroller.dispose();
-    passwordcontroller.dispose();
-    confirmPasswordController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _getStudentInfo();
   }
 
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-
-    XFile? pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
-
-    if (pickedFile != null) {
-      setState(() {
-        selectedImage = File(pickedFile.path);
-      });
-    }
-  }
-
-  static Future<String> uploadImage(File imageFile) async {
-    try {
-      final request = http.MultipartRequest("POST", _uploadUrl);
-      request.fields["upload_preset"] = uploadPreset;
-      request.files.add(
-        await http.MultipartFile.fromPath("file", imageFile.path),
-      );
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final Map<String, dynamic> data = jsonDecode(responseBody);
-        return data["secure_url"] as String;
+  void _getStudentInfo() async {
+    if (currentUser?.uid != null) {
+      final data = await _getDocumentById(currentUser!.uid);
+      if (mounted) {
+        setState(() {
+          studentInfo = data;
+        });
       }
-      throw Exception(
-        "Cloudinary Upload Failed (${response.statusCode})\n$responseBody",
-      );
-    } catch (e) {
-      throw Exception("Image upload failed: $e");
     }
   }
 
-  Future sighUp() async {
+  Future<Map<String, dynamic>?> _getDocumentById(String docId) async {
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailcontroller.text.trim(),
-        password: passwordcontroller.text.trim(),
-      );
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('player')
+          .doc(docId)
+          .get();
 
-      String imageURL = "";
-      if (selectedImage != null) {
-        imageURL = await uploadImage(selectedImage!);
+      if (docSnapshot.exists) {
+        return docSnapshot.data() as Map<String, dynamic>?;
       }
-
-      await addPlayerDetail("player", imageURL);
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.message ?? "Registration failed, please try again",
-          ),
-        ),
-      );
-      rethrow;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("An error occurred during registration."),
-        ),
-      );
-      rethrow;
+      debugPrint("Error fetching student document: $e");
     }
-  }
-
-  Future<void> addPlayerDetail(String? role, String imageUrl) async {
-    await FirebaseFirestore.instance
-        .collection('player')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .set({
-      'player_name': namecon.text.trim(),
-      'player_email': emailcontroller.text.trim(),
-      'role': role,
-      'image_url': imageUrl,
-    });
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bgCanvas,
       body: Stack(
         children: [
-          // 1. Base Gradient Background
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFEBF2FF),
-                  Color(0xFFF3F6FA),
-                  Color(0xFFE8F0FE),
-                ],
-              ),
-            ),
-          ),
-
-          // 2. Soft Glowing Background Orbs
+          // Background Decorative Soft Blobs
           Positioned(
-            top: -60,
-            left: -60,
+            top: -40,
+            left: -40,
             child: Container(
-              width: 200,
-              height: 200,
+              width: 180,
+              height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF1D61E7).withOpacity(0.12),
+                color: brandBlue.withOpacity(0.12),
               ),
             ),
           ),
           Positioned(
-            bottom: -80,
-            right: -80,
+            bottom: 100,
+            right: -60,
             child: Container(
-              width: 250,
-              height: 250,
+              width: 220,
+              height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF60A5FA).withOpacity(0.15),
+                color: brandBlue.withOpacity(0.08),
               ),
             ),
           ),
 
-          // 3. Main Form Content
+          // Main Screen Content
           SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // App Logo Icon
-                    const Icon(
-                      Icons.emoji_events_outlined,
-                      size: 64,
-                      color: Color(0xFF1D61E7),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // App Title
-                    const Text(
-                      'QuizX',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Tagline
-                    const Text(
-                      'Challenge. Learn. Win.',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-
-                    // Original Form Container (UNTOUCHED)
-                    Container(
-                      constraints: const BoxConstraints(maxWidth: 420),
-                      padding: const EdgeInsets.all(24.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. TOP HEADER BAR
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "STUDENT PORTAL",
+                            style: TextStyle(
+                              color: textGrey,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            "Dashboard",
+                            style: TextStyle(
+                              color: textDark,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
                           ),
                         ],
                       ),
-                      child: Form(
-                        key: formkey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: brandBlue.withOpacity(0.15),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: brandBlue,
+                              backgroundImage: studentInfo != null && studentInfo!["image_url"] != null
+                                  ? NetworkImage(studentInfo!["image_url"])
+                                  : null,
+                              child: studentInfo == null || studentInfo!["image_url"] == null
+                                  ? const Icon(Icons.person, color: Colors.white)
+                                  : null,
+                            ),
+                          ),
+                          Positioned(
+                            right: 2,
+                            bottom: 2,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 1.5),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 2. GREETING BANNER CARD
+                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: FirebaseFirestore.instance
+                        .collection('player')
+                        .doc(currentUser?.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      String studentName = "Student";
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        var data = snapshot.data!.data();
+                        studentName = data?['name'] ?? data?['username'] ?? 'Student';
+                      }
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF3B82F6),
+                              Color(0xFF1D4ED8),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF1D4ED8).withOpacity(0.35),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Player Registration',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1D61E7),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Create your player profile to join battles',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Profile Image Picker Section
-                            Center(
-                              child: Column(
-                                children: [
-                                  GestureDetector(
-                                    onTap: pickImage,
-                                    child: Stack(
-                                      children: [
-                                        Container(
-                                          width: 90,
-                                          height: 90,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: const Color(0xFFEEF2FF),
-                                            border: Border.all(
-                                              color: const Color(0xFF1D61E7),
-                                              width: 2,
-                                            ),
-                                          ),
-                                          child: selectedImage != null
-                                              ? ClipRRect(
-                                            borderRadius: BorderRadius.circular(50),
-                                            child: Image.file(
-                                              selectedImage!,
-                                              width: 90,
-                                              height: 90,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                              : const Icon(
-                                            Icons.add_a_photo_outlined,
-                                            size: 36,
-                                            color: Color(0xFF1D61E7),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          bottom: 0,
-                                          right: 0,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: const BoxDecoration(
-                                              color: Color(0xFF1D61E7),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(
-                                              Icons.edit,
-                                              size: 14,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Welcome back,",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.85),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    "Add Profile Image",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF1D61E7),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Inline Name Field
-                            Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(14.0),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEEF2FF),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(Icons.person_outline, color: Color(0xFF1D61E7), size: 20),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          'Name',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0F172A),
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          controller: namecon,
-                                          keyboardType: TextInputType.text,
-                                          validator: (value) {
-                                            if (value == null || value.trim().isEmpty) {
-                                              return "Please Enter Your Name";
-                                            }
-                                            return null;
-                                          },
-                                          style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
-                                          decoration: const InputDecoration(
-                                            hintText: 'Enter your name',
-                                            hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                            isDense: true,
-                                            contentPadding: EdgeInsets.only(top: 2, bottom: 2),
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-
-                            // Inline Email Field
-                            Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(14.0),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEEF2FF),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(Icons.email_outlined, color: Color(0xFF1D61E7), size: 20),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          'Email',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0F172A),
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          controller: emailcontroller,
-                                          keyboardType: TextInputType.emailAddress,
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "Please Enter Your Email";
-                                            }
-                                            if (!RegExp(
-                                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                                            ).hasMatch(value)) {
-                                              return "Enter a valid Email";
-                                            }
-                                            return null;
-                                          },
-                                          style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
-                                          decoration: const InputDecoration(
-                                            hintText: 'Enter your email address',
-                                            hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                            isDense: true,
-                                            contentPadding: EdgeInsets.only(top: 2, bottom: 2),
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-
-                            // Inline Password Field
-                            Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(14.0),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEEF2FF),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(Icons.lock_outline, color: Color(0xFF1D61E7), size: 20),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          'Password',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0F172A),
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          controller: passwordcontroller,
-                                          obscureText: !passwordvisible,
-                                          keyboardType: TextInputType.text,
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "Please Enter Your password";
-                                            }
-                                            if (!RegExp(r'^.{8,}$').hasMatch(value)) {
-                                              return "Enter a valid password (min 8 chars)";
-                                            }
-                                            return null;
-                                          },
-                                          style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
-                                          decoration: const InputDecoration(
-                                            hintText: 'Enter your password',
-                                            hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                            isDense: true,
-                                            contentPadding: EdgeInsets.only(top: 2, bottom: 2),
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      passwordvisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                                      color: const Color(0xFF94A3B8),
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        passwordvisible = !passwordvisible;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-
-                            // Inline Confirm Password Field
-                            Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(14.0),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEEF2FF),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(Icons.lock_reset_outlined, color: Color(0xFF1D61E7), size: 20),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          'Confirm Password',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0F172A),
-                                          ),
-                                        ),
-                                        TextFormField(
-                                          controller: confirmPasswordController,
-                                          obscureText: !confirmPasswordVisible,
-                                          keyboardType: TextInputType.text,
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "Please Confirm Your Password";
-                                            }
-                                            if (value != passwordcontroller.text) {
-                                              return "Passwords do not match";
-                                            }
-                                            return null;
-                                          },
-                                          style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
-                                          decoration: const InputDecoration(
-                                            hintText: 'Re-enter your password',
-                                            hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                            isDense: true,
-                                            contentPadding: EdgeInsets.only(top: 2, bottom: 2),
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      confirmPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                                      color: const Color(0xFF94A3B8),
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        confirmPasswordVisible = !confirmPasswordVisible;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Sign Up Button
-                            SizedBox(
-                              width: double.infinity,
-                              height: 52,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1D61E7),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  elevation: 0,
                                 ),
-                                onPressed: isLoading
-                                    ? null
-                                    : () async {
-                                  if (formkey.currentState!.validate()) {
-                                    setState(() {
-                                      isLoading = true;
-                                    });
-                                    try {
-                                      await sighUp();
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text("Registration Successful"),
-                                        ),
-                                      );
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                          const LoginScreen(role: "player"),
-                                        ),
-                                      );
-                                    } catch (_) {
-                                      // Errors handled in sighUp
-                                    } finally {
-                                      if (mounted) {
-                                        setState(() {
-                                          isLoading = false;
-                                        });
-                                      }
-                                    }
-                                  }
-                                },
-                                child: isLoading
-                                    ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
+                                const SizedBox(height: 4),
+                                Text(
+                                  studentName,
+                                  style: const TextStyle(
                                     color: Colors.white,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                )
-                                    : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Text(
-                                      'Sign Up',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Icon(
-                                      Icons.arrow_forward_rounded,
-                                      size: 20,
-                                      color: Colors.white,
-                                    ),
-                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  currentUser?.email ?? "",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.75),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.20),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.25),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Redirect to Login
-                            Center(
-                              child: Wrap(
-                                alignment: WrapAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Already have an account? ',
-                                    style: TextStyle(
-                                      color: Color(0xFF64748B),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                          const LoginScreen(role: "player"),
-                                        ),
-                                      );
-                                    },
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: const Text(
-                                      'Login',
-                                      style: TextStyle(
-                                        color: Color(0xFF1D61E7),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              child: const Icon(
+                                Icons.emoji_events_outlined,
+                                color: Colors.white,
+                                size: 32,
                               ),
                             ),
                           ],
                         ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 3. STATS GRID (Battles & Wins)
+                  Row(
+                    children: [
+                      // Total Battles Played Card
+                      Expanded(
+                        child: Container(
+                          height: 130,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFFF5F8FF), Color(0xFFE8F1FF)],
+                            ),
+                            border: Border.all(color: const Color(0xFFD0E1FF), width: 1.2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF4A7CFF).withOpacity(0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  right: -10,
+                                  bottom: -10,
+                                  child: Icon(
+                                    Icons.sports_esports,
+                                    size: 75,
+                                    color: const Color(0xFF4A7CFF).withOpacity(0.08),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(7),
+                                            decoration: BoxDecoration(
+                                              color: surfaceWhite,
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: const Icon(Icons.sports_esports, color: Color(0xFF4A7CFF), size: 18),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFDCE7FF),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: const Text(
+                                              "Battles",
+                                              style: TextStyle(
+                                                color: Color(0xFF4A7CFF),
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                                            stream: FirebaseFirestore.instance
+                                                .collection('player')
+                                                .doc(currentUser?.uid)
+                                                .snapshots(),
+                                            builder: (context, snapshot) {
+                                              int battles = 0;
+                                              if (snapshot.hasData && snapshot.data!.exists) {
+                                                battles = snapshot.data!.data()?['total_battles'] ?? 0;
+                                              }
+                                              return Text(
+                                                "$battles",
+                                                style: const TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: textDark,
+                                                  letterSpacing: -0.5,
+                                                  height: 1.0,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                          const SizedBox(height: 3),
+                                          const Text(
+                                            "Battles Played",
+                                            style: TextStyle(
+                                              color: textGrey,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+
+                      // Wins Card
+                      Expanded(
+                        child: Container(
+                          height: 130,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFFFFF9F3), Color(0xFFFFF1E6)],
+                            ),
+                            border: Border.all(color: const Color(0xFFFFE0C8), width: 1.2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFF8A00).withOpacity(0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  right: -10,
+                                  bottom: -10,
+                                  child: Icon(
+                                    Icons.emoji_events,
+                                    size: 75,
+                                    color: const Color(0xFFFF8A00).withOpacity(0.08),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(7),
+                                            decoration: BoxDecoration(
+                                              color: surfaceWhite,
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: const Icon(Icons.emoji_events, color: Color(0xFFFF8A00), size: 18),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFFFEAD8),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: const Text(
+                                              "Victories",
+                                              style: TextStyle(
+                                                color: Color(0xFFFF8A00),
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                                            stream: FirebaseFirestore.instance
+                                                .collection('player')
+                                                .doc(currentUser?.uid)
+                                                .snapshots(),
+                                            builder: (context, snapshot) {
+                                              int wins = 0;
+                                              if (snapshot.hasData && snapshot.data!.exists) {
+                                                wins = snapshot.data!.data()?['wins'] ?? 0;
+                                              }
+                                              return Text(
+                                                "$wins",
+                                                style: const TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: textDark,
+                                                  letterSpacing: -0.5,
+                                                  height: 1.0,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                          const SizedBox(height: 3),
+                                          const Text(
+                                            "Total Wins",
+                                            style: TextStyle(
+                                              color: textGrey,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 4. JOIN BATTLE PRIMARY ACTION CARD (Exchanged position to sit below the 2 cards)
+                  Material(
+                    color: surfaceWhite,
+                    borderRadius: BorderRadius.circular(20),
+                    child: InkWell(
+                      onTap: () {
+                        // Action for joining battle room
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: borderColor, width: 1.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: textDark.withOpacity(0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: brandBlue,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.groups_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Join Battle",
+                                    style: TextStyle(
+                                      color: textDark,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    "Enter room code to start playing",
+                                    style: TextStyle(
+                                      color: textGrey,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right_rounded, color: textGrey),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // 5. UPCOMING BATTLES SECTION
+                  const Text(
+                    "Upcoming Battles",
+                    style: TextStyle(
+                      color: textDark,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Upcoming Battle Tile Item
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: surfaceWhite,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: borderColor, width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: textDark.withOpacity(0.02),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: bgCanvas,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: const Icon(
+                            Icons.sports_esports_rounded,
+                            color: textGrey,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Flutter Quiz Battle",
+                                style: TextStyle(
+                                  color: textDark,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                "10 Questions • Today, 6:00 PM",
+                                style: TextStyle(
+                                  color: textGrey,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: brandBlue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                          ),
+                          child: const Text(
+                            "JOIN",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
