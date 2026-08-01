@@ -153,7 +153,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                       // App Title
                       const Text(
-                        'QUIZ BATTLE',
+                        'QUIZX',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w900,

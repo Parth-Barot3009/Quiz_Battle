@@ -291,18 +291,40 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
                                   const SizedBox(height: 14),
 
-                                  // Participants Field
-                                  _buildDataRow(
-                                    icon: Icons.people_outline_rounded,
-                                    label: "Participants",
-                                    valueWidget: const Text(
-                                      "2",
-                                      style: TextStyle(
-                                        color: brandBlue,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
+                                  // Participants Field (INLINE)
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFEFF6FF),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Icon(
+                                          Icons.people_outline_rounded,
+                                          size: 16,
+                                          color: brandBlue,
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 10),
+                                      const Text(
+                                        "Participants",
+                                        style: TextStyle(
+                                          color: textDark,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      const Text(
+                                        "2",
+                                        style: TextStyle(
+                                          color: brandBlue,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
 
                                   const Padding(
@@ -313,18 +335,40 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                     ),
                                   ),
 
-                                  // Winner Field
-                                  _buildDataRow(
-                                    icon: Icons.emoji_events_outlined,
-                                    label: "Winner",
-                                    valueWidget: const Text(
-                                      "winner name",
-                                      style: TextStyle(
-                                        color: brandBlue,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
+                                  // Winner Field (INLINE)
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFEFF6FF),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Icon(
+                                          Icons.emoji_events_outlined,
+                                          size: 16,
+                                          color: brandBlue,
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 10),
+                                      const Text(
+                                        "Winner",
+                                        style: TextStyle(
+                                          color: textDark,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      const Text(
+                                        "winner name",
+                                        style: TextStyle(
+                                          color: brandBlue,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -340,41 +384,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
           ),
         ],
       ),
-    );
-  }
-
-  // Row Item Helper Widget
-  Widget _buildDataRow({
-    required IconData icon,
-    required String label,
-    required Widget valueWidget,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: brandBlue,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: const TextStyle(
-            color: textDark,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const Spacer(),
-        valueWidget,
-      ],
     );
   }
 }

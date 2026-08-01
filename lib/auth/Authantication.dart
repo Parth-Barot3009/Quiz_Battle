@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:quiz_battle/admin/Navigation(Admin).dart';
+import 'package:quiz_battle/admin/Navigation_Admin.dart';
 import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 import 'package:quiz_battle/player/player_navigationbar.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/player/waiting_room.dart';
 
@@ -10,7 +11,6 @@ class JoinBattleScreen extends StatefulWidget {
 }
 
 class _JoinBattleScreenState extends State<JoinBattleScreen> {
-
   final TextEditingController roomCode = TextEditingController();
 
   static const Color brandBlue = Color(0xFF306AE7);
@@ -18,18 +18,21 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
   static const Color darkText = Color(0xFF1E293B);
   static const Color greyText = Color(0xFF64748B);
 
+  bool isLoading = false;
+
+  @override
+  void dispose() {
+    roomCode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       backgroundColor: background,
-
       body: Stack(
         children: [
-
-// Decorative circles
-
+          // Decorative circles
           Positioned(
             top: -80,
             left: -60,
@@ -42,7 +45,6 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
               ),
             ),
           ),
-
           Positioned(
             bottom: -80,
             right: -60,
@@ -55,21 +57,17 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
               ),
             ),
           ),
-
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-//==========================
-// HEADER
-//==========================
-
+                  //==========================
+                  // HEADER
+                  //==========================
                   Row(
                     children: [
-
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -92,9 +90,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                           },
                         ),
                       ),
-
                       const SizedBox(width: 18),
-
                       const Text(
                         "Join Battle",
                         style: TextStyle(
@@ -108,27 +104,20 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
 
                   const SizedBox(height: 40),
 
-//==========================
-// GAME ICON
-//==========================
-
+                  //==========================
+                  // GAME ICON
+                  //==========================
                   Center(
                     child: Container(
                       width: 150,
                       height: 150,
-
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(35),
-
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF4A7CFF),
-                            Color(0xFF306AE7),
-                          ],
+                          colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
                         ),
-
                         boxShadow: [
                           BoxShadow(
                             color: brandBlue.withOpacity(.30),
@@ -137,7 +126,6 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                           ),
                         ],
                       ),
-
                       child: const Icon(
                         Icons.sports_esports_rounded,
                         size: 75,
@@ -161,10 +149,10 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                   ),
 
                   const SizedBox(height: 40),
-//==========================
-// ROOM CODE TITLE
-//==========================
 
+                  //==========================
+                  // ROOM CODE TITLE
+                  //==========================
                   const Text(
                     "ROOM CODE",
                     style: TextStyle(
@@ -177,10 +165,9 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
 
                   const SizedBox(height: 15),
 
-//==========================
-// ROOM CODE TEXTFIELD
-//==========================
-
+                  //==========================
+                  // ROOM CODE TEXTFIELD
+                  //==========================
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -193,18 +180,15 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                         ),
                       ],
                     ),
-
                     child: TextField(
                       controller: roomCode,
                       textAlign: TextAlign.center,
-
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 6,
                         color: darkText,
                       ),
-
                       decoration: InputDecoration(
                         hintText: "ENTER ROOM CODE",
                         hintStyle: TextStyle(
@@ -212,7 +196,6 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                           fontSize: 18,
                           letterSpacing: 1,
                         ),
-
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                           vertical: 24,
@@ -224,42 +207,125 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
 
                   const SizedBox(height: 35),
 
-//==========================
-// JOIN BUTTON
-//==========================
-
+                  //==========================
+                  // JOIN BUTTON
+                  //==========================
                   SizedBox(
                     width: double.infinity,
                     height: 60,
                     child: ElevatedButton(
-                      onPressed: () async{
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              final code = roomCode.text.trim();
+                              if (code.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Please enter a room code"),
+                                  ),
+                                );
+                                return;
+                              }
 
-                        QuerySnapshot snapshot = await FirebaseFirestore.instance
-                            .collection("Battle_Room_Details")
-                            .where("room_code", isEqualTo: roomCode.text.trim())
-                            .limit(1)
-                            .get();
+                              setState(() => isLoading = true);
 
-                        if(snapshot.docs.isNotEmpty){
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Joining Battle..."),
-                            ),
-                          );
+                              try {
+                                QuerySnapshot snapshot = await FirebaseFirestore
+                                    .instance
+                                    .collection("Battle_Room_Details")
+                                    .where("room_code", isEqualTo: code)
+                                    .limit(1)
+                                    .get();
 
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>WaitingRoom(roomcode: roomCode.text.trim(),)));
-                        }
-                        else{
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Enter Valide Room Code"),
-                            ),
-                          );
-                        }
+                                if (snapshot.docs.isNotEmpty) {
+                                  String battleId = snapshot.docs.first.id;
+                                  User? user =
+                                      FirebaseAuth.instance.currentUser;
 
+                                  if (user == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "User not authenticated!",
+                                        ),
+                                      ),
+                                    );
+                                    setState(() => isLoading = false);
+                                    return;
+                                  }
 
-                      },
+                                  // Fetch user's name directly from Firebase Auth or query 'player' collection by email
+                                  String playerName = user.displayName ?? "";
 
+                                  if (playerName.isEmpty) {
+                                    // Query by player_email instead of assuming doc ID is user.uid
+                                    QuerySnapshot playerQuery = await FirebaseFirestore.instance
+                                        .collection("player")
+                                        .where("player_email", isEqualTo: user.email)
+                                        .limit(1)
+                                        .get();
+
+                                    if (playerQuery.docs.isNotEmpty) {
+                                      var data = playerQuery.docs.first.data() as Map<String, dynamic>;
+                                      playerName = data['player_name'] ?? "Player";
+                                    } else {
+                                      playerName = "Player";
+                                    }
+                                  }
+
+                                  // Save player details into the Battle Room subcollection
+                                  await FirebaseFirestore.instance
+                                      .collection("Battle_Room_Details")
+                                      .doc(battleId)
+                                      .collection("Players")
+                                      .doc(user.uid)
+                                      .set({
+                                        "player_id": user.uid,
+                                        "player_name": playerName,
+                                        "player_email": user.email ?? "",
+                                        "player_score": 0,
+                                        "joined_At":
+                                            FieldValue.serverTimestamp(),
+                                      });
+
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Joining Battle..."),
+                                      ),
+                                    );
+
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            WaitingRoom(roomcode: code,battleId:battleId),
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Enter Valid Room Code"),
+                                      ),
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Error: ${e.toString()}"),
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setState(() => isLoading = false);
+                                }
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
@@ -268,43 +334,38 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                           borderRadius: BorderRadius.circular(18),
                         ),
                       ),
-
                       child: Ink(
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF4A7CFF),
-                              Color(0xFF306AE7),
-                            ],
+                            colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
                           ),
                           borderRadius: BorderRadius.circular(18),
                         ),
-
                         child: Container(
                           alignment: Alignment.center,
-
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-
-                              Icon(
-                                Icons.sports_esports_rounded,
-                                color: Colors.white,
-                              ),
-
-                              SizedBox(width: 10),
-
-                              Text(
-                                "JOIN BATTLE",
-                                style: TextStyle(
+                          child: isLoading
+                              ? const CircularProgressIndicator(
                                   color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
+                                )
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.sports_esports_rounded,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      "JOIN BATTLE",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),
@@ -315,7 +376,6 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                   //==========================
                   // HOW TO JOIN CARD
                   //==========================
-
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(22),
@@ -333,18 +393,14 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         const Row(
                           children: [
-
                             Icon(
                               Icons.info_outline_rounded,
                               color: brandBlue,
                               size: 28,
                             ),
-
                             SizedBox(width: 10),
-
                             Text(
                               "How to Join",
                               style: TextStyle(
@@ -355,23 +411,17 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 25),
-
                         _step(
                           number: "1",
                           text: "Ask your organiser for the room code.",
                         ),
-
                         const SizedBox(height: 18),
-
                         _step(
                           number: "2",
                           text: "Enter the room code in the text field above.",
                         ),
-
                         const SizedBox(height: 18),
-
                         _step(
                           number: "3",
                           text: "Tap JOIN BATTLE to enter the quiz room.",
@@ -381,7 +431,6 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                   ),
 
                   const SizedBox(height: 30),
-
                 ],
               ),
             ),
@@ -391,14 +440,10 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
     );
   }
 
-  Widget _step({
-    required String number,
-    required String text,
-  }) {
+  Widget _step({required String number, required String text}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Container(
           width: 36,
           height: 36,
@@ -417,29 +462,14 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
             ),
           ),
         ),
-
         const SizedBox(width: 15),
-
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
-              fontSize: 16,
-              color: darkText,
-              height: 1.4,
-            ),
+            style: const TextStyle(fontSize: 16, color: darkText, height: 1.4),
           ),
         ),
       ],
     );
   }
 }
-// ],
-// ),
-// ),
-// ),
-// ],
-// ),
-// );
-// }
-// }
