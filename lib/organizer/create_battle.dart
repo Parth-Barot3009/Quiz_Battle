@@ -28,6 +28,7 @@ class _create_battleState extends State<create_battle> {
   int totalQuestions = 0;
   final TextEditingController  roomname = TextEditingController();
   final TextEditingController roomCodeController = TextEditingController();
+  late String roomCode;
 
   //time pick class
 
@@ -193,9 +194,8 @@ class _create_battleState extends State<create_battle> {
     }
   }
 
-  //roomcode
-
-  void generateRoomCode() {
+  // //roomcode
+  String generateRoomCode() {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     final random = Random();
 
@@ -205,7 +205,7 @@ class _create_battleState extends State<create_battle> {
       code += characters[random.nextInt(characters.length)];
     }
 
-    roomCodeController.text = code;
+    return code;
   }
 
   Future<void> addCreateRoomDetails() async {
@@ -222,7 +222,7 @@ class _create_battleState extends State<create_battle> {
           .add({
 
         "room_name": roomname.text.trim(),
-        "room_code": roomCodeController.text.trim(),
+        "room_code": roomCode,
         "questions": totalQuestions,
         "start_time": startTime?.format(context),
         "end_time": endTime?.format(context),
@@ -255,7 +255,7 @@ class _create_battleState extends State<create_battle> {
   @override
   void initState() {
     super.initState();
-    generateRoomCode();
+    roomCode=generateRoomCode();
   }
   Widget build(BuildContext context) {
 
@@ -375,203 +375,9 @@ class _create_battleState extends State<create_battle> {
 
                         SizedBox(height: 20),
 
-                        //room code
-
-                        Text("Room Code", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                        ),
-
-                        SizedBox(height: 15),
-
-                        TextFormField(
-                          controller: roomCodeController,
-                          readOnly: true,
-
-                          decoration: InputDecoration(
-                            hintText: "Room Code",
-
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE9ECFF),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.vpn_key_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-
-                            prefixIconConstraints: const BoxConstraints(
-                              minWidth: 70,
-                              minHeight: 60,
-                            ),
-
-                            filled: true,
-                            fillColor: Colors.white,
-
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 20,
-                              horizontal: 16,
-                            ),
-
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18),
-                              borderSide: BorderSide.none,
-                            ),
-
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFE0E0E0),
-                              ),
-                            ),
-
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF4A6CF7),
-                              ),
-                            ),
-
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  generateRoomCode();
-                                });
-                              },
-                              icon: const Icon(
-                                Icons.refresh_rounded,
-                                color: Color(0xFF4A6CF7),
-                                size: 28,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(height: 20),
-
-                        //question file
-
-                        Text("Question File", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                        ),
-
-                        SizedBox(height: 15),
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-
-                            Container(
-                              height: 65,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: const Color(0xFFE0E0E0),
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-
-                              child: Row(
-                                children: [
-
-                                  // Left Icon
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE9ECFF),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.upload_file_rounded,
-                                      color: Color(0xFF4A6CF7),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 15),
-
-                                  // File Name
-                                  Expanded(
-                                    child: Text(
-                                      selectedFileName ?? "Upload Excel File",
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: selectedFileName == null
-                                            ? Colors.grey
-                                            : Colors.black,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-
-                                  // Folder Button
-                                  IconButton(
-                                    onPressed: pickExcelFile,
-                                    icon: const Icon(
-                                      Icons.folder_open_rounded,
-                                      color: Color(0xFF4A6CF7),
-                                      size: 28,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        //sample file
-
-                        const SizedBox(height: 10),
-
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-
-                            onPressed: showSampleExcel,
-
-                            icon: const Icon(
-                              Icons.visibility,
-                              color: Color(0xFF4A6CF7),
-                            ),
-
-                            label: const Text(
-                              "View Sample File",
-                              style: TextStyle(
-                                color: Color(0xFF4A6CF7),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
                         // Total Questions
 
                         const SizedBox(height: 15),
-
-                        const SizedBox(height: 20),
 
                         const Text(
                           "Questions for Battle",
@@ -932,6 +738,116 @@ class _create_battleState extends State<create_battle> {
                                 ],
                               ),
                             ),
+
+                            const SizedBox(height: 15),
+
+                            //question file
+
+                            Text("Question File", style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                            ),
+
+                            SizedBox(height: 15),
+
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+
+                                Container(
+                                  height: 65,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: const Color(0xFFE0E0E0),
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 6,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+
+                                  child: Row(
+                                    children: [
+
+                                      // Left Icon
+                                      Container(
+                                        width: 44,
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE9ECFF),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: const Icon(
+                                          Icons.upload_file_rounded,
+                                          color: Color(0xFF4A6CF7),
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 15),
+
+                                      // File Name
+                                      Expanded(
+                                        child: Text(
+                                          selectedFileName ?? "Upload Excel File",
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: selectedFileName == null
+                                                ? Colors.grey
+                                                : Colors.black,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+
+                                      // Folder Button
+                                      IconButton(
+                                        onPressed: pickExcelFile,
+                                        icon: const Icon(
+                                          Icons.folder_open_rounded,
+                                          color: Color(0xFF4A6CF7),
+                                          size: 28,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            //sample file
+
+                            const SizedBox(height: 10),
+
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton.icon(
+
+                                onPressed: showSampleExcel,
+
+                                icon: const Icon(
+                                  Icons.visibility,
+                                  color: Color(0xFF4A6CF7),
+                                ),
+
+                                label: const Text(
+                                  "View Sample File",
+                                  style: TextStyle(
+                                    color: Color(0xFF4A6CF7),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+
                             const SizedBox(height: 30),
 
                             SizedBox(
@@ -946,7 +862,7 @@ class _create_battleState extends State<create_battle> {
                                     return;
                                   }
                                   await addCreateRoomDetails();
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_BattleRoom()));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_BattleRoom(roomCode: roomCode,)));
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4A6CF7),
