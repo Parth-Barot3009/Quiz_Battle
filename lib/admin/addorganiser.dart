@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/foundation.dart'; // For kIsWeb / Uint8List
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class Addorganiser extends StatefulWidget {
@@ -25,10 +25,28 @@ class _AddorganiserState extends State<Addorganiser> {
     "https://api.cloudinary.com/v1_1/$cloudName/image/upload",
   );
 
-  File? selectedImage;
-
+  XFile? selectedXFile;
+  Uint8List? selectedImageBytes;
   bool passwordvisible = true;
+  bool isLoading = false;
 
+  // App Theme Palette
+  static const Color brandBlue = Color(0xFF2563EB);
+  static const Color bgCanvas = Color(0xFFEBF1FF);
+  static const Color surfaceWhite = Color(0xFFFFFFFF);
+  static const Color borderColor = Color(0xFFE2E8F0);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textGrey = Color(0xFF64748B);
+
+  @override
+  void dispose() {
+    namecon.dispose();
+    emailcontroller.dispose();
+    passwordcontroller.dispose();
+    super.dispose();
+  }
+
+  // 1. PICK IMAGE (Cross-Platform using XFile & Uint8List)
   Future<void> pickImage() async {
     final picker = ImagePicker();
 
@@ -38,17 +56,25 @@ class _AddorganiserState extends State<Addorganiser> {
     );
 
     if (pickedFile != null) {
-      selectedImage = File(pickedFile.path);
-      setState(() {});
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        selectedXFile = pickedFile;
+        selectedImageBytes = bytes;
+      });
     }
   }
 
-  static Future<String> uploadImage(File imageFile) async {
+  // 2. UPLOAD IMAGE TO CLOUDINARY (Works on Web, Android, iOS)
+  static Future<String> uploadImage(XFile imageFile, Uint8List imageBytes) async {
     try {
       final request = http.MultipartRequest("POST", _uploadUrl);
       request.fields["upload_preset"] = uploadPreset;
       request.files.add(
-        await http.MultipartFile.fromPath("file", imageFile.path),
+        http.MultipartFile.fromBytes(
+          "file",
+          imageBytes,
+          filename: imageFile.name,
+        ),
       );
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
@@ -64,21 +90,22 @@ class _AddorganiserState extends State<Addorganiser> {
     }
   }
 
-
-  Future createOrg() async{
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailcontroller.text.trim(), password: passwordcontroller.text.trim());
-
+  // 3. CREATE FIREBASE AUTH USER
+  Future createOrg() async {
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: emailcontroller.text.trim(),
+      password: passwordcontroller.text.trim(),
+    );
   }
 
-
+  // 4. ADD FIRESTORE ORGANIZER DOCUMENT
   Future<void> addOrganizerDetail(String? role, String imageUrl) async {
-
     await FirebaseFirestore.instance
         .collection('organizer')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set({
-      'o_name':namecon.text.trim(),
-      'o_email':emailcontroller.text.trim(),
+      'o_name': namecon.text.trim(),
+      'o_email': emailcontroller.text.trim(),
       'role': role,
       'image_url': imageUrl,
     });
@@ -86,241 +113,414 @@ class _AddorganiserState extends State<Addorganiser> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-
-      appBar: AppBar(
-        title: Text("Add Organizer",
-          style: TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Color(0xFF4A7CFF),
-        toolbarHeight: 80,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-
-      body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF4A7CFF),
-                Color(0xFF306AE7),
-              ],
+      backgroundColor: bgCanvas,
+      body: Stack(
+        children: [
+          // Background Decorative Soft Blobs
+          Positioned(
+            top: -40,
+            left: -40,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: brandBlue.withAlpha(30),
+              ),
             ),
           ),
-          child: SingleChildScrollView(
+          Positioned(
+            bottom: 100,
+            right: -60,
             child: Container(
-              height: screenHeight,
-              color: Colors.white,
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: brandBlue.withAlpha(20),
+              ),
+            ),
+          ),
 
-                  const SizedBox(height: 20),
-                  Container(
-                    child: GestureDetector(
-                      onTap: () async {
-                        print("Hello");
-                        await pickImage();
-                      },
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(50),
-                          color: Colors.blue,
-                        ),
-                        child: selectedImage != null
-                            ? ClipRRect(
-                          borderRadius: BorderRadius.circular(100.0),
-                          // Adjust radius size here
-                          child: Image.file(
-                            selectedImage!,
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit
-                                .cover, // Ensures the image fills the bounds cleanly
+          SafeArea(
+            child: Column(
+              children: [
+                // Top Navigation Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Row(
+                    children: [
+                      Material(
+                        color: surfaceWhite,
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: textDark,
+                              size: 20,
+                            ),
                           ),
-                        )
-                            : const Icon(
-                          Icons.add_a_photo,
-                          size: 40,
-                          color: Colors.white,
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 14),
+                      const Text(
+                        "Add Organizer",
+                        style: TextStyle(
+                          color: textDark,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
 
-                  SizedBox(height: 10),
-
-                  const Text(
-                    "Add Organizer Image",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  Container(
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: Form(
                       key: formKey,
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: namecon,
-                              decoration: InputDecoration(
-                                label: Text("Name",style: TextStyle(fontWeight: FontWeight.bold,),),
-                                hintText: "Enter Full Name",
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
-                                prefixIcon: const Icon(
-                                  Icons.person_outline,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF5E90E6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
+
+                          // Image Picker Avatar Section
+                          Center(
+                            child: Column(
+                              children: [
+                                Stack(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () async {
+                                        await pickImage();
+                                      },
+                                      child: Container(
+                                        width: 100,
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: surfaceWhite,
+                                          border: Border.all(color: borderColor, width: 2),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: brandBlue.withAlpha(31),
+                                              blurRadius: 16,
+                                              offset: const Offset(0, 6),
+                                            ),
+                                          ],
+                                          image: selectedImageBytes != null
+                                              ? DecorationImage(
+                                            image: MemoryImage(selectedImageBytes!),
+                                            fit: BoxFit.cover,
+                                          )
+                                              : null,
+                                        ),
+                                        child: selectedImageBytes == null
+                                            ? const Icon(
+                                          Icons.person_outline_rounded,
+                                          size: 48,
+                                          color: textGrey,
+                                        )
+                                            : null,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Material(
+                                        color: brandBlue,
+                                        shape: const CircleBorder(),
+                                        elevation: 2,
+                                        child: InkWell(
+                                          onTap: () async {
+                                            await pickImage();
+                                          },
+                                          customBorder: const CircleBorder(),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.add_a_photo_rounded,
+                                              size: 18,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Please Enter Full Name";
-                                }
-                                return null;
-                              },
-                            ),
-
-                            const SizedBox(height: 25),
-
-                            TextFormField(
-                              controller: emailcontroller,
-                              decoration: InputDecoration(
-                                label: Text("Email",style: TextStyle(fontWeight: FontWeight.bold,),),
-                                hintText: "Enter Email",
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
-                                prefixIcon: const Icon(
-                                  Icons.email_outlined,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF5E90E6),
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Please Enter Your Email";
-                                }
-
-                                if (!RegExp(
-                                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                                ).hasMatch(value)) {
-                                  return "Enter a valid Email";
-                                }
-
-                                return null;
-                              },
-                            ),
-
-                            const SizedBox(height: 25),
-
-                            TextFormField(
-                              controller: passwordcontroller,
-                              obscureText: passwordvisible,
-                              decoration: InputDecoration(
-                                label: Text("Password",style: TextStyle(fontWeight: FontWeight.bold,),),
-                                hintText: "Enter Password",
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold,),
-                                prefixIcon: const Icon(
-                                  Icons.lock_outline,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF5E90E6),
-                                ),
-                                suffixIcon: IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      passwordvisible = !passwordvisible;
-                                    });
-                                  },
-                                  icon: Icon(
-                                    passwordvisible
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
+                                const SizedBox(height: 10),
+                                const Text(
+                                  "Add Organizer Image",
+                                  style: TextStyle(
+                                    color: textGrey,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Please Enter Your Password";
-                                }
-
-                                if (value.length < 8) {
-                                  return "Password must be at least 8 characters";
-                                }
-
-                                return null;
-                              },
+                              ],
                             ),
+                          ),
 
-                            const SizedBox(height: 35),
+                          const SizedBox(height: 24),
 
-                            SizedBox(
-                              width: screenWidth*0.70,
-                              height: screenHeight*0.07,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  try {
-                                    if (!formKey.currentState!.validate()) return;
-
-                                    if (selectedImage == null) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text("Please Select Image"),
-                                        ),
-                                      );
-                                      return;
+                          // Form Input Container
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: surfaceWhite,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: borderColor, width: 1.2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: textDark.withAlpha(5),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Name",
+                                  style: TextStyle(
+                                    color: textDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: namecon,
+                                  style: const TextStyle(color: textDark, fontSize: 14),
+                                  decoration: InputDecoration(
+                                    hintText: "Enter Full Name",
+                                    hintStyle: const TextStyle(color: textGrey, fontSize: 13),
+                                    filled: true,
+                                    fillColor: bgCanvas,
+                                    prefixIcon: const Icon(Icons.person_outline_rounded, color: brandBlue, size: 20),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: borderColor, width: 1),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: brandBlue, width: 1.5),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return "Please Enter Full Name";
                                     }
+                                    return null;
+                                  },
+                                ),
 
-                                    String imageUrl = await uploadImage(selectedImage!);
-                                    print("Image Uploaded");
+                                const SizedBox(height: 18),
 
-                                    await createOrg();
-                                    print("Auth Created");
+                                const Text(
+                                  "Email",
+                                  style: TextStyle(
+                                    color: textDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: emailcontroller,
+                                  keyboardType: TextInputType.emailAddress,
+                                  style: const TextStyle(color: textDark, fontSize: 14),
+                                  decoration: InputDecoration(
+                                    hintText: "Enter Email",
+                                    hintStyle: const TextStyle(color: textGrey, fontSize: 13),
+                                    filled: true,
+                                    fillColor: bgCanvas,
+                                    prefixIcon: const Icon(Icons.email_outlined, color: brandBlue, size: 20),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: borderColor, width: 1),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: brandBlue, width: 1.5),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return "Please Enter Your Email";
+                                    }
+                                    if (!RegExp(
+                                      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                                    ).hasMatch(value.trim())) {
+                                      return "Enter a valid Email";
+                                    }
+                                    return null;
+                                  },
+                                ),
 
-                                    await addOrganizerDetail("organizer", imageUrl);
-                                    print("Firestore Added");
+                                const SizedBox(height: 18),
 
+                                const Text(
+                                  "Password",
+                                  style: TextStyle(
+                                    color: textDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: passwordcontroller,
+                                  obscureText: passwordvisible,
+                                  style: const TextStyle(color: textDark, fontSize: 14),
+                                  decoration: InputDecoration(
+                                    hintText: "Enter Password",
+                                    hintStyle: const TextStyle(color: textGrey, fontSize: 13),
+                                    filled: true,
+                                    fillColor: bgCanvas,
+                                    prefixIcon: const Icon(Icons.lock_outline_rounded, color: brandBlue, size: 20),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        passwordvisible
+                                            ? Icons.visibility_off_rounded
+                                            : Icons.visibility_rounded,
+                                        color: textGrey,
+                                        size: 20,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          passwordvisible = !passwordvisible;
+                                        });
+                                      },
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: borderColor, width: 1),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: brandBlue, width: 1.5),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please Enter Your Password";
+                                    }
+                                    if (value.length < 8) {
+                                      return "Password must be at least 8 characters";
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 28),
+
+                          // Add Organiser Button
+                          Container(
+                            width: double.infinity,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: brandBlue.withAlpha(77),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () async {
+                                try {
+                                  if (!formKey.currentState!.validate()) return;
+
+                                  if (selectedXFile == null || selectedImageBytes == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Please Select Image"),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  setState(() {
+                                    isLoading = true;
+                                  });
+
+                                  String imageUrl = await uploadImage(selectedXFile!, selectedImageBytes!);
+                                  debugPrint("Image Uploaded");
+
+                                  await createOrg();
+                                  debugPrint("Auth Created");
+
+                                  await addOrganizerDetail("organizer", imageUrl);
+                                  debugPrint("Firestore Added");
+
+                                  if (mounted) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text("Add Organiser Successful"),
@@ -328,42 +528,59 @@ class _AddorganiserState extends State<Addorganiser> {
                                     );
 
                                     Navigator.pop(context);
-                                  } catch (e) {
-                                    print("ERROR: $e");
-
+                                  }
+                                } catch (e) {
+                                  debugPrint("ERROR: $e");
+                                  if (mounted) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(e.toString()),
                                       ),
                                     );
                                   }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF306AE7),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                  ),
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: brandBlue,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
                                 ),
-                                child: const Text(
-                                  "Add Organiser",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                                  : const Text(
+                                "Add Organiser",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.3,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+
+                          const SizedBox(height: 24),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }

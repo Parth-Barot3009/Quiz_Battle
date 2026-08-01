@@ -1,302 +1,588 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
+// 1. Uncomment or update this import to match your project path
+import 'package:quiz_battle/player/quiz_screen.dart';
+
 class WaitingRoom extends StatefulWidget {
-  const WaitingRoom({super.key});
+  final String roomcode;
+  final String battleId;
+
+  const WaitingRoom({
+    super.key,
+    required this.roomcode,
+    required this.battleId,
+  });
 
   @override
   State<WaitingRoom> createState() => _WaitingRoomState();
 }
 
-class _WaitingRoomState extends State<WaitingRoom> with SingleTickerProviderStateMixin{
-
+class _WaitingRoomState extends State<WaitingRoom>
+    with SingleTickerProviderStateMixin {
   late AnimationController controller;
   late Animation<double> scaleAnimation;
   late Animation<double> fadeAnimation;
+
+  StreamSubscription<DocumentSnapshot>? _roomSubscription;
+  Timer? _countdownTimer;
+  bool _hasNavigated = false;
+
+  // Theme Colors
+  static const Color brandBlue = Color(0xFF306AE7);
+  static const Color brandGradientStart = Color(0xFF4A7CFF);
+  static const Color background = Color(0xFFEBF1FF);
+  static const Color darkText = Color(0xFF1E293B);
+  static const Color greyText = Color(0xFF64748B);
 
   @override
   void initState() {
     super.initState();
 
+    // Initialize Animations
     controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 900),
     );
 
     scaleAnimation = Tween<double>(
-      begin: 0.9,
+      begin: 0.92,
       end: 1.15,
-    ).animate(controller);
+    ).animate(CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeInOut,
+    ));
 
     fadeAnimation = Tween<double>(
-      begin: 0.3,
+      begin: 0.4,
       end: 1.0,
     ).animate(controller);
 
     controller.repeat(reverse: true);
+
+    // Start listening for start time / room status changes
+    _listenToRoomStatus();
+  }
+
+  void _listenToRoomStatus() {
+    _roomSubscription = FirebaseFirestore.instance
+        .collection("Battle_Room_Details")
+        .doc(widget.battleId)
+        .snapshots()
+        .listen((snapshot) {
+      if (!snapshot.exists || _hasNavigated) return;
+
+      var data = snapshot.data();
+      if (data == null) return;
+
+      String status = data['status'] ?? 'waiting';
+      Timestamp? startTimestamp = data['start_time'] as Timestamp?;
+
+      // Check 1: Direct status update set by organizer
+      if (status == "live") {
+        _navigateToQuiz();
+        return;
+      }
+
+      // Check 2: Schedule auto-start timer based on Firestore start time
+      if (startTimestamp != null) {
+        DateTime startTime = startTimestamp.toDate();
+        _scheduleAutoStart(startTime);
+      }
+    });
+  }
+
+  void _scheduleAutoStart(DateTime startTime) {
+    _countdownTimer?.cancel();
+
+    Duration remainingTime = startTime.difference(DateTime.now());
+
+    if (remainingTime.isNegative || remainingTime.inSeconds <= 0) {
+      // Start time has already arrived or passed
+      _navigateToQuiz();
+    } else {
+      // Set timer to navigate automatically when start time arrives
+      _countdownTimer = Timer(remainingTime, () {
+        _navigateToQuiz();
+      });
+    }
+  }
+
+  void _navigateToQuiz() {
+    if (_hasNavigated || !mounted) return;
+    _hasNavigated = true;
+
+    _countdownTimer?.cancel();
+    _roomSubscription?.cancel();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuizScreen(
+          battleId: widget.battleId,
+          roomCode: widget.roomcode,
+        ),
+      ),
+    );
   }
 
   @override
-  void dispose()
-  {
+  void dispose() {
+    _roomSubscription?.cancel();
+    _countdownTimer?.cancel();
     controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Waiting Room",
-          style: TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+      backgroundColor: background,
+      body: Stack(
+        children: [
+          // Background Decorative Circles
+          Positioned(
+            top: -70,
+            left: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: brandBlue.withOpacity(0.08),
+              ),
+            ),
           ),
-        ),
-        backgroundColor: Color(0xFF4A7CFF),
-        toolbarHeight: 80,
-      ),
+          Positioned(
+            bottom: -60,
+            right: -50,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: brandBlue.withOpacity(0.06),
+              ),
+            ),
+          ),
 
-      body: SingleChildScrollView(
-        child: Container(
-          child: Column(
-            children: [
-            // Room Code Display
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Container(
-                    height: screenHeight*0.18,
-                    width: screenWidth*0.95,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFF4A7CFF),
-                            Color(0xFF306AE7),
-                          ]
-                      ),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Room Code",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // Top Header Bar
+                Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.06),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: darkText,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Text(
+                        "Waiting Room",
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: darkText,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    child: Column(
+                      children: [
+                        // Room Code Display Card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 24, horizontal: 20),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [brandGradientStart, brandBlue],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: brandBlue.withOpacity(0.35),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Column(
                             children: [
-                              Text("ABCDEF",
+                              const Text(
+                                "ROOM CODE",
                                 style: TextStyle(
-                                  fontSize: 35,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white70,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 22,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.18),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  widget.roomcode,
+                                  style: const TextStyle(
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: 6,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                "Share this code with players to join",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white70,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Text("Share this code with players",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+
+                        const SizedBox(height: 24),
+
+                        // Connected Players Section
+                        Container(
+                          width: double.infinity,
+                          constraints: const BoxConstraints(minHeight: 200),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
                             color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.06),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection("Battle_Room_Details")
+                                    .doc(widget.battleId)
+                                    .collection("Players")
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  int playerCount =
+                                  (snapshot.hasData && snapshot.data != null)
+                                      ? snapshot.data!.docs.length
+                                      : 0;
+
+                                  return Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: brandBlue.withOpacity(0.1),
+                                              borderRadius:
+                                              BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(
+                                              Icons.people_rounded,
+                                              color: brandBlue,
+                                              size: 22,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          const Text(
+                                            "Players",
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: darkText,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: brandBlue.withOpacity(0.1),
+                                          borderRadius:
+                                          BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          "$playerCount Joined",
+                                          style: const TextStyle(
+                                            color: brandBlue,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 18),
+
+                              StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection("Battle_Room_Details")
+                                    .doc(widget.battleId)
+                                    .collection("Players")
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(20.0),
+                                        child: CircularProgressIndicator(
+                                          color: brandBlue,
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  if (!snapshot.hasData ||
+                                      snapshot.data!.docs.isEmpty) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(24.0),
+                                        child: Text(
+                                          "Waiting for players to join...",
+                                          style: TextStyle(
+                                            color: greyText,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  var players = snapshot.data!.docs;
+
+                                  return ListView.separated(
+                                    shrinkWrap: true,
+                                    physics:
+                                    const NeverScrollableScrollPhysics(),
+                                    itemCount: players.length,
+                                    separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 10),
+                                    itemBuilder: (context, index) {
+                                      var playerDoc = players[index];
+                                      var playerData =
+                                      playerDoc.data() as Map<String, dynamic>?;
+
+                                      String name = (playerData != null &&
+                                          playerData.containsKey('player_name'))
+                                          ? playerData['player_name'] ?? "Player"
+                                          : "Player";
+
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 12,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: background,
+                                          borderRadius:
+                                          BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: brandBlue.withOpacity(0.12),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 20,
+                                              backgroundColor: brandBlue,
+                                              child: Text(
+                                                name.isNotEmpty
+                                                    ? name[0].toUpperCase()
+                                                    : "P",
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                              child: Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: darkText,
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF10B981)
+                                                    .withOpacity(0.12),
+                                                borderRadius:
+                                                BorderRadius.circular(12),
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.check_circle_rounded,
+                                                    size: 14,
+                                                    color: Color(0xFF10B981),
+                                                  ),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    "Joined",
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                      FontWeight.bold,
+                                                      color: Color(0xFF10B981),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
+
+                        const SizedBox(height: 32),
+
+                        // Battle Starting Section
+                        Center(
+                          child: Column(
+                            children: [
+                              ScaleTransition(
+                                scale: scaleAnimation,
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.amber.shade100,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.amber.withOpacity(0.4),
+                                        blurRadius: 20,
+                                        spreadRadius: 2,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.bolt_rounded,
+                                    size: 54,
+                                    color: Colors.amber,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              FadeTransition(
+                                opacity: fadeAnimation,
+                                child: const Text(
+                                  "BATTLE STARTING!",
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    color: brandBlue,
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              AnimatedTextKit(
+                                repeatForever: true,
+                                animatedTexts: [
+                                  TypewriterAnimatedText(
+                                    "Get ready to compete...",
+                                    speed: const Duration(milliseconds: 80),
+                                    textStyle: const TextStyle(
+                                      fontSize: 15,
+                                      color: greyText,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
-              ),
-        
-        
-              // Matching Player Details
-              SizedBox(height: 10,),
-              Container(
-                  height: screenHeight * 0.28,
-                  width: screenWidth * 0.95,
-                  decoration: BoxDecoration(
-                    color: Colors.white60,
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 12,
-                        spreadRadius: 5,
-                        color: Color(0x14000000),
-                      )
-                    ],
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Color(0xFF306AE7),
-                              child: Icon(
-                                Icons.people_rounded,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-        
-                            SizedBox(width: 10,),
-                            Text("Players",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-        
-                      // Students Name
-                      Container(
-                        width: screenWidth * 0.90,
-                        height: screenHeight * 0.08,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFDDEBFF),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: Color(0xFF306AE7),
-                                child: Icon(
-                                  Icons.person_rounded,
-                                  size: 32,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Text("Student 1",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Spacer(),
-                              Text("Joined",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10,),
-                      Container(
-                        width: screenWidth * 0.90,
-                        height: screenHeight * 0.08,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFDDEBFF),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: Color(0xFF306AE7),
-                                child: Icon(
-                                  Icons.person_rounded,
-                                  size: 32,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Text("Student 2",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Spacer(),
-                              Text("Waiting",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-              ),
-        
-            //   Battle Starting Animation Sactions
-            SizedBox(height: 30,),
-        
-              Center(
-                child: Column(
-                  children: [
-                    ScaleTransition(
-                      scale: scaleAnimation,
-                      child: Icon(
-                        Icons.bolt_rounded,
-                        size: 90,
-                        color: Colors.orange,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-        
-        
-              FadeTransition(
-                opacity: fadeAnimation,
-                child: Text(
-                  "BATTLE STARTING!",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF306AE7),
-                    letterSpacing: 2,
-                  ),
-                ),
-              ),
-        
-              AnimatedTextKit(
-                repeatForever: true,
-                animatedTexts: [
-                  TypewriterAnimatedText(
-                    "Get ready to compete...",
-                    speed: Duration(milliseconds: 80),
-                    textStyle: TextStyle(
-                      fontSize: 18,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-        
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

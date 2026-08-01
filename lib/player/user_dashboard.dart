@@ -68,9 +68,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
             child: Container(
               width: 180,
               height: 180,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.12),
+                color: Color(0x1F2563EB), // Fixed opacity issue
               ),
             ),
           ),
@@ -80,9 +80,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
             child: Container(
               width: 220,
               height: 220,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.08),
+                color: Color(0x142563EB), // Fixed opacity issue
               ),
             ),
           ),
@@ -130,11 +130,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [
+                              boxShadow: const [
                                 BoxShadow(
-                                  color: brandBlue.withOpacity(0.15),
+                                  color: Color(0x262563EB), // Fixed opacity issue
                                   blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  offset: Offset(0, 4),
                                 ),
                               ],
                             ),
@@ -198,11 +198,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                               Color(0xFF1D4ED8),
                             ],
                           ),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
-                              color: const Color(0xFF1D4ED8).withOpacity(0.35),
+                              color: Color(0x591D4ED8), // Fixed opacity issue
                               blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              offset: Offset(0, 8),
                             ),
                           ],
                         ),
@@ -212,10 +212,10 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   "Hello,",
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.85),
+                                    color: Color(0xD9FFFFFF), // Fixed opacity issue
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -235,10 +235,10 @@ class _StudentDashboardState extends State<StudentDashboard> {
                               width: 58,
                               height: 58,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.20),
+                                color: const Color(0x33FFFFFF), // Fixed opacity issue
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.25),
+                                  color: const Color(0x40FFFFFF), // Fixed opacity issue
                                 ),
                               ),
                               child: const Icon(
@@ -270,11 +270,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                               colors: [Color(0xFFF5F8FF), Color(0xFFE8F1FF)],
                             ),
                             border: Border.all(color: const Color(0xFFD0E1FF), width: 1.2),
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
-                                color: const Color(0xFF4A7CFF).withOpacity(0.08),
+                                color: Color(0x144A7CFF), // Fixed opacity issue
                                 blurRadius: 10,
-                                offset: const Offset(0, 4),
+                                offset: Offset(0, 4),
                               ),
                             ],
                           ),
@@ -282,13 +282,13 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             borderRadius: BorderRadius.circular(18),
                             child: Stack(
                               children: [
-                                Positioned(
+                                const Positioned(
                                   right: -10,
                                   bottom: -10,
                                   child: Icon(
                                     Icons.sports_esports,
                                     size: 75,
-                                    color: const Color(0xFF4A7CFF).withOpacity(0.08),
+                                    color: Color(0x144A7CFF), // Fixed opacity issue
                                   ),
                                 ),
                                 Padding(
@@ -371,11 +371,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                               colors: [Color(0xFFFFF9F3), Color(0xFFFFF1E6)],
                             ),
                             border: Border.all(color: const Color(0xFFFFE0C8), width: 1.2),
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
-                                color: const Color(0xFFFF8A00).withOpacity(0.08),
+                                color: Color(0x14FF8A00), // Fixed opacity issue
                                 blurRadius: 10,
-                                offset: const Offset(0, 4),
+                                offset: Offset(0, 4),
                               ),
                             ],
                           ),
@@ -383,13 +383,13 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             borderRadius: BorderRadius.circular(18),
                             child: Stack(
                               children: [
-                                Positioned(
+                                const Positioned(
                                   right: -10,
                                   bottom: -10,
                                   child: Icon(
                                     Icons.emoji_events,
                                     size: 75,
-                                    color: const Color(0xFFFF8A00).withOpacity(0.08),
+                                    color: Color(0x14FF8A00), // Fixed opacity issue
                                   ),
                                 ),
                                 Padding(
@@ -477,11 +477,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: borderColor, width: 1.2),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
-                              color: textDark.withOpacity(0.02),
+                              color: Color(0x051E293B), // Fixed opacity issue
                               blurRadius: 8,
-                              offset: const Offset(0, 2),
+                              offset: Offset(0, 2),
                             ),
                           ],
                         ),
@@ -551,11 +551,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                       color: surfaceWhite,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: borderColor, width: 1.2),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
-                          color: textDark.withOpacity(0.02),
+                          color: Color(0x051E293B), // Fixed opacity issue
                           blurRadius: 8,
-                          offset: const Offset(0, 2),
+                          offset: Offset(0, 2),
                         ),
                       ],
                     ),

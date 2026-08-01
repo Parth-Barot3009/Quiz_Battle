@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/player/join_battle.dart';
-import 'package:quiz_battle/player/user_dashboard.dart';
-import 'package:quiz_battle/player/user_leaderboard.dart';
-import 'package:quiz_battle/player/user_profile.dart';
+import 'package:quiz_battle/admin/Admin_Deshboard.dart';
+import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
+import 'package:quiz_battle/admin/Student_ListScreen.dart';
+import 'package:quiz_battle/admin/addmin_setting.dart';
 
-class player_navigationbar extends StatefulWidget {
-  const player_navigationbar({super.key});
+class Admin_Nav extends StatefulWidget {
+  const Admin_Nav({super.key});
 
   @override
-  State<player_navigationbar> createState() => _player_navigationbarState();
+  State<Admin_Nav> createState() => _Admin_NavState();
 }
 
-class _player_navigationbarState extends State<player_navigationbar> {
+class _Admin_NavState extends State<Admin_Nav> {
   int _currentIndex = 0;
 
   // App Theme Palette
@@ -20,10 +20,10 @@ class _player_navigationbarState extends State<player_navigationbar> {
   static const Color textGrey = Color(0xFF94A3B8);
 
   final List<Widget> _screen = const [
-    StudentDashboard(),
-    JoinBattleScreen(),
-    LeaderboardScreen(),
-    UserProfileInfo(),
+    AdminDeshboard(),
+    Org_List(),
+    Stu_List(),
+    Admin_setting(),
   ];
 
   @override
@@ -62,21 +62,21 @@ class _player_navigationbarState extends State<player_navigationbar> {
               ),
               _buildNavItem(
                 index: 1,
-                icon: Icons.sports_esports_rounded,
-                outlinedIcon: Icons.sports_esports_outlined,
-                label: "Join",
+                icon: Icons.people_rounded,
+                outlinedIcon: Icons.people_outline_rounded,
+                label: "Organizers",
               ),
               _buildNavItem(
                 index: 2,
-                icon: Icons.emoji_events_rounded,
-                outlinedIcon: Icons.emoji_events_outlined,
-                label: "Leaderboard",
+                icon: Icons.school_rounded,
+                outlinedIcon: Icons.school_outlined,
+                label: "Students",
               ),
               _buildNavItem(
                 index: 3,
-                icon: Icons.person_rounded,
-                outlinedIcon: Icons.person_outline_rounded,
-                label: "Profile",
+                icon: Icons.settings_rounded,
+                outlinedIcon: Icons.settings_outlined,
+                label: "Settings",
               ),
             ],
           ),
