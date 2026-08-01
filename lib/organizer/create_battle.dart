@@ -1,15 +1,13 @@
-import 'package:excel/excel.dart' as excel;
-import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:excel/excel.dart' as excel;
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
-import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
-// import 'dart:io';
-import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -23,15 +21,13 @@ class _create_battleState extends State<create_battle> {
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   String? selectedFileName;
-  // File? selectedExcelFile;
+  Uint8List? selectedBytes;
   DateTime? selectedDate;
   int totalQuestions = 0;
-  final TextEditingController  roomname = TextEditingController();
-  final TextEditingController roomCodeController = TextEditingController();
+  final TextEditingController roomname = TextEditingController();
   late String roomCode;
 
-  //time pick class
-
+  // Time Picker Logic
   Future<void> pickTime(bool isStartTime) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -51,10 +47,7 @@ class _create_battleState extends State<create_battle> {
     }
   }
 
-  //file pick class
-
-  Uint8List? selectedBytes;
-
+  // File Picker Logic
   Future<void> pickExcelFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -70,20 +63,15 @@ class _create_battleState extends State<create_battle> {
     }
   }
 
-  //add in cloudinary
-
+  // Cloudinary Upload Logic
   Future<String?> uploadExcelToCloudinary() async {
     if (selectedBytes == null) {
       throw Exception("Please select Excel file");
     }
 
-    var uri = Uri.parse(
-        "https://api.cloudinary.com/v1_1/mios4bnz/raw/upload");
-
+    var uri = Uri.parse("https://api.cloudinary.com/v1_1/mios4bnz/raw/upload");
     var request = http.MultipartRequest("POST", uri);
-
     request.fields["upload_preset"] = "quiz_excel";
-
     request.files.add(
       http.MultipartFile.fromBytes(
         "file",
@@ -93,9 +81,7 @@ class _create_battleState extends State<create_battle> {
     );
 
     print("Uploading Excel...");
-
     var response = await request.send();
-
     String body = await response.stream.bytesToString();
 
     print(response.statusCode);
@@ -109,55 +95,62 @@ class _create_battleState extends State<create_battle> {
     throw Exception(body);
   }
 
+  // Sample Excel View Logic
   Future<void> showSampleExcel() async {
-
     final data = await rootBundle.load(
       "assets/sample/sample_file.xlsx",
     );
 
     final bytes = data.buffer.asUint8List();
-
     final excelFile = excel.Excel.decodeBytes(bytes);
 
     List<List<String>> rows = [];
 
     for (var sheet in excelFile.tables.keys) {
-
       for (var row in excelFile.tables[sheet]!.rows) {
-
         rows.add(
           row.map((e) => e?.value.toString() ?? "").toList(),
         );
-
       }
-
     }
 
-    //show sample file
-
+    // Show sample file dialog with a Close button
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-
-        title: const Text("Sample Excel"),
-
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Sample Excel",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
         content: SizedBox(
-
           width: double.maxFinite,
           height: 400,
-
           child: SingleChildScrollView(
-
             scrollDirection: Axis.horizontal,
-
             child: DataTable(
-
               columns: rows.first
                   .map(
-                    (e) => DataColumn(label: Text(e)),
+                    (e) => DataColumn(
+                  label: Text(
+                    e,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               )
                   .toList(),
-
               rows: rows
                   .skip(1)
                   .map(
@@ -173,12 +166,23 @@ class _create_battleState extends State<create_battle> {
             ),
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF3B82F6),
+            ),
+            child: const Text(
+              "Close",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  //date picker
-
+  // Date Picker Logic
   Future<void> pickDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -194,33 +198,25 @@ class _create_battleState extends State<create_battle> {
     }
   }
 
-  // //roomcode
+  // Room Code Generator Logic
   String generateRoomCode() {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     final random = Random();
-
     String code = "";
-
     for (int i = 0; i < 6; i++) {
       code += characters[random.nextInt(characters.length)];
     }
-
     return code;
   }
 
+  // Firestore Addition Logic
   Future<void> addCreateRoomDetails() async {
     try {
-
       print("Uploading Excel...");
-
       String? excelUrl = await uploadExcelToCloudinary();
-
       print(excelUrl);
 
-      await FirebaseFirestore.instance
-          .collection("Battle_Room_Details")
-          .add({
-
+      await FirebaseFirestore.instance.collection("Battle_Room_Details").add({
         "room_name": roomname.text.trim(),
         "room_code": roomCode,
         "questions": totalQuestions,
@@ -229,674 +225,695 @@ class _create_battleState extends State<create_battle> {
         "battle_date": selectedDate,
         "question_file": excelUrl,
         "created_at": FieldValue.serverTimestamp(),
-        "o_email":FirebaseAuth.instance.currentUser?.email,
+        "o_email": FirebaseAuth.instance.currentUser?.email,
       });
 
       print("Firestore Saved");
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Battle Created Successfully"),
-        ),
-      );
-
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Battle Created Successfully"),
+          ),
+        );
+      }
     } catch (e) {
-
       print(e);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+          ),
+        );
+      }
     }
   }
 
   @override
   void initState() {
     super.initState();
-    roomCode=generateRoomCode();
+    roomCode = generateRoomCode();
   }
+
+  @override
   Widget build(BuildContext context) {
-
-    // final screenWidth = MediaQuery.of(context).size.width;
-    // final screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-
-      appBar: AppBar(
-        toolbarHeight: 80,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: [0.0,0.45],
-              colors: [
-                Color(0xFF4A7CFF),
-                Color(0xFF306AE7),
-              ],
-            ),
-          ),
-        ),
-        title: Text("Create Battle Room",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontFamily: "BaiJamjuree",),),
-        automaticallyImplyLeading: false,
-      ),
-
-      body: SingleChildScrollView(
-        //main container
-        child: Container(
-          color: Color(0xFF306AE7),
-
-          //child container
-          child: Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-            ),
-
+      backgroundColor: const Color(0xFFF6F8FD),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
+          child: Form(
+            key: formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Container(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                // 1. TOP HEADER SECTION
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
                       children: [
-
-                        //room name
-
-                        Text("Room Name", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          fontFamily: "BaiJamjuree",
-                        ),
-                        ),
-
-                        SizedBox(height: 15),
-
-                        TextFormField(
-                          controller: roomname,
-                          decoration: InputDecoration(
-                            hintText: "Enter Room Name",
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE9ECFF),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.edit,
-                                  color: Color(0xFF4A6CF7),
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-
-                            prefixIconConstraints: const BoxConstraints(
-                              minWidth: 70,
-                              minHeight: 60,
-                            ),
-
-                            filled: true,
-                            fillColor: Colors.white,
-
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 20,
-                              horizontal: 16,
-                            ),
-
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18),
-                              borderSide: BorderSide.none,
-                            ),
-
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18),
-                              borderSide: BorderSide(
-                                color: Color(0xFFE0E0E0),
-                              ),
-                            ),
-
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF4A6CF7),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(height: 20),
-
-                        // Total Questions
-
-                        const SizedBox(height: 15),
-
-                        const Text(
-                          "Questions for Battle",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-
-                          ),
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        Container(
-                          height: 65,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: const Color(0xFFE0E0E0),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-
-                              // Left Icon
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE9ECFF),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.quiz_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                ),
-                              ),
-
-                              const SizedBox(width: 15),
-
-                              const Expanded(
-                                child: Text(
-                                  "Questions",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.grey,
-
-                                  ),
-                                ),
-                              ),
-
-                              // Minus Button
-                              InkWell(
-                                onTap: () {
-                                  if (totalQuestions > 1) {
-                                    setState(() {
-                                      totalQuestions--;
-                                    });
-                                  }
-                                },
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE9ECFF),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.remove,
-                                    color: Color(0xFF4A6CF7),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 12),
-
-                              Text(
-                                "$totalQuestions",
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4A6CF7),
-                                ),
-                              ),
-
-                              const SizedBox(width: 12),
-
-                              // Plus Button
-                              InkWell(
-                                onTap: () {
-                                  if (totalQuestions < 50) {
-                                    setState(() {
-                                      totalQuestions++;
-                                    });
-                                  }
-                                },
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE9ECFF),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    color: Color(0xFF4A6CF7),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: 20),
-
-                        //start time
-
-                        Text("Start Time", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                        ),
-
-                        SizedBox(height: 15),
-
-                        Container(
-                          height: 65,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: const Color(0xFFE0E0E0),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              // Left Icon
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE9ECFF),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.access_time_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                ),
-                              ),
-
-                              const SizedBox(width: 15),
-
-                              // Center Text
-                              const Expanded(
-                                child: Text(
-                                  "Select Start Time",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-
-                              // Selected Time
-                              Text(
-                                startTime == null
-                                    ? "--:--"
-                                    : startTime!.format(context),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4A6CF7),
-                                ),
-                              ),
-
-                              const SizedBox(width: 5),
-
-                              // Clock Button
-                              IconButton(
-                                onPressed: () => pickTime(true),
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                  size: 28,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: 20),
-
-                        //End time
-
-                        Text("End Time", style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                        ),
-
-                        SizedBox(height: 15),
-
-                        Container(
-                          height: 65,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: const Color(0xFFE0E0E0),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-
-                              // Left Icon
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE9ECFF),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.access_time_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                ),
-                              ),
-
-                              const SizedBox(width: 15),
-
-                              // Center Text
-                              const Expanded(
-                                child: Text(
-                                  "Select End Time",
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
-
-                              // Selected Time
-                              Text(
-                                endTime == null
-                                    ? "--:--"
-                                    : endTime!.format(context),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4A6CF7),
-                                ),
-                              ),
-
-                              const SizedBox(width: 5),
-
-                              // Clock Button
-
-                              IconButton(
-                                onPressed: () => pickTime(false),
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Color(0xFF4A6CF7),
-                                  size: 28,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        //date
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-
-                            const Text(
-                              "Quiz Date",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-
-                            const SizedBox(height: 15),
-
-                            Container(
-                              height: 65,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: const Color(0xFFE0E0E0),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-
-                                  // Left Icon
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE9ECFF),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.calendar_month_rounded,
-                                      color: Color(0xFF4A6CF7),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 15),
-
-                                  // Title
-                                  const Expanded(
-                                    child: Text(
-                                      "Quiz Date",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-
-                                  // Selected Date
-                                  Text(
-                                    selectedDate == null
-                                        ? "--/--/---"
-                                        : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF4A6CF7),
-                                    ),
-                                  ),
-
-                                  // Calendar Button
-                                  IconButton(
-                                    onPressed: pickDate,
-                                    icon: const Icon(
-                                      Icons.date_range_rounded,
-                                      color: Color(0xFF4A6CF7),
-                                      size: 28,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 15),
-
-                            //question file
-
-                            Text("Question File", style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                            ),
-
-                            SizedBox(height: 15),
-
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-
-                                Container(
-                                  height: 65,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(
-                                      color: const Color(0xFFE0E0E0),
-                                    ),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 6,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-
-                                  child: Row(
-                                    children: [
-
-                                      // Left Icon
-                                      Container(
-                                        width: 44,
-                                        height: 44,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFE9ECFF),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: const Icon(
-                                          Icons.upload_file_rounded,
-                                          color: Color(0xFF4A6CF7),
-                                        ),
-                                      ),
-
-                                      const SizedBox(width: 15),
-
-                                      // File Name
-                                      Expanded(
-                                        child: Text(
-                                          selectedFileName ?? "Upload Excel File",
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: selectedFileName == null
-                                                ? Colors.grey
-                                                : Colors.black,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-
-                                      // Folder Button
-                                      IconButton(
-                                        onPressed: pickExcelFile,
-                                        icon: const Icon(
-                                          Icons.folder_open_rounded,
-                                          color: Color(0xFF4A6CF7),
-                                          size: 28,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                        // Back Button Box
+                        InkWell(
+                          onTap: () => Navigator.maybePop(context),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x0A000000),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
                                 ),
                               ],
                             ),
-
-                            //sample file
-
-                            const SizedBox(height: 10),
-
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton.icon(
-
-                                onPressed: showSampleExcel,
-
-                                icon: const Icon(
-                                  Icons.visibility,
-                                  color: Color(0xFF4A6CF7),
-                                ),
-
-                                label: const Text(
-                                  "View Sample File",
-                                  style: TextStyle(
-                                    color: Color(0xFF4A6CF7),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              size: 18,
+                              color: Color(0xFF3B82F6),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        // Title & Subtitle
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              "Create Battle Room",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
                               ),
                             ),
-
-                            const SizedBox(height: 30),
-
-                            SizedBox(
-                              width: double.infinity,
-                              height: 60,
-                              child: ElevatedButton(
-                                onPressed: () async{
-                                  if(selectedDate == null){
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text("Please select date"))
-                                    );
-                                    return;
-                                  }
-                                  await addCreateRoomDetails();
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_BattleRoom(roomCode: roomCode,)));
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF4A6CF7),
-                                  foregroundColor: Colors.white,
-                                  elevation: 3,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                ),
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.sports_esports_rounded,
-                                      size: 24,
-                                    ),
-                                    SizedBox(width: 10),
-                                    Text(
-                                      "Create Battle",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            SizedBox(height: 2),
+                            Text(
+                              "Setup your quiz battle",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF94A3B8),
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
+
+                    // Header Badge/Icon
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.sports_esports_rounded,
+                        size: 28,
+                        color: Color(0xFF3B82F6),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // 2. ROOM NAME CARD (INLINE)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x05000000),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
-                )
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.edit_outlined,
+                          size: 20,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Room Name",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            TextField(
+                              controller: roomname,
+                              decoration: const InputDecoration(
+                                hintText: "Enter Room Name",
+                                hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // 3. QUESTIONS FOR BATTLE CARD (INLINE)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x05000000),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.help_outline_rounded,
+                          size: 20,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text(
+                              "Questions for Battle",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            SizedBox(height: 3),
+                            Text(
+                              "Questions",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              if (totalQuestions > 1) {
+                                setState(() => totalQuestions--);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.remove,
+                                size: 16,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            child: Text(
+                              "$totalQuestions",
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              if (totalQuestions < 50) {
+                                setState(() => totalQuestions++);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                size: 16,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // 4. START TIME CARD (INLINE)
+                InkWell(
+                  onTap: () => pickTime(true),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x05000000),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.access_time_rounded,
+                            size: 20,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Start Time",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                "Select Start Time",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: startTime != null ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              startTime == null ? "--:--" : startTime!.format(context),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.access_time_rounded, color: Color(0xFF3B82F6), size: 20),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // 5. END TIME CARD (INLINE)
+                InkWell(
+                  onTap: () => pickTime(false),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x05000000),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.access_time_rounded,
+                            size: 20,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "End Time",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                "Select End Time",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: endTime != null ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              endTime == null ? "--:--" : endTime!.format(context),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.access_time_rounded, color: Color(0xFF3B82F6), size: 20),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // 6. QUIZ DATE CARD (INLINE)
+                InkWell(
+                  onTap: pickDate,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x05000000),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.calendar_today_rounded,
+                            size: 20,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Quiz Date",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                "Select Date",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: selectedDate != null ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              selectedDate == null
+                                  ? "--/--/---"
+                                  : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.calendar_month_rounded, color: Color(0xFF3B82F6), size: 20),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // 7. QUESTION FILE CARD (INLINE)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x05000000),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.note_add_outlined,
+                          size: 20,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Question File",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              selectedFileName ?? "Upload Excel File",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: selectedFileName != null ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+                                fontWeight: selectedFileName != null ? FontWeight.w600 : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      InkWell(
+                        onTap: pickExcelFile,
+                        child: const Icon(Icons.folder_open_rounded, color: Color(0xFF3B82F6)),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // "View Sample File" Link
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8.0, right: 4.0, bottom: 4.0),
+                    child: GestureDetector(
+                      onTap: showSampleExcel,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.visibility_outlined, size: 16, color: Color(0xFF3B82F6)),
+                          SizedBox(width: 4),
+                          Text(
+                            "View Sample File",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF3B82F6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 8. CREATE BATTLE BUTTON (INLINE)
+                Container(
+                  width: double.infinity,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF3B82F6),
+                        Color(0xFF2563EB),
+                      ],
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x3D3B82F6),
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      if (selectedDate == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please select date")),
+                        );
+                        return;
+                      }
+                      await addCreateRoomDetails();
+                      if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Org_BattleRoom(roomCode: roomCode),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    icon: const Icon(Icons.sports_esports_rounded, color: Colors.white),
+                    label: const Text(
+                      "Create Battle",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
               ],
             ),
           ),
