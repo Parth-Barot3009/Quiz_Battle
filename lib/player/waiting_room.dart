@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
 class WaitingRoom extends StatefulWidget {
-  const WaitingRoom({super.key});
+  final String roomcode;
+  const WaitingRoom({super.key,required this.roomcode});
 
   @override
   State<WaitingRoom> createState() => _WaitingRoomState();
@@ -99,7 +100,7 @@ class _WaitingRoomState extends State<WaitingRoom> with SingleTickerProviderStat
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("ABCDEF",
+                              Text(widget.roomcode,
                                 style: TextStyle(
                                   fontSize: 35,
                                   fontWeight: FontWeight.bold,
