@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class Org_BattleRoom extends StatefulWidget {
@@ -387,6 +388,15 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                   ],
                 ),
               ),
+          ElevatedButton(
+            onPressed: () async {
+              await FirebaseFirestore.instance
+                  .collection("Battle_Room_Details")
+                  .doc(widget.roomCode)
+                  .update({"status": "live"});
+            },
+            child: const Text("Start Battle Now"),
+          ),
             ],
           ),
         ),

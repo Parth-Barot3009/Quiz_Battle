@@ -1,6 +1,10 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+
+// 1. Uncomment or update this import to match your project path
+import 'package:quiz_battle/player/quiz_screen.dart';
 
 class WaitingRoom extends StatefulWidget {
   final String roomcode;
@@ -22,6 +26,10 @@ class _WaitingRoomState extends State<WaitingRoom>
   late Animation<double> scaleAnimation;
   late Animation<double> fadeAnimation;
 
+  StreamSubscription<DocumentSnapshot>? _roomSubscription;
+  Timer? _countdownTimer;
+  bool _hasNavigated = false;
+
   // Theme Colors
   static const Color brandBlue = Color(0xFF306AE7);
   static const Color brandGradientStart = Color(0xFF4A7CFF);
@@ -33,6 +41,7 @@ class _WaitingRoomState extends State<WaitingRoom>
   void initState() {
     super.initState();
 
+    // Initialize Animations
     controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -52,10 +61,77 @@ class _WaitingRoomState extends State<WaitingRoom>
     ).animate(controller);
 
     controller.repeat(reverse: true);
+
+    // Start listening for start time / room status changes
+    _listenToRoomStatus();
+  }
+
+  void _listenToRoomStatus() {
+    _roomSubscription = FirebaseFirestore.instance
+        .collection("Battle_Room_Details")
+        .doc(widget.battleId)
+        .snapshots()
+        .listen((snapshot) {
+      if (!snapshot.exists || _hasNavigated) return;
+
+      var data = snapshot.data();
+      if (data == null) return;
+
+      String status = data['status'] ?? 'waiting';
+      Timestamp? startTimestamp = data['start_time'] as Timestamp?;
+
+      // Check 1: Direct status update set by organizer
+      if (status == "live") {
+        _navigateToQuiz();
+        return;
+      }
+
+      // Check 2: Schedule auto-start timer based on Firestore start time
+      if (startTimestamp != null) {
+        DateTime startTime = startTimestamp.toDate();
+        _scheduleAutoStart(startTime);
+      }
+    });
+  }
+
+  void _scheduleAutoStart(DateTime startTime) {
+    _countdownTimer?.cancel();
+
+    Duration remainingTime = startTime.difference(DateTime.now());
+
+    if (remainingTime.isNegative || remainingTime.inSeconds <= 0) {
+      // Start time has already arrived or passed
+      _navigateToQuiz();
+    } else {
+      // Set timer to navigate automatically when start time arrives
+      _countdownTimer = Timer(remainingTime, () {
+        _navigateToQuiz();
+      });
+    }
+  }
+
+  void _navigateToQuiz() {
+    if (_hasNavigated || !mounted) return;
+    _hasNavigated = true;
+
+    _countdownTimer?.cancel();
+    _roomSubscription?.cancel();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuizScreen(
+          battleId: widget.battleId,
+          roomCode: widget.roomcode,
+        ),
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _roomSubscription?.cancel();
+    _countdownTimer?.cancel();
     controller.dispose();
     super.dispose();
   }
@@ -95,9 +171,7 @@ class _WaitingRoomState extends State<WaitingRoom>
           SafeArea(
             child: Column(
               children: [
-                // -----------------------------------------------------------
-                // 1. TOP HEADER BAR
-                // -----------------------------------------------------------
+                // Top Header Bar
                 Padding(
                   padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -144,9 +218,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                         horizontal: 20, vertical: 10),
                     child: Column(
                       children: [
-                        // ---------------------------------------------------
-                        // 2. ROOM CODE DISPLAY CARD
-                        // ---------------------------------------------------
+                        // Room Code Display Card
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -215,9 +287,7 @@ class _WaitingRoomState extends State<WaitingRoom>
 
                         const SizedBox(height: 24),
 
-                        // ---------------------------------------------------
-                        // 3. MATCHING PLAYERS DETAILS (FIREBASE STREAM)
-                        // ---------------------------------------------------
+                        // Connected Players Section
                         Container(
                           width: double.infinity,
                           constraints: const BoxConstraints(minHeight: 200),
@@ -237,7 +307,6 @@ class _WaitingRoomState extends State<WaitingRoom>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Player Counter Header
                               StreamBuilder<QuerySnapshot>(
                                 stream: FirebaseFirestore.instance
                                     .collection("Battle_Room_Details")
@@ -306,7 +375,6 @@ class _WaitingRoomState extends State<WaitingRoom>
 
                               const SizedBox(height: 18),
 
-                              // Realtime Stream of Joined Players
                               StreamBuilder<QuerySnapshot>(
                                 stream: FirebaseFirestore.instance
                                     .collection("Battle_Room_Details")
@@ -347,7 +415,8 @@ class _WaitingRoomState extends State<WaitingRoom>
 
                                   return ListView.separated(
                                     shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
+                                    physics:
+                                    const NeverScrollableScrollPhysics(),
                                     itemCount: players.length,
                                     separatorBuilder: (context, index) =>
                                     const SizedBox(height: 10),
@@ -413,9 +482,9 @@ class _WaitingRoomState extends State<WaitingRoom>
                                                 borderRadius:
                                                 BorderRadius.circular(12),
                                               ),
-                                              child: Row(
+                                              child: const Row(
                                                 mainAxisSize: MainAxisSize.min,
-                                                children: const [
+                                                children: [
                                                   Icon(
                                                     Icons.check_circle_rounded,
                                                     size: 14,
@@ -447,9 +516,7 @@ class _WaitingRoomState extends State<WaitingRoom>
 
                         const SizedBox(height: 32),
 
-                        // ---------------------------------------------------
-                        // 4. BATTLE STARTING ANIMATION SECTION
-                        // ---------------------------------------------------
+                        // Battle Starting Section
                         Center(
                           child: Column(
                             children: [

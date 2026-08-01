@@ -293,14 +293,35 @@ class _create_battleState extends State<create_battle> {
     try {
       print("Uploading Excel...");
       String? excelUrl = await uploadExcelToCloudinary();
-      print(excelUrl);
 
-      await FirebaseFirestore.instance.collection("Battle_Room_Details").doc(roomCode).set({
+      // Combine selectedDate and startTime into a full DateTime
+      DateTime fullStartDateTime = DateTime(
+        selectedDate!.year,
+        selectedDate!.month,
+        selectedDate!.day,
+        startTime!.hour,
+        startTime!.minute,
+      );
+
+      // Combine selectedDate and endTime into a full DateTime
+      DateTime fullEndDateTime = DateTime(
+        selectedDate!.year,
+        selectedDate!.month,
+        selectedDate!.day,
+        endTime!.hour,
+        endTime!.minute,
+      );
+
+      await FirebaseFirestore.instance
+          .collection("Battle_Room_Details")
+          .doc(roomCode)
+          .set({
         "room_name": roomname.text.trim(),
         "room_code": roomCode,
         "questions": totalQuestions,
-        "start_time": startTime?.format(context),
-        "end_time": endTime?.format(context),
+        "start_time": Timestamp.fromDate(fullStartDateTime),
+        "end_time": Timestamp.fromDate(fullEndDateTime),
+        "status": "waiting", // Initial lobby status: "waiting", "live", "ended"
         "battle_date": selectedDate,
         "question_file": excelUrl,
         "created_at": FieldValue.serverTimestamp(),
@@ -308,23 +329,8 @@ class _create_battleState extends State<create_battle> {
       });
 
       print("Firestore Saved");
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Battle Created Successfully"),
-          ),
-        );
-      }
     } catch (e) {
       print(e);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-          ),
-        );
-      }
     }
   }
 
