@@ -247,7 +247,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                             ),
                           );
 
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>WaitingRoom()));
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>WaitingRoom(roomcode: roomCode.text.trim(),)));
                         }
                         else{
                           ScaffoldMessenger.of(context).showSnackBar(
