@@ -95,6 +95,78 @@ class _create_battleState extends State<create_battle> {
     throw Exception(body);
   }
 
+  Future<void> uploadQuestionsToFirestore(String roomCode) async {
+    try {
+      DocumentSnapshot battleDoc =
+      await FirebaseFirestore.instance
+          .collection("Battle_Room_Details")
+          .doc(roomCode)
+          .get();
+
+      String excelUrl = battleDoc["question_file"];
+
+      final response = await http.get(Uri.parse(excelUrl));
+
+      if (response.statusCode != 200) {
+        throw Exception("Excel download failed");
+      }
+
+      var excelFile = excel.Excel.decodeBytes(response.bodyBytes);
+
+      int index = 0;
+
+      for (var sheet in excelFile.tables.keys) {
+        var table = excelFile.tables[sheet];
+
+        if (table == null) continue;
+
+        int que_id = 1;
+        // Skip header row
+        for (int row = 1; row < table.rows.length; row++) {
+          var currentRow = table.rows[row];
+
+          if (currentRow.isEmpty) continue;
+
+          await FirebaseFirestore.instance
+              .collection("Battle_Room_Details")
+              .doc(roomCode)
+              .collection("Questions").doc("Question :${que_id}")
+              .set({
+            "question":
+            currentRow[0]?.value.toString() ?? "",
+
+            "optionA":
+            currentRow[1]?.value.toString() ?? "",
+
+            "optionB":
+            currentRow[2]?.value.toString() ?? "",
+
+            "optionC":
+            currentRow[3]?.value.toString() ?? "",
+
+            "optionD":
+            currentRow[4]?.value.toString() ?? "",
+
+            "correctAnswer":
+            currentRow[5]?.value.toString() ?? "",
+
+            "questionIndex": index,
+
+            "createdAt":
+            FieldValue.serverTimestamp(),
+          });
+
+          index++;
+          que_id++;
+        }
+      }
+
+      print("Questions Uploaded Successfully");
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
   // Sample Excel View Logic
   Future<void> showSampleExcel() async {
     final data = await rootBundle.load(
@@ -106,8 +178,15 @@ class _create_battleState extends State<create_battle> {
 
     List<List<String>> rows = [];
 
+
+
     for (var sheet in excelFile.tables.keys) {
+      int rowIndex = 0;
       for (var row in excelFile.tables[sheet]!.rows) {
+        if (rowIndex == 1) {
+          rowIndex++;
+          continue; // Skip 2nd row
+        }
         rows.add(
           row.map((e) => e?.value.toString() ?? "").toList(),
         );
@@ -216,7 +295,7 @@ class _create_battleState extends State<create_battle> {
       String? excelUrl = await uploadExcelToCloudinary();
       print(excelUrl);
 
-      await FirebaseFirestore.instance.collection("Battle_Room_Details").add({
+      await FirebaseFirestore.instance.collection("Battle_Room_Details").doc(roomCode).set({
         "room_name": roomname.text.trim(),
         "room_code": roomCode,
         "questions": totalQuestions,
@@ -885,6 +964,7 @@ class _create_battleState extends State<create_battle> {
                         return;
                       }
                       await addCreateRoomDetails();
+                      await uploadQuestionsToFirestore(roomCode);
                       if (context.mounted) {
                         Navigator.push(
                           context,
