@@ -1,479 +1,393 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class Org_BattleRoom extends StatefulWidget {
   final String roomCode;
-  const Org_BattleRoom({super.key,required this.roomCode});
+
+  const Org_BattleRoom({super.key, required this.roomCode});
 
   @override
   State<Org_BattleRoom> createState() => _Org_BattleRoomState();
 }
 
 class _Org_BattleRoomState extends State<Org_BattleRoom> {
-  
-  Future<void> getRoomCode() async{
-    await FirebaseFirestore.instance.collection('Battle_Room_Details').doc().snapshots();
-  }
 
   @override
-
   void initState() {
     super.initState();
   }
 
+  @override
   Widget build(BuildContext context) {
-
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Hardcoded dynamic data matching the dashboard layout
+    final String quizName = "Flutter";
+    final int questionsCount = 10;
+    final String status = "Waiting for players";
+    final List<String> players = ["Student 1", "Student 2"];
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text("Battle Room",
+        title: const Text(
+          "Battle Room Dashboard",
           style: TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        backgroundColor: Color(0xFF4A7CFF),
-        toolbarHeight: 80,
+        backgroundColor: const Color(0xFF3B82F6),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            // Handle back action
+          },
+        ),
       ),
-
       body: SingleChildScrollView(
-        child: Container(
-          height: screenHeight,
-          width: screenWidth,
-          decoration: BoxDecoration(
-            color: Colors.white,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Column(
-              children: [
-                // Container of Room Code
-                Container(
-                  height: screenHeight*0.18,
-                  width: screenWidth*0.95,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                        Color(0xFF4A7CFF),
-                        Color(0xFF306AE7),
-                      ]
-                    ),
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Room Code",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-
-                            Text(widget.roomCode,
-                              style: TextStyle(
-                                fontSize: 35,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            IconButton(onPressed: (){},
-                                icon: Icon(
-                                  Icons.copy_outlined,
-                                  size: 35,
-                                  color: Colors.white,
-                                )
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text("Share this code with players",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // 1. Live Room Code Banner
+              Container(
+                width: screenWidth,
+                padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFF3B82F6),
+                      Color(0xFF2563EB),
                     ],
                   ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x1A3B82F6),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
                 ),
-        
-                SizedBox(height: 10,),
-
-
-                // Container of Quiz Details
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child:Container(
-                      height: screenHeight*0.35,
-                      width: screenWidth*0.95,
-                      decoration: BoxDecoration(
-                        color: Colors.white60,
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 12,
-                            spreadRadius: 5,
-                            color: Color(0x14000000),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(25),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Live Room Code",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white70,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.roomCode,
+                      style: const TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 4,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Share this code with participants to begin",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // 2. Configuration Overview Card (Inline Rows)
+              Container(
+                width: screenWidth,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x05000000),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Header Row
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.bar_chart_rounded,
+                            size: 20,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          "Configuration Overview",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    ),
+
+                    // Selected Topic Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0,top: 8.0),
-                                  child: CircleAvatar(
-                                    backgroundColor: Color(0xFF4A7CFF),
-                                    child: Icon(
-                                        Icons.description_outlined,
-                                        size: 28,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 10.0,top: 10.0),
-                                  child: Text("Quiz Details",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            Icon(Icons.quiz_outlined, size: 18, color: Colors.grey.shade500),
+                            const SizedBox(width: 10),
+                            Text(
+                              "Selected Topic",
+                              style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
                             ),
-        
-                            SizedBox(height: 10,),
-                            // Quiz
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                width: screenWidth*0.95,
-                                decoration: BoxDecoration(
-                                  border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            height:35,
-                                            width: 35,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.rectangle,
-                                              color: Color(0xFFDCEAFF),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child:Icon(
-                                                  Icons.help,
-                                                  size: 25,
-                                              color: Color(0xFF306AE7),
-                                              ),
-                                          ),
-                                          SizedBox(width: 10,),
-                                          Text("Quiz",
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text("Flutter",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF306AE7),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                          ],
+                        ),
+                        Text(
+                          quizName,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Total Questions Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.format_list_bulleted, size: 18, color: Colors.grey.shade500),
+                            const SizedBox(width: 10),
+                            Text(
+                              "Total Questions",
+                              style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          "$questionsCount Questions",
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Time Allocation Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.timer_outlined, size: 18, color: Colors.grey.shade500),
+                            const SizedBox(width: 10),
+                            Text(
+                              "Time Allocation",
+                              style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                        const Text(
+                          "10 Minutes",
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Lobby Status Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.info_outline, size: 18, color: Colors.grey.shade500),
+                            const SizedBox(width: 10),
+                            Text(
+                              "Lobby Status",
+                              style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          status,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFF97316),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // 3. Connected Participants Card
+              Container(
+                width: screenWidth,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x05000000),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Card Title Bar
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.group_outlined,
+                                size: 20,
+                                color: Color(0xFF3B82F6),
                               ),
                             ),
-        
-                            // Questions
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                width: screenWidth*0.95,
-                                decoration: BoxDecoration(
-                                  border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            height:35,
-                                            width: 35,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.rectangle,
-                                              color: Color(0xFFDCEAFF),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child:Icon(
-                                              Icons.list,
-                                              size: 25,
-                                              color: Color(0xFF306AE7),
-                                            ),
-                                          ),
-                                          SizedBox(width: 10,),
-                                          Text("Questions",
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text("10",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF306AE7),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-        
-                            // Time/Duration
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                width: screenWidth*0.95,
-                                decoration: BoxDecoration(
-                                  border: BorderDirectional(bottom: BorderSide(color: Colors.black)),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            height:35,
-                                            width: 35,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.rectangle,
-                                              color: Color(0xFFDCEAFF),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child:Icon(
-                                              Icons.history,
-                                              size: 25,
-                                              color: Color(0xFF306AE7),
-                                            ),
-                                          ),
-                                          SizedBox(width: 10,),
-                                          Text("Time/Duration",
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text("10",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        color: Color(0xFF306AE7),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-        
-                            // Status
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                width: screenWidth*0.95,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            height:35,
-                                            width: 35,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.rectangle,
-                                              color: Color(0xFFDCEAFF),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child:Icon(
-                                              Icons.emoji_events,
-                                              size: 25,
-                                              color: Color(0xFF306AE7),
-                                            ),
-                                          ),
-                                          SizedBox(width: 10,),
-                                          Text("Status",
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text("Waiting",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              "Connected Participants",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                ),
-
-
-              //  Saction of Player who is playing
-                SizedBox(height: 10,),
-                Container(
-                    height: screenHeight * 0.30,
-                    width: screenWidth * 0.95,
-                    decoration: BoxDecoration(
-                      color: Colors.white60,
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 12,
-                          spreadRadius: 5,
-                          color: Color(0x14000000),
-                        )
-                      ],
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: Color(0xFF306AE7),
-                                  child: Icon(
-                                      Icons.people_rounded,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                  ),
-                              ),
-        
-                              SizedBox(width: 10,),
-                              Text("Players",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24,
-                                ),
-                              )
-                            ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "${players.length} Active",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF3B82F6),
+                            ),
                           ),
                         ),
-        
-                        // Students Name
-                        Container(
-                          width: screenWidth * 0.90,
-                          height: screenHeight * 0.08,
-                            decoration: BoxDecoration(
-                              color: Color(0xFFDDEBFF),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Dynamic Roster List
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: players.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
                                 children: [
-                                  CircleAvatar(
-                                    backgroundColor: Color(0xFF306AE7),
+                                  const CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: Color(0xFF3B82F6),
                                     child: Icon(
-                                      Icons.person_rounded,
-                                      size: 32,
+                                      Icons.person,
+                                      size: 20,
                                       color: Colors.white,
                                     ),
                                   ),
-                                  SizedBox(width: 10,),
-                                  Text("Student 1",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        players[index],
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        "Online • Ready to start",
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ),
+                              const Icon(
+                                Icons.check_circle,
+                                color: Color(0xFF22C55E),
+                                size: 20,
+                              ),
+                            ],
                           ),
-                        SizedBox(height: 10,),
-                        Container(
-                          width: screenWidth * 0.90,
-                          height: screenHeight * 0.08,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFDDEBFF),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: Color(0xFF306AE7),
-                                  child: Icon(
-                                    Icons.person_rounded,
-                                    size: 32,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(width: 10,),
-                                Text("Student 1",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-        
-                      ],
-                    )
+                        );
+                      },
+                    ),
+                  ],
                 ),
-        
-        
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
