@@ -1,16 +1,25 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class Org_BattleRoom extends StatefulWidget {
-  const Org_BattleRoom({super.key});
+  final String roomCode;
+  const Org_BattleRoom({super.key,required this.roomCode});
 
   @override
   State<Org_BattleRoom> createState() => _Org_BattleRoomState();
 }
 
 class _Org_BattleRoomState extends State<Org_BattleRoom> {
+  
+  Future<void> getRoomCode() async{
+    await FirebaseFirestore.instance.collection('Battle_Room_Details').doc().snapshots();
+  }
 
   @override
 
+  void initState() {
+    super.initState();
+  }
 
   Widget build(BuildContext context) {
 
@@ -71,7 +80,8 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("ABCDEF",
+
+                            Text(widget.roomCode,
                               style: TextStyle(
                                 fontSize: 35,
                                 fontWeight: FontWeight.bold,
