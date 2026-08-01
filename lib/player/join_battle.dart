@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/player/waiting_room.dart';
 
 class JoinBattleScreen extends StatefulWidget {
   const JoinBattleScreen({super.key});
@@ -230,13 +232,31 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                     width: double.infinity,
                     height: 60,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async{
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Joining Battle..."),
-                          ),
-                        );
+                        QuerySnapshot snapshot = await FirebaseFirestore.instance
+                            .collection("Battle_Room_Details")
+                            .where("room_code", isEqualTo: roomCode.text.trim())
+                            .limit(1)
+                            .get();
+
+                        if(snapshot.docs.isNotEmpty){
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Joining Battle..."),
+                            ),
+                          );
+
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>WaitingRoom()));
+                        }
+                        else{
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Enter Valide Room Code"),
+                            ),
+                          );
+                        }
+
 
                       },
 
