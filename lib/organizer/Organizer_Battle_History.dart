@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/intl.dart';
 
 class OrganizerBattleHistory extends StatefulWidget {
   const OrganizerBattleHistory({super.key});
@@ -176,6 +178,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                     String formattedDate = "${date.day}/${date.month}/${date.year}";
                     String startTime = roomDetailsList['start_time']?.toString() ?? "N/A";
                     String roomName = roomDetailsList['room_name'] ?? 'Battle Room';
+
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),

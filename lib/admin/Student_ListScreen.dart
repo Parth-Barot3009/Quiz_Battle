@@ -178,7 +178,7 @@ class _Stu_ListState extends State<Stu_List> {
 
                 // Filtering based on search query
                 final playerList = snapshot.data!.docs.where((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
+                  final data = doc.data();
                   final name = (data['player_name'] ?? '').toString().toLowerCase();
                   final email = (data['player_email'] ?? '').toString().toLowerCase();
                   return name.contains(_searchQuery) || email.contains(_searchQuery);
