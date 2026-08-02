@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +18,8 @@ class UserProfileInfo extends StatefulWidget {
 class _UserProfileInfoState extends State<UserProfileInfo> {
   final formKey = GlobalKey<FormState>();
   Map<String, dynamic>? userInfo;
+  File? selectedImage;
+  bool isUploading = false;
 
   // Theme Palette
   static const Color headerBlue = Color(0xFF306AE7);
@@ -22,6 +28,13 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
   static const Color borderColor = Color(0xFFE2E8F0);
   static const Color textDark = Color(0xFF1E293B);
   static const Color textGrey = Color(0xFF64748B);
+
+  // Cloudinary Config
+  static const String cloudName = "bjcbyn5j";
+  static const String uploadPreset = "quizx-app";
+  static final Uri _uploadUrl = Uri.parse(
+    "https://api.cloudinary.com/v1_1/$cloudName/image/upload",
+  );
 
   @override
   void initState() {
@@ -32,11 +45,86 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
   void getUser() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      userInfo = await getDocumentById(user.uid);
+      final doc = await getDocumentById(user.uid);
       if (mounted) {
-        setState(() {});
+        setState(() {
+          userInfo = doc;
+        });
       }
     }
+  }
+
+  /// Pick an image from gallery and upload it automatically
+  Future<void> pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        selectedImage = File(pickedFile.path);
+        isUploading = true;
+      });
+
+      try {
+        final String uploadedUrl = await uploadImage(selectedImage!);
+        await addPlayerImage(uploadedUrl);
+
+        // Refresh local user state after upload
+        getUser();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile image updated successfully!')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update image: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            isUploading = false;
+          });
+        }
+      }
+    }
+  }
+
+  static Future<String> uploadImage(File imageFile) async {
+    try {
+      final request = http.MultipartRequest("POST", _uploadUrl);
+      request.fields["upload_preset"] = uploadPreset;
+      request.files.add(
+        await http.MultipartFile.fromPath("file", imageFile.path),
+      );
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> data = jsonDecode(responseBody);
+        return data["secure_url"] as String;
+      }
+      throw Exception(
+        "Cloudinary Upload Failed (${response.statusCode})\n$responseBody",
+      );
+    } catch (e) {
+      throw Exception("Image upload failed: $e");
+    }
+  }
+
+  Future<void> addPlayerImage(String imageUrl) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    // Use SetOptions(merge: true) so existing fields (like player_name) are preserved
+    await FirebaseFirestore.instance.collection('player').doc(uid).set({
+      'image_url': imageUrl,
+    }, SetOptions(merge: true));
   }
 
   Future<Map<String, dynamic>?> getDocumentById(String docId) async {
@@ -48,19 +136,16 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
       if (docSnapshot.exists) {
         return docSnapshot.data() as Map<String, dynamic>;
-      } else {
-        print("Document does not exist");
-        return null;
       }
     } catch (e) {
-      print("Error fetching document: $e");
-      return null;
+      debugPrint("Error fetching document: $e");
     }
+    return null;
   }
 
   Future<void> logout() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('role'); // Clear saved role
+    await prefs.remove('role');
     await FirebaseAuth.instance.signOut();
   }
 
@@ -94,112 +179,103 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                 bottom: false,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
-                  child: Stack(
-                    clipBehavior: Clip.none,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Watermark Background Pattern Icons
-                      Positioned(
-                        left: -20,
-                        top: 10,
-                        child: Icon(
-                          Icons.bubble_chart_rounded,
-                          size: 100,
-                          color: Colors.white.withAlpha(20),
-                        ),
-                      ),
-                      Positioned(
-                        right: 15,
-                        top: 30,
-                        child: Icon(
-                          Icons.notifications_none_rounded,
-                          size: 26,
-                          color: Colors.white.withAlpha(200),
-                        ),
-                      ),
-
-                      // Profile Header Content
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Title Row
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: const Text(
-                              "Player Profile",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Player Profile",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 24),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
-                          // Profile Avatar Image Container
-                          Container(
-                            width: 88,
-                            height: 88,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: surfaceWhite,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withAlpha(20),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(2.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(44.0),
-                                child: (userInfo != null &&
-                                    userInfo!["image_url"] != null &&
-                                    userInfo!["image_url"]
-                                        .toString()
-                                        .isNotEmpty)
-                                    ? Image.network(
-                                  userInfo!["image_url"],
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (context, error, stackTrace) =>
-                                  const Icon(
-                                    Icons.person,
-                                    size: 42,
-                                    color: Colors.grey,
+                      // Profile Avatar Container
+                      GestureDetector(
+                        onTap: isUploading ? null : pickAndUploadImage,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 96,
+                              height: 96,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: surfaceWhite,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withAlpha(20),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
                                   ),
-                                )
-                                    : const Icon(
-                                  Icons.person_rounded,
-                                  color: headerBlue,
-                                  size: 42,
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(3.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(48.0),
+                                  child: _buildAvatarContent(),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 14),
+                            if (isUploading)
+                              Container(
+                                width: 96,
+                                height: 96,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withAlpha(100),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                ),
+                              ),
+                            Positioned(
+                              bottom: 2,
+                              right: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: headerBlue,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.edit,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
 
-                          // Role Title
-                          const Text(
-                            "Player",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "Manage your student account",
-                            style: TextStyle(
-                              color: Colors.white.withAlpha(200),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
+                      const Text(
+                        "Player",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Manage your student account",
+                        style: TextStyle(
+                          color: Colors.white.withAlpha(200),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ],
                   ),
@@ -263,7 +339,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Full Name Field Label
                         const Text(
                           "Full Name *",
                           style: TextStyle(
@@ -274,7 +349,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                         ),
                         const SizedBox(height: 8),
 
-                        // Full Name Display Box
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -308,9 +382,8 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
                         const SizedBox(height: 20),
 
-                        // Email Field Label
                         const Text(
-                          "Email Name *",
+                          "Email *",
                           style: TextStyle(
                             color: textDark,
                             fontSize: 13,
@@ -319,7 +392,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                         ),
                         const SizedBox(height: 8),
 
-                        // Email Display Box
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -387,9 +459,9 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
+                              children: [
                                 Icon(Icons.logout_rounded, size: 20),
                                 SizedBox(width: 8),
                                 Text(
@@ -412,6 +484,45 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
             const SizedBox(height: 30),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Helper widget to decide which image source to show in avatar
+  Widget _buildAvatarContent() {
+    // 1. Show newly selected image if picked
+    if (selectedImage != null) {
+      return Image.file(
+        selectedImage!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
+    }
+
+    // 2. Show registered image URL from Firestore if existing
+    final existingUrl = userInfo?["image_url"]?.toString();
+    if (existingUrl != null && existingUrl.isNotEmpty) {
+      return Image.network(
+        existingUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.person,
+          size: 44,
+          color: textGrey,
+        ),
+      );
+    }
+
+    // 3. Fallback placeholder icon if no image exists
+    return Container(
+      color: const Color(0xFFEEF2FF),
+      child: const Icon(
+        Icons.add_a_photo_outlined,
+        size: 36,
+        color: headerBlue,
       ),
     );
   }

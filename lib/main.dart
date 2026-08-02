@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
+import 'package:quiz_battle/auth/login_admin_organiser.dart';
+import 'package:quiz_battle/player/user_profile.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -20,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "Roboto",
       ),
-      home: SplashScreen(),
+      home: LoginScreen(),
     );
   }
 }
