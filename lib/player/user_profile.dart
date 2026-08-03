@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
+import 'package:quiz_battle/player/edituserprofile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProfileInfo extends StatefulWidget {
@@ -425,6 +426,43 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
                         const SizedBox(height: 28),
 
+                        /// Edit Profile Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditProfileScreen(
+                                    playerName: playerName,
+                                    playerEmail: playerEmail,
+                                  ),
+                                ),
+                              );
+
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon: const Icon(Icons.edit),
+                            label: const Text(
+                              "Edit Profile",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
                         // Logout Button
                         Container(
                           width: double.infinity,
