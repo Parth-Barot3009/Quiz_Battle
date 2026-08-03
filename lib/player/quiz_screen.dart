@@ -54,6 +54,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   void initState() {
+    addBattleInPlayer();
     super.initState();
     fetchQuestions();
   }
@@ -63,7 +64,38 @@ class _QuizScreenState extends State<QuizScreen> {
     timer?.cancel();
     super.dispose();
   }
+  // Add Battle in player details
+  // Add Battle in player details
+  Future<void> addBattleInPlayer() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null || currentUser.email == null) return;
 
+      // 1. Query the player collection by email to locate the user's document ID
+      QuerySnapshot playerQuery = await FirebaseFirestore.instance
+          .collection("player")
+          .where("player_email", isEqualTo: currentUser.email)
+          .limit(1)
+          .get();
+
+      if (playerQuery.docs.isNotEmpty) {
+        String playerDocId = playerQuery.docs.first.id;
+
+        // 2. Increment played_battle count using set with merge: true
+        // (This handles cases where played_battle field might not exist yet)
+        await FirebaseFirestore.instance
+            .collection("player")
+            .doc(playerDocId)
+            .set({
+          "played_battle": FieldValue.increment(1),
+        }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      debugPrint("Error updating played_battle count: $e");
+    }
+  }
+  
+  
   // Fetch Questions dynamically from Firestore
   Future<void> fetchQuestions() async {
     try {

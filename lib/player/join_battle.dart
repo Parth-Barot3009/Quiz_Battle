@@ -299,7 +299,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            WaitingRoom(roomcode: code,battleId:battleId),
+                                            WaitingRoom(roomcode: code,battleId:battleId,),
                                       ),
                                     );
                                   }

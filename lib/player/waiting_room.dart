@@ -64,6 +64,7 @@ class _WaitingRoomState extends State<WaitingRoom>
 
     // Start listening for start time / room status changes
     _listenToRoomStatus();
+
   }
 
   void _listenToRoomStatus() {
