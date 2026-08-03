@@ -5,6 +5,7 @@ import 'package:quiz_battle/admin/Navigation_Admin.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
+import 'package:quiz_battle/player/after_quiz.dart' hide ResultScreen;
 import 'package:quiz_battle/player/user_dashboard.dart';
 import 'package:quiz_battle/player/user_profile.dart';
 import 'firebase_options.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "Roboto",
       ),
-      home: SplashScreen(),
+      home: LoginScreen(),
     );
   }
 }
