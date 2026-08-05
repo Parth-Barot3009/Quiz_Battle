@@ -560,80 +560,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // 4. JOIN BATTLE PRIMARY ACTION CARD
-                  Material(
-                    color: surfaceWhite,
-                    borderRadius: BorderRadius.circular(20),
-                    child: InkWell(
-                      onTap: () {
-                        // Action for joining battle
-                      },
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: borderColor, width: 1.2),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x051E293B), // Fixed opacity issue
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: brandBlue,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(
-                                Icons.group,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Join Battle",
-                                    style: TextStyle(
-                                      color: textDark,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    "Enter room code to start playing",
-                                    style: TextStyle(
-                                      color: textGrey,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(
-                              Icons.chevron_right_rounded,
-                              color: textGrey,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
                   const SizedBox(height: 28),
 
                   // 5. UPCOMING BATTLES SECTION
@@ -648,85 +574,153 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   const SizedBox(height: 12),
 
                   // Upcoming Battle Tile
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: surfaceWhite,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: borderColor, width: 1.2),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x051E293B), // Fixed opacity issue
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
+                  StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection('Battle_Room_Details')
+                        .where('start_time', isGreaterThan: Timestamp.now())
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return Text(
+                          "Error loading battles: ${snapshot.error}",
+                          style: const TextStyle(color: textGrey, fontSize: 13),
+                        );
+                      }
+
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: bgCanvas,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: borderColor),
+                            color: surfaceWhite,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: borderColor, width: 1.2),
                           ),
-                          child: const Icon(
-                            Icons.sports_esports,
-                            color: textGrey,
-                            size: 22,
+                          child: Text(
+                            "No upcoming battles scheduled.",
+                            style: TextStyle(color: textGrey, fontSize: 13),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Flutter Quiz Battle",
-                                style: TextStyle(
-                                  color: textDark,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                        );
+                      }
+
+                      var data = snapshot.data!.docs;
+
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        // Required inside SingleChildScrollView
+                        physics: NeverScrollableScrollPhysics(),
+                        // Disables nested scrolling
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          var battle = data[index].data();
+
+                          String roomName =
+                              battle['room_name'] ?? 'Unnamed Battle';
+                          int totalQuestions = battle['questions'] ?? 0;
+                          // 1. Get the Timestamp from Firestore and convert to DateTime
+                          Timestamp? startTimeStamp =
+                              battle['start_time'] as Timestamp?;
+                          DateTime? battleDateTime = startTimeStamp?.toDate();
+
+                          // 2. Declare separate variables
+                          String dateString = "TBD";
+                          String timeString = "TBD";
+
+                          if (battleDateTime != null) {
+                            // Extract separate Date variable (Format: DD/MM/YYYY)
+                            dateString =
+                                "${battleDateTime.day.toString().padLeft(2, '0')}/${battleDateTime.month.toString().padLeft(2, '0')}/${battleDateTime.year}";
+
+                            // Extract separate Time variable (Format: 12-hour format with AM/PM)
+                            TimeOfDay timeOfDay = TimeOfDay.fromDateTime(
+                              battleDateTime,
+                            );
+                            timeString = timeOfDay.format(
+                              context,
+                            ); // e.g., "06:30 PM"
+                          }
+
+                          return Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: surfaceWhite,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: borderColor,
+                                  width: 1.2,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x051E293B),
+                                    // Fixed opacity issue
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 2),
-                              Text(
-                                "10 Questions • Today, 6:00 PM",
-                                style: TextStyle(
-                                  color: textGrey,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: bgCanvas,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: borderColor),
+                                    ),
+                                    child: const Icon(
+                                      Icons.sports_esports,
+                                      color: textGrey,
+                                      size: 22,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          roomName,
+                                          style: TextStyle(
+                                            color: textDark,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          "Question: $totalQuestions\n"
+                                          "Date: $dateString\n"
+                                          "Time: $timeString",
+                                          style: TextStyle(
+                                            color: textGrey,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: brandBlue,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
                             ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                          ),
-                          child: const Text(
-                            "JOIN",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),

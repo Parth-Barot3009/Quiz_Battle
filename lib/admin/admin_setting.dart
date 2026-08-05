@@ -32,7 +32,6 @@ class _GlobalBattleHistoryScreenState
             // --- BATTLE HISTORY LIST ---
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                // Fetches ALL created battles directly from Firestore
                 stream: FirebaseFirestore.instance
                     .collection("Battle_Room_Details")
                     .snapshots(),
@@ -156,13 +155,39 @@ class _GlobalBattleHistoryScreenState
   }
 
   // --- BATTLE ITEM CARD ---
+  // --- BATTLE ITEM CARD ---
   Widget _buildBattleCard(Map<String, dynamic> data, String docId) {
-    String battleTitle =
-        data["battle_name"] ?? data["room_code"] ?? "Quiz Battle";
-    String dateStr = data["date"] ?? "N/A";
-    String timeStr = data["time"] ?? "N/A";
-    int participantsCount =
-        data["participants_count"] ?? data["total_players"] ?? 0;
+    // 1. Display room_name near trophy icon (top title)
+    String topTitle =
+        data["room_name"] ?? data["battle_name"] ?? "Quiz Battle";
+
+    // 2. Fetch room_code to display above participants
+    String roomCode = data["room_code"] ?? "N/A";
+
+    // Safe Timestamp conversion
+    String formatFirestoreDate(dynamic rawValue) {
+      if (rawValue == null) return "N/A";
+      if (rawValue is Timestamp) {
+        DateTime dt = rawValue.toDate();
+        return "${dt.day}/${dt.month}/${dt.year}";
+      }
+      return rawValue.toString();
+    }
+
+    String formatFirestoreTime(dynamic rawValue) {
+      if (rawValue == null) return "N/A";
+      if (rawValue is Timestamp) {
+        DateTime dt = rawValue.toDate();
+        int hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+        String minute = dt.minute.toString().padLeft(2, '0');
+        String period = dt.hour >= 12 ? "PM" : "AM";
+        return "$hour:$minute $period";
+      }
+      return rawValue.toString();
+    }
+
+    String dateStr = formatFirestoreDate(data["battle_date"]);
+    String timeStr = formatFirestoreTime(data["start_time"] ?? data["created_at"]);
     String winnerName = data["winner_name"] ?? "Not Declared";
 
     return Container(
@@ -195,7 +220,7 @@ class _GlobalBattleHistoryScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Battle Name & Trophy Badge
+                      // --- ROOM NAME & TROPHY BADGE ---
                       Row(
                         children: [
                           Container(
@@ -213,7 +238,7 @@ class _GlobalBattleHistoryScreenState
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              battleTitle,
+                              topTitle, // Displays room_name here
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -275,6 +300,34 @@ class _GlobalBattleHistoryScreenState
 
                       const SizedBox(height: 14),
 
+                      // --- ROOM CODE ROW (ADDED ABOVE PARTICIPANTS) ---
+                      Row(
+                        children: [
+                          const Icon(Icons.vpn_key_outlined,
+                              size: 18, color: textMuted),
+                          const SizedBox(width: 8),
+                          const Text(
+                            "Room Code",
+                            style: TextStyle(
+                           fontSize: 14,
+                              color: textMuted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            roomCode,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: primaryBlue,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 8),
+
                       // Participants Row
                       Row(
                         children: [
@@ -290,13 +343,36 @@ class _GlobalBattleHistoryScreenState
                             ),
                           ),
                           const Spacer(),
-                          Text(
-                            "$participantsCount",
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: primaryBlue,
-                            ),
+                          StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection("Battle_Room_Details")
+                                .doc(docId)
+                                .collection("Players")
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const Text(
+                                  "...",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryBlue,
+                                  ),
+                                );
+                              }
+
+                              int participantCount =
+                                  snapshot.data!.docs.length;
+
+                              return Text(
+                                "$participantCount",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryBlue,
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),

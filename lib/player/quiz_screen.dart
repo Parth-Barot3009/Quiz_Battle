@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/player/after_quiz.dart';
+import 'package:quiz_battle/waitingscreen.dart';
 
 class Question {
   final String question;
@@ -36,6 +37,14 @@ class _QuizScreenState extends State<QuizScreen> {
   int currentQuestion = 0;
   int selectedOption = -1;
   int score = 0;
+
+  int correctAnswers = 0;
+  int wrongAnswers = 0;
+
+  double totalResponseTime = 0;
+
+  DateTime? questionStartTime;
+
   int totalQuestions = 0;
 
   bool optionSelected = false;
@@ -84,8 +93,8 @@ class _QuizScreenState extends State<QuizScreen> {
             .collection("player")
             .doc(playerDocId)
             .set({
-              "played_battle": FieldValue.increment(1),
-            }, SetOptions(merge: true));
+          "played_battle": FieldValue.increment(1),
+        }, SetOptions(merge: true));
       }
     } catch (e) {
       debugPrint("Error updating played_battle count: $e");
@@ -102,9 +111,25 @@ class _QuizScreenState extends State<QuizScreen> {
           .orderBy("questionIndex")
           .get();
 
+      List<QueryDocumentSnapshot> docs = snapshot.docs;
+
+// Randomize all questions
+      docs.shuffle();
+
+// Get total questions selected by organizer
+      DocumentSnapshot battleDoc = await FirebaseFirestore.instance
+          .collection("Battle_Room_Details")
+          .doc(widget.battleId)
+          .get();
+
+      int questionLimit = battleDoc["questions"] ?? docs.length;
+
+// Keep only required number
+      docs = docs.take(questionLimit).toList();
+
       List<Question> loadedQuestions = [];
 
-      for (var doc in snapshot.docs) {
+      for (var doc in docs) {
         var data = doc.data() as Map<String, dynamic>;
 
         List<String> options = [
@@ -149,6 +174,7 @@ class _QuizScreenState extends State<QuizScreen> {
             correctAnswer: correctIndex,
           ),
         );
+        print("Questions Loaded = ${loadedQuestions.length}");
       }
 
       if (mounted) {
@@ -174,6 +200,7 @@ class _QuizScreenState extends State<QuizScreen> {
   void startTimer() {
     timer?.cancel();
     setState(() => timeLeft = 10);
+    questionStartTime = DateTime.now();
 
     timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (timeLeft > 0) {
@@ -184,14 +211,33 @@ class _QuizScreenState extends State<QuizScreen> {
           showAnswer = true;
           selectedOption = -1;
         });
+        wrongAnswers++;
+
+        totalResponseTime += 10;
+
+        updatePlayerPerformance(
+          isCorrect: false,
+          responseTime: 10,
+        );
+
         Future.delayed(const Duration(seconds: 1), nextQuestion);
       }
     });
   }
 
   // Next Question or Finish Quiz
-  void nextQuestion() {
-    if (currentQuestion < questions.length - 1) {
+  void nextQuestion() async {
+    DocumentSnapshot data = await FirebaseFirestore.instance
+        .collection('Battle_Room_Details')
+        .doc(widget.battleId)
+        .get();
+
+    int question = data['questions'] ?? 0;
+
+    if (!mounted) return;
+
+    // Check if there are more questions remaining
+    if (currentQuestion < question - 1) {
       setState(() {
         currentQuestion++;
         selectedOption = -1;
@@ -200,8 +246,43 @@ class _QuizScreenState extends State<QuizScreen> {
       });
       startTimer();
     } else {
+      // End of quiz reached
       saveScoreAndNavigate();
     }
+  }
+
+  Future<void> updatePlayerPerformance({
+    required bool isCorrect,
+    required double responseTime,
+  }) async {
+
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    await FirebaseFirestore.instance
+        .collection("Battle_Room_Details")
+        .doc(widget.battleId)
+        .collection("Players")
+        .doc(user.uid)
+        .update({
+
+      "correct": isCorrect
+          ? FieldValue.increment(1)
+          : FieldValue.increment(0),
+
+      "wrong": isCorrect
+          ? FieldValue.increment(0)
+          : FieldValue.increment(1),
+
+      "points": isCorrect
+          ? FieldValue.increment(10)
+          : FieldValue.increment(0),
+
+      "totalTime": FieldValue.increment(responseTime),
+
+    });
+
   }
 
   // Save Final Score and Navigate
@@ -218,29 +299,107 @@ class _QuizScreenState extends State<QuizScreen> {
             .collection("Players")
             .doc(user.uid)
             .set({
-              "player_score": score,
-              "player_name":
-                  user.displayName ?? user.email?.split('@').first ?? "Player",
-              "player_email": user.email ?? "",
-              "completed_at": FieldValue.serverTimestamp(),
-            }, SetOptions(merge: true));
+          "player_name":
+          user.displayName ?? user.email?.split('@').first ?? "Player",
+          "player_email": user.email ?? "",
+          //
+          "completed_at": FieldValue.serverTimestamp(),
+          "isFinished": true,
+        }, SetOptions(merge: true));
+        //
+        QuerySnapshot allPlayers = await FirebaseFirestore.instance
+            .collection("Battle_Room_Details")
+            .doc(widget.battleId)
+            .collection("Players")
+            .get();
+
+        bool allFinished = allPlayers.docs.every((doc) {
+          return doc["isFinished"] == true;
+        });
+        //
+        if (allFinished) {
+          await calculateLeaderboard();
+        }
+
       } catch (e) {
         debugPrint("Error saving final score: $e");
       }
+
     }
+    //
+
+
 
     if (mounted) {
+      print("Quiz totalQuestions = $totalQuestions");
+      print("questions.length = ${questions.length}");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => ResultScreen(
+          builder: (_) => WaitingScreen(
             battleId: widget.battleId, // <-- Pass the battle document ID
             myScore: score,
-            totalQuestions: questions.length,
+            totalQuestions: totalQuestions,
           ),
         ),
       );
     }
+  }
+
+  Future<void> calculateLeaderboard() async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection("Battle_Room_Details")
+        .doc(widget.battleId)
+        .collection("Players")
+        .get();
+
+    List<QueryDocumentSnapshot> players = snapshot.docs;
+
+    players.sort((a, b) {
+      Map<String, dynamic> playerA = a.data() as Map<String, dynamic>;
+      Map<String, dynamic> playerB = b.data() as Map<String, dynamic>;
+
+      // First compare correct answers
+      if (playerB["correct"] != playerA["correct"]) {
+        return playerB["correct"].compareTo(playerA["correct"]);
+      }
+
+      // If correct answers are equal,
+      // compare total response time
+      return (playerA["totalTime"] as num)
+          .compareTo(playerB["totalTime"] as num);
+    });
+
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+
+    List<int> bonusPoints = [
+      150,
+      130,
+      120,
+      100,
+      80,
+      60,
+      50,
+      40,
+      30,
+      20
+    ];
+
+    for (int i = 0; i < players.length; i++) {
+      Map<String, dynamic> data =
+      players[i].data() as Map<String, dynamic>;
+
+      int bonus =
+      i < bonusPoints.length ? bonusPoints[i] : 10;
+
+      batch.update(players[i].reference, {
+        "rank": i + 1,
+        "bonusPoints": bonus,
+        "finalPoints": data["points"] + bonus,
+      });
+    }
+
+    await batch.commit();
   }
 
   Color optionColor(int index) {
@@ -430,13 +589,35 @@ class _QuizScreenState extends State<QuizScreen> {
                             color: brandBlue,
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          child: Text(
-                            "${currentQuestion + 1}/${questions.length}",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
+                          child: StreamBuilder<DocumentSnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('Battle_Room_Details')
+                                .doc(widget.battleId) // Use battleId to fetch document
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData || !snapshot.data!.exists) {
+                                return Text(
+                                  "${currentQuestion + 1}/...",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                );
+                              }
+
+                              var data = snapshot.data!.data() as Map<String, dynamic>?;
+                              int totalCount = data?['questions'] ?? questions.length;
+
+                              return Text(
+                                "${currentQuestion + 1}/$totalCount",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -498,24 +679,44 @@ class _QuizScreenState extends State<QuizScreen> {
                           onTap: optionSelected
                               ? null
                               : () {
-                                  timer?.cancel();
-                                  setState(() {
-                                    optionSelected = true;
-                                    selectedOption = index;
-                                    showAnswer = true;
 
-                                    if (index ==
-                                        questions[currentQuestion]
-                                            .correctAnswer) {
-                                      score++;
-                                    }
-                                  });
+                            timer?.cancel();
 
-                                  Future.delayed(
-                                    const Duration(seconds: 1),
-                                    nextQuestion,
-                                  );
-                                },
+                            double responseTime =
+                                DateTime.now()
+                                    .difference(questionStartTime!)
+                                    .inMilliseconds / 1000;
+
+                            totalResponseTime += responseTime;
+
+                            bool isCorrect =
+                                index == questions[currentQuestion].correctAnswer;
+
+                            setState(() {
+
+                              optionSelected = true;
+                              selectedOption = index;
+                              showAnswer = true;
+
+                              if (isCorrect) {
+                                score++;
+                                correctAnswers++;
+                              } else {
+                                wrongAnswers++;
+                              }
+
+                            });
+
+                            updatePlayerPerformance(
+                              isCorrect: isCorrect,
+                              responseTime: responseTime,
+                            );
+
+                            Future.delayed(
+                              const Duration(seconds: 1),
+                              nextQuestion,
+                            );
+                          },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             padding: const EdgeInsets.all(18),

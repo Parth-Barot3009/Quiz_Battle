@@ -326,6 +326,8 @@ class _create_battleState extends State<create_battle> {
         "question_file": excelUrl,
         "created_at": FieldValue.serverTimestamp(),
         "o_email": FirebaseAuth.instance.currentUser?.email,
+        "leaderboardGenerated": false,
+        "winner_name":null
       });
 
       print("Firestore Saved");

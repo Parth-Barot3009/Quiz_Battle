@@ -297,7 +297,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         watermarkIcon: Icons.bolt_rounded,
                         stream: FirebaseFirestore.instance
                             .collection('Battle_Room_Details')
-                            .where('o_email', isEqualTo: currentUser?.email)
+                            .where('start_time', isEqualTo: DateTime.now())
                             .snapshots(),
                       ),
                     ],
@@ -306,68 +306,68 @@ class _OrgDashboardState extends State<OrgDashboard> {
                   const SizedBox(height: 24),
 
                   // 4. CREATE NEW QUIZ BUTTON
-                  Material(
-                    color: surfaceWhite,
-                    borderRadius: BorderRadius.circular(20),
-                    child: InkWell(
-                      onTap: () {
-                        // Action for creating quiz
-                      },
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: borderColor, width: 1.2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: textDark.withOpacity(0.02),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: brandBlue,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
-                            ),
-                            const SizedBox(width: 14),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Create New Quiz",
-                                    style: TextStyle(
-                                      color: textDark,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    "Upload questions and host a room",
-                                    style: TextStyle(
-                                      color: textGrey,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right_rounded, color: textGrey),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Material(
+                  //   color: surfaceWhite,
+                  //   borderRadius: BorderRadius.circular(20),
+                  //   child: InkWell(
+                  //     onTap: () {
+                  //       // Action for creating quiz
+                  //     },
+                  //     borderRadius: BorderRadius.circular(20),
+                  //     child: Container(
+                  //       padding: const EdgeInsets.all(18),
+                  //       decoration: BoxDecoration(
+                  //         borderRadius: BorderRadius.circular(20),
+                  //         border: Border.all(color: borderColor, width: 1.2),
+                  //         boxShadow: [
+                  //           BoxShadow(
+                  //             color: textDark.withOpacity(0.02),
+                  //             blurRadius: 8,
+                  //             offset: const Offset(0, 2),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //       child: Row(
+                  //         children: [
+                  //           Container(
+                  //             width: 44,
+                  //             height: 44,
+                  //             decoration: BoxDecoration(
+                  //               color: brandBlue,
+                  //               borderRadius: BorderRadius.circular(14),
+                  //             ),
+                  //             child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
+                  //           ),
+                  //           const SizedBox(width: 14),
+                  //           const Expanded(
+                  //             child: Column(
+                  //               crossAxisAlignment: CrossAxisAlignment.start,
+                  //               children: [
+                  //                 Text(
+                  //                   "Create New Quiz",
+                  //                   style: TextStyle(
+                  //                     color: textDark,
+                  //                     fontSize: 15,
+                  //                     fontWeight: FontWeight.bold,
+                  //                   ),
+                  //                 ),
+                  //                 SizedBox(height: 2),
+                  //                 Text(
+                  //                   "Upload questions and host a room",
+                  //                   style: TextStyle(
+                  //                     color: textGrey,
+                  //                     fontSize: 12,
+                  //                   ),
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //           ),
+                  //           const Icon(Icons.chevron_right_rounded, color: textGrey),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
 
                   const SizedBox(height: 28),
 
@@ -381,90 +381,140 @@ class _OrgDashboardState extends State<OrgDashboard> {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  StreamBuilder(
+                      stream: FirebaseFirestore.instance.collection('Battle_Room_Details').where('o_email',isEqualTo: FirebaseAuth.instance.currentUser!.email).where('start_time',isLessThanOrEqualTo: Timestamp.now()).snapshots(),
+                      builder: (context,snapshot){
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return Text(
+                            "Error loading battles: ${snapshot.error}",
+                            style: const TextStyle(color: textGrey, fontSize: 13),
+                          );
+                        }
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: surfaceWhite,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: borderColor, width: 1.2),
+                            ),
+                            child: Text(
+                              "No upcoming battles scheduled.",
+                              style: TextStyle(color: textGrey, fontSize: 13),
+                              textAlign: TextAlign.center,
+                            ),
+                          );
+                        }
+
+                        var data = snapshot.data!.docs;
+
+                        return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: data.length,
+                            itemBuilder: (context,index){
+                              var recentQuiz = data[index].data();
+                              String battlename = recentQuiz['room_name'];
+                              int totalQuestion = recentQuiz['questions'];
+                              return Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: surfaceWhite,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: borderColor, width: 1.2),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: textDark.withOpacity(0.02),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 48,
+                                        height: 48,
+                                        decoration: BoxDecoration(
+                                          color: bgCanvas,
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(color: borderColor),
+                                        ),
+                                        child: const Icon(
+                                          Icons.quiz_rounded,
+                                          color: textGrey,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              battlename,
+                                              style: TextStyle(
+                                                color: textDark,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(height: 2),
+                                            Text(
+                                              "$totalQuestion Questions",
+                                              style: TextStyle(
+                                                color: textGrey,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFECFDF5),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: const Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 3,
+                                              backgroundColor: Color(0xFF10B981),
+                                            ),
+                                            SizedBox(width: 5),
+                                            Text(
+                                              "Active",
+                                              style: TextStyle(
+                                                color: Color(0xFF059669),
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            });
+                      }),
 
                   // Quiz Item Tile
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: surfaceWhite,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: borderColor, width: 1.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: textDark.withOpacity(0.02),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: bgCanvas,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: const Icon(
-                            Icons.quiz_rounded,
-                            color: textGrey,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Flutter Battle 2026",
-                                style: TextStyle(
-                                  color: textDark,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                "10 Questions • Tech",
-                                style: TextStyle(
-                                  color: textGrey,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFECFDF5),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 3,
-                                backgroundColor: Color(0xFF10B981),
-                              ),
-                              SizedBox(width: 5),
-                              Text(
-                                "Active",
-                                style: TextStyle(
-                                  color: Color(0xFF059669),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+
                 ],
               ),
             ),

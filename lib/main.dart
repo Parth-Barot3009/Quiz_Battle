@@ -4,6 +4,7 @@ import 'package:quiz_battle/Demo.dart';
 import 'package:quiz_battle/admin/Navigation_Admin.dart';
 import 'package:quiz_battle/auth/Splash_Screen.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
+import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
 import 'package:quiz_battle/organizer/Organizer_Battle_History.dart';
 import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 import 'package:quiz_battle/player/after_quiz.dart' hide ResultScreen;

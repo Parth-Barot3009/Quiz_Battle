@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/player/join_battle.dart';
 import 'package:quiz_battle/player/user_dashboard.dart';
-import 'package:quiz_battle/player/user_leaderboard.dart';
+import 'package:quiz_battle/player/player_battlehistory.dart';
 import 'package:quiz_battle/player/user_profile.dart';
 
 class player_navigationbar extends StatefulWidget {
@@ -22,7 +22,7 @@ class _player_navigationbarState extends State<player_navigationbar> {
   final List<Widget> _screen = const [
     StudentDashboard(),
     JoinBattleScreen(),
-    LeaderboardScreen(),
+    PlayerBattleHistory(),
     UserProfileInfo(),
   ];
 
@@ -70,7 +70,7 @@ class _player_navigationbarState extends State<player_navigationbar> {
                 index: 2,
                 icon: Icons.emoji_events_rounded,
                 outlinedIcon: Icons.emoji_events_outlined,
-                label: "Leaderboard",
+                label: "History",
               ),
               _buildNavItem(
                 index: 3,
