@@ -118,6 +118,8 @@ class _user_RegisterState extends State<user_Register> {
       'player_name': namecon.text.trim(),
       'player_email': emailcontroller.text.trim(),
       'role': role,
+      'played_battle':0,
+      'player_win':0,
       'image_url': imageUrl,
     });
   }

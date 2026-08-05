@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class OrganizerBattleHistory extends StatefulWidget {
   const OrganizerBattleHistory({super.key});
@@ -17,6 +18,27 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
   static const Color borderColor = Color(0xFFE2E8F0);
   static const Color textDark = Color(0xFF1E293B);
   static const Color textGrey = Color(0xFF64748B);
+
+  // Helper method to format time into "05:05 AM"
+  String formatTimeString(String rawTime, DateTime fallbackDate) {
+    if (rawTime.isEmpty || rawTime == "N/A") {
+      return DateFormat("hh:mm a").format(fallbackDate);
+    }
+
+    try {
+      // Handles "13:05" or "05:05" 24-hour format
+      DateTime parsed = DateFormat("HH:mm").parse(rawTime);
+      return DateFormat("hh:mm a").format(parsed);
+    } catch (_) {
+      try {
+        // Handles "5:5 AM" or "1:34 AM" formats
+        DateTime parsed = DateFormat("h:mm a").parse(rawTime);
+        return DateFormat("hh:mm a").format(parsed);
+      } catch (_) {
+        return rawTime; // Fallback to raw string if parsing fails
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,8 +195,21 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
                     Timestamp timestamp = roomDetailsList['battle_date'];
                     DateTime date = timestamp.toDate();
-                    String formattedDate = "${date.day}/${date.month}/${date.year}";
-                    String startTime = roomDetailsList['start_time']?.toString() ?? "N/A";
+
+                    // Formatted Date (e.g., "01/08/2026")
+                    String formattedDate = DateFormat("dd/MM/yyyy").format(date);
+
+                    // --- TIME FORMATTING FIX STARTS HERE ---
+                    dynamic rawStartTime = roomDetailsList['start_time'];
+                    String startTime;
+
+                    if (rawStartTime is Timestamp) {
+                      startTime = DateFormat("hh:mm a").format(rawStartTime.toDate());
+                    } else {
+                      startTime = formatTimeString(rawStartTime?.toString() ?? "", date);
+                    }
+                    // --- TIME FORMATTING FIX ENDS HERE ---
+
                     String roomName = roomDetailsList['room_name'] ?? 'Battle Room';
 
                     return Container(
@@ -278,7 +313,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          startTime,
+                                          startTime, // Displayed as "05:05 AM" or formatted time
                                           style: const TextStyle(
                                             color: textDark,
                                             fontSize: 13,

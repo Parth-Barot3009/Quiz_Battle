@@ -43,7 +43,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            // Handle back action
+            Navigator.pop(context);
           },
         ),
       ),

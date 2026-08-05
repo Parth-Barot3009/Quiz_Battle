@@ -144,13 +144,9 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                   ? NetworkImage(userInfo!["image_url"])
                                   : null,
                               child: userInfo == null || userInfo!["image_url"] == null
-                                  ? const Text(
-                                "K",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
+                                  ? Icon(
+                                Icons.person,
+                                color: Colors.white,
                               )
                                   : null,
                             ),

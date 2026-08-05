@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/Admin_Deshboard.dart';
 import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
 import 'package:quiz_battle/admin/Student_ListScreen.dart';
-import 'package:quiz_battle/admin/addmin_setting.dart';
+import 'package:quiz_battle/admin/admin_setting.dart';
 
 class Admin_Nav extends StatefulWidget {
   const Admin_Nav({super.key});
@@ -23,7 +23,7 @@ class _Admin_NavState extends State<Admin_Nav> {
     AdminDeshboard(),
     Org_List(),
     Stu_List(),
-    Admin_setting(),
+    GlobalBattleHistoryScreen(),
   ];
 
   @override
@@ -74,9 +74,9 @@ class _Admin_NavState extends State<Admin_Nav> {
               ),
               _buildNavItem(
                 index: 3,
-                icon: Icons.settings_rounded,
-                outlinedIcon: Icons.settings_outlined,
-                label: "Settings",
+                icon: Icons.emoji_events,
+                outlinedIcon: Icons.emoji_events,
+                label: "Battles",
               ),
             ],
           ),

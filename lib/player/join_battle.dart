@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/player/waiting_room.dart';
 
 class JoinBattleScreen extends StatefulWidget {
   const JoinBattleScreen({super.key});
@@ -10,246 +13,463 @@ class JoinBattleScreen extends StatefulWidget {
 class _JoinBattleScreenState extends State<JoinBattleScreen> {
   final TextEditingController roomCode = TextEditingController();
 
+  static const Color brandBlue = Color(0xFF306AE7);
+  static const Color background = Color(0xFFEBF1FF);
+  static const Color darkText = Color(0xFF1E293B);
+  static const Color greyText = Color(0xFF64748B);
+
+  bool isLoading = false;
+
+  @override
+  void dispose() {
+    roomCode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-
-        appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: Color(0xFF306AE7),
-          title: Text(
-            "Join Battle",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      backgroundColor: background,
+      body: Stack(
+        children: [
+          // Decorative circles
+          Positioned(
+            top: -80,
+            left: -60,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: brandBlue.withOpacity(.08),
+              ),
             ),
           ),
-        ),
-
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-
-              Center(
-                child: Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
-                    ),
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 8,
-                        offset: Offset(3, 5),
+          Positioned(
+            bottom: -80,
+            right: -60,
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: brandBlue.withOpacity(.05),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  //==========================
+                  // HEADER
+                  //==========================
+                  Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(.08),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: darkText,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 18),
+                      const Text(
+                        "Join Battle",
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: darkText,
+                        ),
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.sports_esports,
-                    color: Colors.white,
-                    size: 60,
-                  ),
-                ),
-              ),
 
-              const SizedBox(height: 25),
+                  const SizedBox(height: 40),
 
-              const Center(
-                child: Text(
-                  "Enter the room code given by your organiser",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-
-              const SizedBox(height: 40),
-
-              const Text(
-                "ROOM CODE",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 15),
-
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 8,
-                      offset: Offset(3, 5),
-                    ),
-                  ],
-                ),
-                child: TextField(
-                  controller: roomCode,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 36,
-                    letterSpacing: 8,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: "Enter Room Code",
-                    contentPadding: EdgeInsets.symmetric(vertical: 20),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 40),
-
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF306AE7),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Joining Battle...")),
-                    );
-                  },
-                  child: const Text(
-                    "JOIN BATTLE",
-                    style: TextStyle(
-                      fontSize: 22,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 8,
-                      offset: Offset(2, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "HOW TO JOIN",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                  //==========================
+                  // GAME ICON
+                  //==========================
+                  Center(
+                    child: Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(35),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: brandBlue.withOpacity(.30),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.sports_esports_rounded,
+                        size: 75,
+                        color: Colors.white,
                       ),
                     ),
+                  ),
 
-                    const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
-                    Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(0xFF306AE7),
-                          child: Text(
-                            "1",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                  const Center(
+                    child: Text(
+                      "Enter the room code given by your organiser",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: darkText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
 
-                        const SizedBox(width: 15),
+                  const SizedBox(height: 40),
 
-                        const Expanded(
-                          child: Text(
-                            "Ask your organiser for the room code.",
-                            style: TextStyle(fontSize: 16),
-                          ),
+                  //==========================
+                  // ROOM CODE TITLE
+                  //==========================
+                  const Text(
+                    "ROOM CODE",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: brandBlue,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  //==========================
+                  // ROOM CODE TEXTFIELD
+                  //==========================
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(.08),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 18),
-
-                    Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(0xFF306AE7),
-                          child: Text(
-                            "2",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                    child: TextField(
+                      controller: roomCode,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 6,
+                        color: darkText,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: "ENTER ROOM CODE",
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 18,
+                          letterSpacing: 1,
                         ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 20,
+                        ),
+                      ),
+                    ),
+                  ),
 
-                        const SizedBox(width: 15),
+                  const SizedBox(height: 35),
 
-                        const Expanded(
-                          child: Text(
-                            "Enter the room code in the text field.",
-                            style: TextStyle(fontSize: 16),
+                  //==========================
+                  // JOIN BUTTON
+                  //==========================
+                  SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              final code = roomCode.text.trim();
+                              if (code.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Please enter a room code"),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              setState(() => isLoading = true);
+
+                              try {
+                                QuerySnapshot snapshot = await FirebaseFirestore
+                                    .instance
+                                    .collection("Battle_Room_Details")
+                                    .where("room_code", isEqualTo: code)
+                                    .limit(1)
+                                    .get();
+
+                                if (snapshot.docs.isNotEmpty) {
+                                  String battleId = snapshot.docs.first.id;
+                                  User? user =
+                                      FirebaseAuth.instance.currentUser;
+
+                                  if (user == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "User not authenticated!",
+                                        ),
+                                      ),
+                                    );
+                                    setState(() => isLoading = false);
+                                    return;
+                                  }
+
+                                  // Fetch user's name directly from Firebase Auth or query 'player' collection by email
+                                  String playerName = user.displayName ?? "";
+
+                                  if (playerName.isEmpty) {
+                                    // Query by player_email instead of assuming doc ID is user.uid
+                                    QuerySnapshot playerQuery = await FirebaseFirestore.instance
+                                        .collection("player")
+                                        .where("player_email", isEqualTo: user.email)
+                                        .limit(1)
+                                        .get();
+
+                                    if (playerQuery.docs.isNotEmpty) {
+                                      var data = playerQuery.docs.first.data() as Map<String, dynamic>;
+                                      playerName = data['player_name'] ?? "Player";
+                                    } else {
+                                      playerName = "Player";
+                                    }
+                                  }
+
+                                  // Save player details into the Battle Room subcollection
+                                  await FirebaseFirestore.instance
+                                      .collection("Battle_Room_Details")
+                                      .doc(battleId)
+                                      .collection("Players")
+                                      .doc(user.uid)
+                                      .set({
+                                        "player_id": user.uid,
+                                        "player_name": playerName,
+                                        "player_email": user.email ?? "",
+                                        "player_score": 0,
+                                        "joined_At":
+                                            FieldValue.serverTimestamp(),
+                                      });
+
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Joining Battle..."),
+                                      ),
+                                    );
+
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            WaitingRoom(roomcode: code,battleId:battleId),
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Enter Valid Room Code"),
+                                      ),
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Error: ${e.toString()}"),
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setState(() => isLoading = false);
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
                           ),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Container(
+                          alignment: Alignment.center,
+                          child: isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.sports_esports_rounded,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      "JOIN BATTLE",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 35),
+
+                  //==========================
+                  // HOW TO JOIN CARD
+                  //==========================
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(22),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(.08),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 18),
-
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(0xFF306AE7),
-                          child: Text(
-                            "3",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              color: brandBlue,
+                              size: 28,
                             ),
-                          ),
+                            SizedBox(width: 10),
+                            Text(
+                              "How to Join",
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: darkText,
+                              ),
+                            ),
+                          ],
                         ),
-
-                        const SizedBox(width: 15),
-
-                        const Expanded(
-                          child: Text(
-                            "Press JOIN BATTLE to enter the room.",
-                            style: TextStyle(fontSize: 16),
-                          ),
+                        const SizedBox(height: 25),
+                        _step(
+                          number: "1",
+                          text: "Ask your organiser for the room code.",
+                        ),
+                        const SizedBox(height: 18),
+                        _step(
+                          number: "2",
+                          text: "Enter the room code in the text field above.",
+                        ),
+                        const SizedBox(height: 18),
+                        _step(
+                          number: "3",
+                          text: "Tap JOIN BATTLE to enter the quiz room.",
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(height: 30),
+                ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              const SizedBox(height: 30),
-            ],
+  Widget _step({required String number, required String text}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: const BoxDecoration(
+            color: brandBlue,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
           ),
         ),
-      ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 16, color: darkText, height: 1.4),
+          ),
+        ),
+      ],
     );
   }
 }
