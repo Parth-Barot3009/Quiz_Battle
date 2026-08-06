@@ -20,20 +20,29 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
   static const Color textGrey = Color(0xFF64748B);
 
   // Helper method to format time safely into "05:05 AM"
-  String formatTimeString(String rawTime, DateTime fallbackDate) {
-    if (rawTime.isEmpty || rawTime == "N/A") {
+  String formatTimeString(dynamic rawTime, DateTime fallbackDate) {
+    if (rawTime == null) {
+      return DateFormat("hh:mm a").format(fallbackDate);
+    }
+
+    if (rawTime is Timestamp) {
+      return DateFormat("hh:mm a").format(rawTime.toDate());
+    }
+
+    String timeStr = rawTime.toString().trim();
+    if (timeStr.isEmpty || timeStr == "N/A") {
       return DateFormat("hh:mm a").format(fallbackDate);
     }
 
     try {
-      DateTime parsed = DateFormat("HH:mm").parse(rawTime);
+      DateTime parsed = DateFormat("HH:mm").parse(timeStr);
       return DateFormat("hh:mm a").format(parsed);
     } catch (_) {
       try {
-        DateTime parsed = DateFormat("h:mm a").parse(rawTime);
+        DateTime parsed = DateFormat("h:mm a").parse(timeStr);
         return DateFormat("hh:mm a").format(parsed);
       } catch (_) {
-        return rawTime;
+        return timeStr;
       }
     }
   }
@@ -150,7 +159,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
 
           const SizedBox(height: 12),
 
-          // 2. FIRESTORE STREAM LIST (FILTERED EXCLUSIVELY FOR CURRENT LOGGED IN USER)
+          // 2. QUERY ALL 'Players' SUBCOLLECTIONS WHERE player_id MATCHES CURRENT USER
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -158,7 +167,6 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                   .where('player_id', isEqualTo: currentUser.uid)
                   .snapshots(),
               builder: (context, playerSnapshot) {
-                // Log Firestore errors to console for index links or permission errors
                 if (playerSnapshot.hasError) {
                   debugPrint("Firestore CollectionGroup Error: ${playerSnapshot.error}");
                   return Center(
@@ -210,7 +218,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                     Map<String, dynamic> playerData =
                     playerDoc.data() as Map<String, dynamic>;
 
-                    // Parent document points to the parent Battle_Room_Details document
+                    // Parent room reference points to Battle_Room_Details/{roomCode}
                     DocumentReference? parentRoomRef = playerDoc.reference.parent.parent;
 
                     if (parentRoomRef == null) return const SizedBox.shrink();
@@ -225,29 +233,20 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                         Map<String, dynamic> roomData =
                         roomSnapshot.data!.data() as Map<String, dynamic>;
 
+                        // Date Parsing
                         Timestamp? timestamp = roomData['battle_date'];
                         DateTime date = timestamp?.toDate() ?? DateTime.now();
-
                         String formattedDate = DateFormat("dd/MM/yyyy").format(date);
 
-                        dynamic rawStartTime = roomData['start_time'];
-                        String startTime;
+                        // Time Parsing
+                        String startTime = formatTimeString(roomData['start_time'], date);
 
-                        if (rawStartTime is Timestamp) {
-                          startTime = DateFormat("hh:mm a").format(rawStartTime.toDate());
-                        } else {
-                          startTime = formatTimeString(
-                            rawStartTime?.toString() ?? "",
-                            date,
-                          );
-                        }
-
+                        // Room details mapped directly from your schema
                         String roomName = roomData['room_name'] ?? 'Battle Room';
-                        String roomCode = roomData['room_code'] ?? roomData['battleId'] ?? '';
-                        String winnerName = roomData['winner_name'] ?? 'In Progress / N/A';
+                        String roomCode = roomData['room_code'] ?? parentRoomRef.id;
 
-                        int myRank = playerData['rank'] ?? 0;
-                        int myPoints = playerData['finalPoints'] ?? playerData['points'] ?? 0;
+                        // Player Score mapped directly from your schema
+                        int myScore = playerData['player_score'] ?? 0;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 16),
@@ -363,44 +362,6 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                                         ),
                                       ),
 
-                                      const SizedBox(height: 14),
-
-                                      // Winner Info Row
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFEFF6FF),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: const Icon(
-                                              Icons.emoji_events_outlined,
-                                              size: 16,
-                                              color: brandBlue,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          const Text(
-                                            "Winner",
-                                            style: TextStyle(
-                                              color: textDark,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            winnerName,
-                                            style: const TextStyle(
-                                              color: brandBlue,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
                                       const Padding(
                                         padding: EdgeInsets.symmetric(vertical: 8),
                                         child: Divider(
@@ -409,7 +370,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                                         ),
                                       ),
 
-                                      // Player Rank & Points Row
+                                      // Score Row
                                       Row(
                                         children: [
                                           Container(
@@ -426,7 +387,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                                           ),
                                           const SizedBox(width: 10),
                                           const Text(
-                                            "My Rank / Score",
+                                            "My Score",
                                             style: TextStyle(
                                               color: textDark,
                                               fontSize: 13,
@@ -435,9 +396,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                                           ),
                                           const Spacer(),
                                           Text(
-                                            myRank > 0
-                                                ? "#$myRank • $myPoints pts"
-                                                : "$myPoints pts",
+                                            "$myScore pts",
                                             style: const TextStyle(
                                               color: brandBlue,
                                               fontWeight: FontWeight.bold,
