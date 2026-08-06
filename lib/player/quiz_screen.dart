@@ -20,11 +20,7 @@ class QuizScreen extends StatefulWidget {
   final String battleId;
   final String roomCode;
 
-  const QuizScreen({
-    super.key,
-    required this.battleId,
-    required this.roomCode,
-  });
+  const QuizScreen({super.key, required this.battleId, required this.roomCode});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -54,6 +50,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   void initState() {
+    addBattleInPlayer();
     super.initState();
     fetchQuestions();
   }
@@ -62,6 +59,37 @@ class _QuizScreenState extends State<QuizScreen> {
   void dispose() {
     timer?.cancel();
     super.dispose();
+  }
+
+  // Add Battle in player details
+  // Add Battle in player details
+  Future<void> addBattleInPlayer() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null || currentUser.email == null) return;
+
+      // 1. Query the player collection by email to locate the user's document ID
+      QuerySnapshot playerQuery = await FirebaseFirestore.instance
+          .collection("player")
+          .where("player_email", isEqualTo: currentUser.email)
+          .limit(1)
+          .get();
+
+      if (playerQuery.docs.isNotEmpty) {
+        String playerDocId = playerQuery.docs.first.id;
+
+        // 2. Increment played_battle count using set with merge: true
+        // (This handles cases where played_battle field might not exist yet)
+        await FirebaseFirestore.instance
+            .collection("player")
+            .doc(playerDocId)
+            .set({
+              "played_battle": FieldValue.increment(1),
+            }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      debugPrint("Error updating played_battle count: $e");
+    }
   }
 
   // Fetch Questions dynamically from Firestore
@@ -93,11 +121,24 @@ class _QuizScreenState extends State<QuizScreen> {
           correctIndex = rawAnswer;
         } else if (rawAnswer is String) {
           switch (rawAnswer.trim().toUpperCase()) {
-            case "A": case "OPTIONA": correctIndex = 0; break;
-            case "B": case "OPTIONB": correctIndex = 1; break;
-            case "C": case "OPTIONC": correctIndex = 2; break;
-            case "D": case "OPTIOND": correctIndex = 3; break;
-            default: correctIndex = int.tryParse(rawAnswer) ?? 0;
+            case "A":
+            case "OPTIONA":
+              correctIndex = 0;
+              break;
+            case "B":
+            case "OPTIONB":
+              correctIndex = 1;
+              break;
+            case "C":
+            case "OPTIONC":
+              correctIndex = 2;
+              break;
+            case "D":
+            case "OPTIOND":
+              correctIndex = 3;
+              break;
+            default:
+              correctIndex = int.tryParse(rawAnswer) ?? 0;
           }
         }
 
@@ -164,20 +205,28 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   // Save Final Score and Navigate
+  // Save Final Score and Navigate
   Future<void> saveScoreAndNavigate() async {
     timer?.cancel();
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      await FirebaseFirestore.instance
-          .collection("Battle_Room_Details")
-          .doc(widget.battleId)
-          .collection("Players")
-          .doc(user.uid)
-          .update({
-        "player_score": score,
-        "completed_at": FieldValue.serverTimestamp(),
-      });
+      try {
+        await FirebaseFirestore.instance
+            .collection("Battle_Room_Details")
+            .doc(widget.battleId)
+            .collection("Players")
+            .doc(user.uid)
+            .set({
+              "player_score": score,
+              "player_name":
+                  user.displayName ?? user.email?.split('@').first ?? "Player",
+              "player_email": user.email ?? "",
+              "completed_at": FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint("Error saving final score: $e");
+      }
     }
 
     if (mounted) {
@@ -185,8 +234,8 @@ class _QuizScreenState extends State<QuizScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => ResultScreen(
+            battleId: widget.battleId, // <-- Pass the battle document ID
             myScore: score,
-            opponentScore: 0,
             totalQuestions: questions.length,
           ),
         ),
@@ -221,9 +270,7 @@ class _QuizScreenState extends State<QuizScreen> {
     if (isLoading) {
       return const Scaffold(
         backgroundColor: lightBackground,
-        body: Center(
-          child: CircularProgressIndicator(color: brandBlue),
-        ),
+        body: Center(child: CircularProgressIndicator(color: brandBlue)),
       );
     }
 
@@ -420,10 +467,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       children: [
                         const Text(
                           "Question",
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 16,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
                         ),
                         const SizedBox(height: 15),
                         Text(
@@ -454,24 +498,24 @@ class _QuizScreenState extends State<QuizScreen> {
                           onTap: optionSelected
                               ? null
                               : () {
-                            timer?.cancel();
-                            setState(() {
-                              optionSelected = true;
-                              selectedOption = index;
-                              showAnswer = true;
+                                  timer?.cancel();
+                                  setState(() {
+                                    optionSelected = true;
+                                    selectedOption = index;
+                                    showAnswer = true;
 
-                              if (index ==
-                                  questions[currentQuestion]
-                                      .correctAnswer) {
-                                score++;
-                              }
-                            });
+                                    if (index ==
+                                        questions[currentQuestion]
+                                            .correctAnswer) {
+                                      score++;
+                                    }
+                                  });
 
-                            Future.delayed(
-                              const Duration(seconds: 1),
-                              nextQuestion,
-                            );
-                          },
+                                  Future.delayed(
+                                    const Duration(seconds: 1),
+                                    nextQuestion,
+                                  );
+                                },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             padding: const EdgeInsets.all(18),

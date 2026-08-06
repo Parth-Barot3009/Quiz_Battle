@@ -59,12 +59,9 @@ class _WaitingRoomState extends State<WaitingRoom>
       begin: 0.4,
       end: 1.0,
     ).animate(controller);
-
     controller.repeat(reverse: true);
-
     // Start listening for start time / room status changes
     _listenToRoomStatus();
-
   }
 
   void _listenToRoomStatus() {

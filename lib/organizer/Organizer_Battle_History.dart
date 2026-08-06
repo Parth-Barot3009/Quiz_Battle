@@ -53,10 +53,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF4A7CFF),
-                  Color(0xFF306AE7),
-                ],
+                colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(32),
@@ -146,10 +143,13 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
           // 2. FIRESTORE STREAM LIST
           Expanded(
-            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            child: StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection('Battle_Room_Details')
-                  .where('o_email', isEqualTo: FirebaseAuth.instance.currentUser?.email)
+                  .where(
+                    'o_email',
+                    isEqualTo: FirebaseAuth.instance.currentUser?.email,
+                  )
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -159,9 +159,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                 }
 
                 if (snapshot.hasError) {
-                  return const Center(
-                    child: Text("Something went wrong"),
-                  );
+                  return const Center(child: Text("Something went wrong"));
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -169,11 +167,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
-                        Icon(
-                          Icons.history_rounded,
-                          size: 48,
-                          color: textGrey,
-                        ),
+                        Icon(Icons.history_rounded, size: 48, color: textGrey),
                         SizedBox(height: 8),
                         Text(
                           "No Battle Room Data Found",
@@ -187,8 +181,8 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                 var roomDetails = snapshot.data!.docs;
 
                 return ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  physics: BouncingScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   itemCount: roomDetails.length,
                   itemBuilder: (context, index) {
                     var roomDetailsList = roomDetails[index];
@@ -197,20 +191,29 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                     DateTime date = timestamp.toDate();
 
                     // Formatted Date (e.g., "01/08/2026")
-                    String formattedDate = DateFormat("dd/MM/yyyy").format(date);
+                    String formattedDate = DateFormat(
+                      "dd/MM/yyyy",
+                    ).format(date);
 
                     // --- TIME FORMATTING FIX STARTS HERE ---
                     dynamic rawStartTime = roomDetailsList['start_time'];
                     String startTime;
 
                     if (rawStartTime is Timestamp) {
-                      startTime = DateFormat("hh:mm a").format(rawStartTime.toDate());
+                      startTime = DateFormat(
+                        "hh:mm a",
+                      ).format(rawStartTime.toDate());
                     } else {
-                      startTime = formatTimeString(rawStartTime?.toString() ?? "", date);
+                      startTime = formatTimeString(
+                        rawStartTime?.toString() ?? "",
+                        date,
+                      );
                     }
                     // --- TIME FORMATTING FIX ENDS HERE ---
 
-                    String roomName = roomDetailsList['room_name'] ?? 'Battle Room';
+                    String roomName =
+                        roomDetailsList['room_name'] ?? 'Battle Room';
+                    String roomCode = roomDetailsList['room_code'];
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -313,7 +316,8 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          startTime, // Displayed as "05:05 AM" or formatted time
+                                          startTime,
+                                          // Displayed as "05:05 AM" or formatted time
                                           style: const TextStyle(
                                             color: textDark,
                                             fontSize: 13,
@@ -323,9 +327,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                       ],
                                     ),
                                   ),
-
                                   const SizedBox(height: 14),
-
                                   // Participants Field (INLINE)
                                   Row(
                                     children: [
@@ -333,7 +335,9 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                         padding: const EdgeInsets.all(6),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: const Icon(
                                           Icons.people_outline_rounded,
@@ -342,7 +346,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                         ),
                                       ),
                                       const SizedBox(width: 10),
-                                      const Text(
+                                      Text(
                                         "Participants",
                                         style: TextStyle(
                                           color: textDark,
@@ -350,14 +354,24 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      const Spacer(),
-                                      const Text(
-                                        "2",
-                                        style: TextStyle(
-                                          color: brandBlue,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
+                                      Spacer(),
+                                      StreamBuilder<QuerySnapshot>(
+                                        stream: FirebaseFirestore.instance
+                                            .collection('Battle_Room_Details')
+                                            .doc(roomCode)
+                                            .collection('Players')
+                                            .snapshots(),
+                                          builder: (context, snapshot) {
+                                          int count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                                          return Text(
+                                            "$count",
+                                            style: TextStyle(
+                                              color: brandBlue,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
@@ -377,7 +391,9 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                         padding: const EdgeInsets.all(6),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: const Icon(
                                           Icons.emoji_events_outlined,
@@ -386,7 +402,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                         ),
                                       ),
                                       const SizedBox(width: 10),
-                                      const Text(
+                                      Text(
                                         "Winner",
                                         style: TextStyle(
                                           color: textDark,
@@ -397,6 +413,50 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                       const Spacer(),
                                       const Text(
                                         "winner name",
+                                        style: TextStyle(
+                                          color: brandBlue,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Divider(
+                                      color: Color(0xFFF1F5F9),
+                                      height: 1,
+                                    ),
+                                  ),
+                                  // Room Code Field
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFEFF6FF),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.pin_rounded,
+                                          size: 16,
+                                          color: brandBlue,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        "Room Code",
+                                        style: TextStyle(
+                                          color: textDark,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Text(
+                                        roomCode,
                                         style: TextStyle(
                                           color: brandBlue,
                                           fontWeight: FontWeight.bold,

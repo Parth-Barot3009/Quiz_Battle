@@ -2,24 +2,38 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
-import 'package:quiz_battle/player/user_dashboard.dart';
+import 'package:quiz_battle/player/player_navigationbar.dart';
 
-// Internal Model for Leaderboard Items
 class PlayerPerformance {
   final String id;
   final String name;
   final String email;
-  final int score;
-  final int correctAnswers;
+
+  final int correct;
+  final int wrong;
+
+  final int points;
+  final int bonusPoints;
+  final int finalPoints;
+
+  final int rank;
+
+  final double totalTime;
+
   final bool isCurrentUser;
 
   PlayerPerformance({
     required this.id,
     required this.name,
-    this.email = '',
-    required this.score,
-    required this.correctAnswers,
-    this.isCurrentUser = false,
+    required this.email,
+    required this.correct,
+    required this.wrong,
+    required this.points,
+    required this.bonusPoints,
+    required this.finalPoints,
+    required this.rank,
+    required this.totalTime,
+    required this.isCurrentUser,
   });
 }
 
@@ -40,7 +54,6 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  // --- Theme Colors ---
   static const Color primaryBlue = Color(0xFF2563EB);
   static const Color darkBlue = Color(0xFF1D4ED8);
   static const Color lightThemeBg = Color(0xFFEFF6FF);
@@ -53,8 +66,6 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    int wrongAnswers = widget.totalQuestions - widget.myScore;
-
     return Scaffold(
       backgroundColor: lightThemeBg,
       body: SafeArea(
@@ -66,178 +77,152 @@ class _ResultScreenState extends State<ResultScreen> {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: primaryBlue),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
-            // Parse Firebase player data
             List<PlayerPerformance> playersList = [];
 
             if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
               for (var doc in snapshot.data!.docs) {
-                var data = doc.data() as Map<String, dynamic>;
-                String uid = doc.id;
-                int playerScore = data["player_score"] ?? 0;
-                String playerName = data["player_name"] ?? "Player";
-                String playerEmail = data["player_email"] ?? "";
+                Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
                 playersList.add(
                   PlayerPerformance(
-                    id: uid,
-                    name: playerName,
-                    email: playerEmail,
-                    score: playerScore,
-                    correctAnswers: playerScore, // 1 point per correct answer
-                    isCurrentUser: uid == currentUserId,
+                    id: doc.id,
+                    name: data["player_name"] ?? "Player",
+                    email: data["player_email"] ?? "",
+
+                    correct: data["correct"] ?? 0,
+                    wrong: data["wrong"] ?? 0,
+
+                    points: data["points"] ?? 0,
+                    bonusPoints: data["bonusPoints"] ?? 0,
+                    finalPoints: data["finalPoints"] ?? 0,
+
+                    rank: data["rank"] ?? 999,
+
+                    totalTime: (data["totalTime"] ?? 0).toDouble(),
+
+                    isCurrentUser: doc.id == currentUserId,
                   ),
                 );
               }
-            } else {
-              // Fallback if players collection isn't fully ready
-              playersList.add(
-                PlayerPerformance(
-                  id: currentUserId ?? "me",
-                  name: FirebaseAuth.instance.currentUser?.displayName ?? "You",
-                  email: FirebaseAuth.instance.currentUser?.email ?? "",
-                  score: widget.myScore,
-                  correctAnswers: widget.myScore,
-                  isCurrentUser: true,
-                ),
-              );
             }
 
-            // Sort players by highest score descending
-            playersList.sort((a, b) => b.score.compareTo(a.score));
+            playersList.sort((a, b) => a.rank.compareTo(b.rank));
 
-            // Determine user position and victory status
-            int userIndex = playersList.indexWhere((p) => p.isCurrentUser);
-            int userRank = (userIndex != -1) ? userIndex + 1 : 1;
+            PlayerPerformance me = playersList.firstWhere(
+                  (e) => e.isCurrentUser,
+              orElse: () => PlayerPerformance(
+                id: "",
+                name: "You",
+                email: "",
+                correct: widget.myScore,
+                wrong: widget.totalQuestions - widget.myScore,
+                points: widget.myScore * 10,
+                bonusPoints: 0,
+                finalPoints: widget.myScore * 10,
+                rank: 1,
+                totalTime: 0,
+                isCurrentUser: true,
+              ),
+            );
+
+            int userRank = me.rank;
 
             String resultText;
+            String resultSubtitle;
             IconData resultIcon;
             Color resultColor;
-            String resultSubtitle;
 
             if (userRank == 1) {
               resultText = "VICTORY!";
-              resultIcon = Icons.emoji_events_rounded;
-              resultColor = goldAccent;
               resultSubtitle = "Congratulations! You are the Champion!";
+              resultIcon = Icons.emoji_events;
+              resultColor = goldAccent;
             } else if (userRank == 2) {
-              resultText = "2ND PLACE!";
-              resultIcon = Icons.workspace_premium_rounded;
-              resultColor = const Color(0xFF94A3B8); // Silver Accent
-              resultSubtitle = "Great effort! So close to victory.";
+              resultText = "2ND PLACE";
+              resultSubtitle = "Excellent Performance!";
+              resultIcon = Icons.workspace_premium;
+              resultColor = Colors.grey;
             } else if (userRank == 3) {
-              resultText = "3RD PLACE!";
-              resultIcon = Icons.workspace_premium_rounded;
-              resultColor = const Color(0xFFD97706); // Bronze Accent
-              resultSubtitle = "Well played! You made the podium.";
+              resultText = "3RD PLACE";
+              resultSubtitle = "Great Job!";
+              resultIcon = Icons.workspace_premium;
+              resultColor = Colors.orange;
             } else {
-              resultText = "#$userRank PLACE";
-              resultIcon = Icons.sentiment_dissatisfied_rounded;
-              resultColor = const Color(0xFFEF4444); // Red Accent
-              resultSubtitle = "Better luck next time!";
+              resultText = "#$userRank";
+              resultSubtitle = "Better Luck Next Time";
+              resultIcon = Icons.sentiment_neutral;
+              resultColor = Colors.red;
             }
 
             return Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- HERO HEADER SECTION ---
                         _buildHeroHeader(
                           resultText: resultText,
                           resultSubtitle: resultSubtitle,
                           resultIcon: resultIcon,
                           resultColor: resultColor,
                           userRank: userRank,
-                          myScore: widget.myScore,
+                          player: me,
                         ),
 
                         const SizedBox(height: 20),
 
-                        // --- STATS SUMMARY SECTION ---
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Text(
-                            'Your Battle Stats',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: textDark,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
                         _buildStatisticsCards(
-                          correctCount: widget.myScore,
-                          wrongCount: wrongAnswers,
+                          player: me,
                           totalQuestions: widget.totalQuestions,
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 25),
 
-                        // --- LEADERBOARD HEADER ---
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
-                                'Match Leaderboard',
+                                "Leaderboard",
                                 style: TextStyle(
-                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: textDark,
+                                  fontSize: 20,
                                 ),
                               ),
-                              Text(
-                                '${playersList.length} Players',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: textMuted,
-                                ),
-                              ),
+                              Text("${playersList.length} Players"),
                             ],
                           ),
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 15),
 
-                        // --- LEADERBOARD LIST ---
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: playersList.length,
                             separatorBuilder: (_, __) =>
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               return _buildLeaderboardTile(
                                 player: playersList[index],
-                                rank: index + 1,
                                 totalQuestions: widget.totalQuestions,
                               );
                             },
                           ),
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 25),
                       ],
                     ),
                   ),
                 ),
 
-                // --- BOTTOM ACTION BUTTON ---
                 _buildBottomActionBar(context),
               ],
             );
@@ -247,365 +232,299 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  // --- HERO HEADER WIDGET ---
   Widget _buildHeroHeader({
     required String resultText,
     required String resultSubtitle,
     required IconData resultIcon,
     required Color resultColor,
     required int userRank,
-    required int myScore,
+    required PlayerPerformance player,
   }) {
-    return Stack(
-      children: [
-        Positioned(
-          top: -40,
-          left: -40,
-          child: Container(
-            width: 160,
-            height: 160,
-            decoration: BoxDecoration(
-              color: primaryBlue.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [primaryBlue, darkBlue],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: primaryBlue.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Badge
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.groups_rounded, color: Colors.white, size: 16),
-                    SizedBox(width: 6),
-                    Text(
-                      'MULTIPLAYER BATTLE',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Avatar Spotlight Frame
-              Stack(
-                alignment: Alignment.center,
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: resultColor, width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: resultColor.withOpacity(0.4),
-                          blurRadius: 15,
-                        ),
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      backgroundColor: const Color(0xFFDBEAFE),
-                      child: Icon(resultIcon, size: 50, color: resultColor),
-                    ),
-                  ),
-                  if (userRank == 1)
-                    const Positioned(
-                      top: -14,
-                      child: Icon(Icons.workspace_premium_rounded,
-                          color: goldAccent, size: 30),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Result Status Title
-              Text(
-                resultText,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              const SizedBox(height: 4),
-
-              // Subtitle
-              Text(
-                resultSubtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.85),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // Total PTS Score Pill
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.stars_rounded,
-                        color: primaryBlue, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      '$myScore PTS',
-                      style: const TextStyle(
-                        color: darkBlue,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // --- STATISTICS CARDS WIDGET ---
-  Widget _buildStatisticsCards({
-    required int correctCount,
-    required int wrongCount,
-    required int totalQuestions,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [primaryBlue, darkBlue]),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
         children: [
-          // Total Correct Card
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.check_circle_rounded,
-                    color: Color(0xFF10B981),
-                    size: 32,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '$correctCount/$totalQuestions',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "Correct Answers",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: textMuted,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+          CircleAvatar(
+            radius: 45,
+            backgroundColor: Colors.white,
+            child: Icon(resultIcon, size: 45, color: resultColor),
+          ),
+
+          const SizedBox(height: 18),
+
+          Text(
+            resultText,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
             ),
           ),
 
-          const SizedBox(width: 14),
+          const SizedBox(height: 6),
 
-          // Total Wrong Card
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.cancel_rounded,
-                    color: Color(0xFFEF4444),
-                    size: 32,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    wrongCount.toString(),
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "Wrong Answers",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: textMuted,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          Text(
+            resultSubtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white.withOpacity(.9), fontSize: 15),
+          ),
+
+          const SizedBox(height: 20),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _heroItem("Rank", "#${player.rank}", Icons.workspace_premium),
+
+              _heroItem("Final", "${player.finalPoints}", Icons.stars),
+
+              _heroItem("Bonus", "+${player.bonusPoints}", Icons.card_giftcard),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // --- LEADERBOARD TILE WIDGET ---
-  Widget _buildLeaderboardTile({
+  Widget _heroItem(String title, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white),
+
+        const SizedBox(height: 6),
+
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+
+        Text(title, style: const TextStyle(color: Colors.white70)),
+      ],
+    );
+  }
+
+  Widget _buildStatisticsCards({
     required PlayerPerformance player,
-    required int rank,
     required int totalQuestions,
   }) {
-    final double accuracy =
-    totalQuestions > 0 ? player.correctAnswers / totalQuestions : 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _statCard(
+                  Icons.check_circle,
+                  Colors.green,
+                  "Correct",
+                  "${player.correct}",
+                ),
+              ),
 
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: _statCard(
+                  Icons.cancel,
+                  Colors.red,
+                  "Wrong",
+                  "${player.wrong}",
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: _statCard(
+                  Icons.timer,
+                  Colors.orange,
+                  "Time",
+                  "${player.totalTime.toStringAsFixed(2)} s",
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: _statCard(
+                  Icons.star,
+                  primaryBlue,
+                  "Points",
+                  "${player.points}",
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: _statCard(
+                  Icons.card_giftcard,
+                  Colors.purple,
+                  "Bonus",
+                  "${player.bonusPoints}",
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: _statCard(
+                  Icons.emoji_events,
+                  Colors.amber,
+                  "Final",
+                  "${player.finalPoints}",
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statCard(IconData icon, Color color, String title, String value) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: player.isCurrentUser
-            ? Border.all(color: primaryBlue, width: 2)
-            : Border.all(color: Colors.transparent),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+          BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 8),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 30),
+
+          const SizedBox(height: 10),
+
+          Text(
+            value,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
+
+          Text(title),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLeaderboardTile({
+    required PlayerPerformance player,
+    required int totalQuestions,
+  }) {
+    double accuracy = totalQuestions == 0 ? 0 : player.correct / totalQuestions;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: player.isCurrentUser ? const Color(0xFFE8F1FF) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: player.isCurrentUser ? primaryBlue : Colors.transparent,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 8),
         ],
       ),
       child: Column(
         children: [
           Row(
             children: [
-              _buildRankBadge(rank),
+              _buildRankBadge(player.rank),
+
               const SizedBox(width: 12),
-              const CircleAvatar(
-                radius: 18,
-                backgroundColor: Color(0xFFEFF6FF),
-                child: Icon(Icons.person, color: Color(0xFF64748B), size: 22),
+
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: primaryBlue.withOpacity(.1),
+                child: const Icon(Icons.person, color: primaryBlue),
               ),
+
               const SizedBox(width: 12),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       player.isCurrentUser
-                          ? '${player.name} (You)'
+                          ? "${player.name} (You)"
                           : player.name,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: player.isCurrentUser
-                            ? FontWeight.bold
-                            : FontWeight.w600,
-                        color: textDark,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 2),
+
+                    const SizedBox(height: 5),
+
                     Text(
-                      '${player.correctAnswers}/$totalQuestions Correct',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: textMuted,
-                      ),
+                      "${player.correct}/$totalQuestions Correct",
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+
+                    Text(
+                      "${player.totalTime.toStringAsFixed(2)} sec",
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
               ),
-              Text(
-                '${player.score} pts',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: player.isCurrentUser ? primaryBlue : textDark,
-                ),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "${player.finalPoints} pts",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+
+                  Text(
+                    "+${player.bonusPoints}",
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 10),
+
+          const SizedBox(height: 15),
+
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(20),
             child: LinearProgressIndicator(
               value: accuracy,
-              minHeight: 5,
-              backgroundColor: const Color(0xFFEFF6FF),
+              minHeight: 8,
+              backgroundColor: Colors.grey.shade300,
               valueColor: AlwaysStoppedAnimation<Color>(
-                rank == 1 ? const Color(0xFF10B981) : primaryBlue,
+                player.rank == 1 ? Colors.green : primaryBlue,
               ),
             ),
           ),
@@ -614,44 +533,52 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  // --- RANK BADGE HELPER ---
   Widget _buildRankBadge(int rank) {
-    Color color;
+    Color badgeColor;
+    IconData icon;
+
     switch (rank) {
       case 1:
-        color = goldAccent;
+        badgeColor = Colors.amber;
+        icon = Icons.emoji_events;
         break;
+
       case 2:
-        color = const Color(0xFF94A3B8);
+        badgeColor = Colors.grey;
+        icon = Icons.workspace_premium;
         break;
+
       case 3:
-        color = const Color(0xFFD97706);
+        badgeColor = Colors.orange;
+        icon = Icons.workspace_premium;
         break;
+
       default:
-        color = textMuted;
+        badgeColor = primaryBlue;
+        icon = Icons.military_tech;
     }
 
     return Container(
-      width: 28,
-      height: 28,
+      width: 42,
+      height: 42,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: badgeColor.withOpacity(.15),
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: Text(
-          '#$rank',
+        child: rank <= 3
+            ? Icon(icon, color: badgeColor, size: 22)
+            : Text(
+          "$rank",
           style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.w900,
-            fontSize: 12,
+            color: badgeColor,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
   }
 
-  // --- BOTTOM ACTION BAR ---
   Widget _buildBottomActionBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -659,7 +586,7 @@ class _ResultScreenState extends State<ResultScreen> {
         color: cardBg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -667,30 +594,26 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
       child: SizedBox(
         width: double.infinity,
-        height: 52,
-        child: OutlinedButton(
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: primaryBlue, width: 1.5),
+        height: 55,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryBlue,
+            foregroundColor: Colors.white,
+            elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                builder: (_) => const Org_Navigationbar(),
-              ),
+              MaterialPageRoute(builder: (_) => const player_navigationbar()),
                   (route) => false,
             );
           },
           child: const Text(
             "Back to Dashboard",
-            style: TextStyle(
-              color: primaryBlue,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
         ),
       ),
