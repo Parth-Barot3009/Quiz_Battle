@@ -324,6 +324,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                               "points": 0,
                               "totalTime": 0.0,
                               "fastestAnswers": 0,
+                              "player_score":0,
 
                               // Leaderboard
                               "rank": 0,

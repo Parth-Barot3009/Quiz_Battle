@@ -571,7 +571,6 @@ class _WaitingRoomState extends State<WaitingRoom>
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 20),
                       ],
                     ),

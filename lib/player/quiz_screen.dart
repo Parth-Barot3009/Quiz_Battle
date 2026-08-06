@@ -36,7 +36,7 @@ class _QuizScreenState extends State<QuizScreen> {
   // Variables
   int currentQuestion = 0;
   int selectedOption = -1;
-  int score = 0;
+  int score = 0; // Total correct count
 
   int correctAnswers = 0;
   int wrongAnswers = 0;
@@ -70,14 +70,11 @@ class _QuizScreenState extends State<QuizScreen> {
     super.dispose();
   }
 
-  // Add Battle in player details
-  // Add Battle in player details
   Future<void> addBattleInPlayer() async {
     try {
       User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null || currentUser.email == null) return;
 
-      // 1. Query the player collection by email to locate the user's document ID
       QuerySnapshot playerQuery = await FirebaseFirestore.instance
           .collection("player")
           .where("player_email", isEqualTo: currentUser.email)
@@ -87,8 +84,6 @@ class _QuizScreenState extends State<QuizScreen> {
       if (playerQuery.docs.isNotEmpty) {
         String playerDocId = playerQuery.docs.first.id;
 
-        // 2. Increment played_battle count using set with merge: true
-        // (This handles cases where played_battle field might not exist yet)
         await FirebaseFirestore.instance
             .collection("player")
             .doc(playerDocId)
@@ -101,7 +96,6 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
-  // Fetch Questions dynamically from Firestore
   Future<void> fetchQuestions() async {
     try {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
@@ -112,19 +106,14 @@ class _QuizScreenState extends State<QuizScreen> {
           .get();
 
       List<QueryDocumentSnapshot> docs = snapshot.docs;
-
-// Randomize all questions
       docs.shuffle();
 
-// Get total questions selected by organizer
       DocumentSnapshot battleDoc = await FirebaseFirestore.instance
           .collection("Battle_Room_Details")
           .doc(widget.battleId)
           .get();
 
       int questionLimit = battleDoc["questions"] ?? docs.length;
-
-// Keep only required number
       docs = docs.take(questionLimit).toList();
 
       List<Question> loadedQuestions = [];
@@ -174,7 +163,6 @@ class _QuizScreenState extends State<QuizScreen> {
             correctAnswer: correctIndex,
           ),
         );
-        print("Questions Loaded = ${loadedQuestions.length}");
       }
 
       if (mounted) {
@@ -189,14 +177,13 @@ class _QuizScreenState extends State<QuizScreen> {
         }
       }
     } catch (e) {
-      print("Error loading questions: $e");
+      debugPrint("Error loading questions: $e");
       if (mounted) {
         setState(() => isLoading = false);
       }
     }
   }
 
-  // Timer Control
   void startTimer() {
     timer?.cancel();
     setState(() => timeLeft = 10);
@@ -212,7 +199,6 @@ class _QuizScreenState extends State<QuizScreen> {
           selectedOption = -1;
         });
         wrongAnswers++;
-
         totalResponseTime += 10;
 
         updatePlayerPerformance(
@@ -225,18 +211,16 @@ class _QuizScreenState extends State<QuizScreen> {
     });
   }
 
-  // Next Question or Finish Quiz
   void nextQuestion() async {
     DocumentSnapshot data = await FirebaseFirestore.instance
         .collection('Battle_Room_Details')
         .doc(widget.battleId)
         .get();
 
-    int question = data['questions'] ?? 0;
+    int question = data['questions'] ?? questions.length;
 
     if (!mounted) return;
 
-    // Check if there are more questions remaining
     if (currentQuestion < question - 1) {
       setState(() {
         currentQuestion++;
@@ -246,56 +230,41 @@ class _QuizScreenState extends State<QuizScreen> {
       });
       startTimer();
     } else {
-      // End of quiz reached
       saveScoreAndNavigate();
     }
   }
 
+  // ✅ FIXED: Updated player_score and points simultaneously in Firestore
   Future<void> updatePlayerPerformance({
     required bool isCorrect,
     required double responseTime,
   }) async {
-
     User? user = FirebaseAuth.instance.currentUser;
-
     if (user == null) return;
+
+    int pointsToAdd = isCorrect ? 10 : 0;
 
     await FirebaseFirestore.instance
         .collection("Battle_Room_Details")
         .doc(widget.battleId)
         .collection("Players")
         .doc(user.uid)
-        .update({
-
-      "correct": isCorrect
-          ? FieldValue.increment(1)
-          : FieldValue.increment(0),
-
-      "wrong": isCorrect
-          ? FieldValue.increment(0)
-          : FieldValue.increment(1),
-
-      "points": isCorrect
-          ? FieldValue.increment(10)
-          : FieldValue.increment(0),
-
+        .set({
+      "correct": FieldValue.increment(isCorrect ? 1 : 0),
+      "wrong": FieldValue.increment(isCorrect ? 0 : 1),
+      "points": FieldValue.increment(pointsToAdd),
+      "player_score": FieldValue.increment(pointsToAdd), // ✅ Updated player_score
       "totalTime": FieldValue.increment(responseTime),
-
-    });
-
+    }, SetOptions(merge: true));
   }
 
-  // Save Final Score and Navigate
-  // Save Final Score and Navigate
   Future<void> saveScoreAndNavigate() async {
     timer?.cancel();
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
       try {
-        // Determine valid non-empty display name
         String nameToSave = "Player";
-
         if (user.displayName != null && user.displayName!.trim().isNotEmpty) {
           nameToSave = user.displayName!.trim();
         } else if (user.email != null && user.email!.contains('@')) {
@@ -328,7 +297,6 @@ class _QuizScreenState extends State<QuizScreen> {
         if (allFinished) {
           await calculateLeaderboard();
         }
-
       } catch (e) {
         debugPrint("Error saving final score: $e");
       }
@@ -340,7 +308,7 @@ class _QuizScreenState extends State<QuizScreen> {
         MaterialPageRoute(
           builder: (_) => WaitingScreen(
             battleId: widget.battleId,
-            myScore: score,
+            myScore: correctAnswers, // ✅ Passed correctAnswers count
             totalQuestions: totalQuestions,
           ),
         ),
@@ -348,6 +316,7 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
+  // ✅ FIXED: Null-safe leaderboard point evaluation
   Future<void> calculateLeaderboard() async {
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection("Battle_Room_Details")
@@ -361,43 +330,33 @@ class _QuizScreenState extends State<QuizScreen> {
       Map<String, dynamic> playerA = a.data() as Map<String, dynamic>;
       Map<String, dynamic> playerB = b.data() as Map<String, dynamic>;
 
-      // First compare correct answers
-      if (playerB["correct"] != playerA["correct"]) {
-        return playerB["correct"].compareTo(playerA["correct"]);
+      int correctA = playerA["correct"] ?? 0;
+      int correctB = playerB["correct"] ?? 0;
+
+      if (correctB != correctA) {
+        return correctB.compareTo(correctA);
       }
 
-      // If correct answers are equal,
-      // compare total response time
-      return (playerA["totalTime"] as num)
-          .compareTo(playerB["totalTime"] as num);
+      num timeA = playerA["totalTime"] ?? 0;
+      num timeB = playerB["totalTime"] ?? 0;
+
+      return timeA.compareTo(timeB);
     });
 
     WriteBatch batch = FirebaseFirestore.instance.batch();
-
-    List<int> bonusPoints = [
-      150,
-      130,
-      120,
-      100,
-      80,
-      60,
-      50,
-      40,
-      30,
-      20
-    ];
+    List<int> bonusPoints = [150, 130, 120, 100, 80, 60, 50, 40, 30, 20];
 
     for (int i = 0; i < players.length; i++) {
-      Map<String, dynamic> data =
-      players[i].data() as Map<String, dynamic>;
+      Map<String, dynamic> data = players[i].data() as Map<String, dynamic>;
 
-      int bonus =
-      i < bonusPoints.length ? bonusPoints[i] : 10;
+      int bonus = i < bonusPoints.length ? bonusPoints[i] : 10;
+      int currentPoints = (data["points"] as num?)?.toInt() ?? 0;
 
       batch.update(players[i].reference, {
         "rank": i + 1,
         "bonusPoints": bonus,
-        "finalPoints": data["points"] + bonus,
+        "finalPoints": currentPoints + bonus,
+        "player_score": currentPoints + bonus,
       });
     }
 
@@ -491,7 +450,6 @@ class _QuizScreenState extends State<QuizScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
                   Row(
                     children: [
                       Container(
@@ -525,10 +483,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 30),
-
-                  // Room Code Display Card
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -594,7 +549,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           child: StreamBuilder<DocumentSnapshot>(
                             stream: FirebaseFirestore.instance
                                 .collection('Battle_Room_Details')
-                                .doc(widget.battleId) // Use battleId to fetch document
+                                .doc(widget.battleId)
                                 .snapshots(),
                             builder: (context, snapshot) {
                               if (!snapshot.hasData || !snapshot.data!.exists) {
@@ -625,10 +580,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 28),
-
-                  // Question Card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
@@ -665,10 +617,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 28),
-
-                  // Options List
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -681,7 +630,6 @@ class _QuizScreenState extends State<QuizScreen> {
                           onTap: optionSelected
                               ? null
                               : () {
-
                             timer?.cancel();
 
                             double responseTime =
@@ -695,18 +643,16 @@ class _QuizScreenState extends State<QuizScreen> {
                                 index == questions[currentQuestion].correctAnswer;
 
                             setState(() {
-
                               optionSelected = true;
                               selectedOption = index;
                               showAnswer = true;
 
                               if (isCorrect) {
-                                score++;
+                                score += 10;
                                 correctAnswers++;
                               } else {
                                 wrongAnswers++;
                               }
-
                             });
 
                             updatePlayerPerformance(
@@ -770,10 +716,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       );
                     },
                   ),
-
                   const SizedBox(height: 30),
-
-                  // Timer Display
                   Center(
                     child: Container(
                       width: 120,
@@ -813,10 +756,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
-                  // Progress Bar
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: LinearProgressIndicator(
@@ -826,7 +766,6 @@ class _QuizScreenState extends State<QuizScreen> {
                       valueColor: const AlwaysStoppedAnimation(brandBlue),
                     ),
                   ),
-
                   const SizedBox(height: 30),
                 ],
               ),
