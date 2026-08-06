@@ -349,7 +349,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                                   BorderRadius.circular(8),
                                             ),
                                             child: const Text(
-                                              "Battles",
+                                              "Played Battles",
                                               style: TextStyle(
                                                 color: Color(0xFF4A7CFF),
                                                 fontSize: 9,
