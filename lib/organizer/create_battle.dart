@@ -971,6 +971,40 @@ class _create_battleState extends State<create_battle> {
                         );
                         return;
                       }
+                      if (startTime == null || endTime == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Please select both start and end time"),
+                          ),
+                        );
+                        return;
+                      }
+
+                      DateTime start = DateTime(
+                        selectedDate!.year,
+                        selectedDate!.month,
+                        selectedDate!.day,
+                        startTime!.hour,
+                        startTime!.minute,
+                      );
+
+                      DateTime end = DateTime(
+                        selectedDate!.year,
+                        selectedDate!.month,
+                        selectedDate!.day,
+                        endTime!.hour,
+                        endTime!.minute,
+                      );
+
+                      if (!end.isAfter(start)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("End time must be after start time"),
+                          ),
+                        );
+                        return;
+                      }
+
                       await addCreateRoomDetails();
                       await uploadQuestionsToFirestore(roomCode);
                       if (context.mounted) {
