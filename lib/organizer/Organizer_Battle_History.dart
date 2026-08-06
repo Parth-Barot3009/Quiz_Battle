@@ -214,6 +214,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                     String roomName =
                         roomDetailsList['room_name'] ?? 'Battle Room';
                     String roomCode = roomDetailsList['room_code'];
+                    String winnerName = roomDetailsList['winner_name'] ?? 'Pending / TBD';
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -411,8 +412,8 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                                         ),
                                       ),
                                       const Spacer(),
-                                      const Text(
-                                        "winner name",
+                                      Text(
+                                        winnerName,
                                         style: TextStyle(
                                           color: brandBlue,
                                           fontWeight: FontWeight.bold,
