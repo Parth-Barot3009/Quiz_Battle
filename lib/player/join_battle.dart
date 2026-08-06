@@ -217,148 +217,152 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                       onPressed: isLoading
                           ? null
                           : () async {
-                              final code = roomCode.text.trim();
-                              if (code.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Please enter a room code"),
+                        final code = roomCode.text.trim();
+                        if (code.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Please enter a room code"),
+                            ),
+                          );
+                          return;
+                        }
+
+                        setState(() => isLoading = true);
+
+                        try {
+                          QuerySnapshot snapshot = await FirebaseFirestore
+                              .instance
+                              .collection("Battle_Room_Details")
+                              .where("room_code", isEqualTo: code)
+                              .limit(1)
+                              .get();
+
+                          if (snapshot.docs.isNotEmpty) {
+                            String battleId = snapshot.docs.first.id;
+                            var battleData = snapshot.docs.first.data() as Map<String, dynamic>;
+
+                            DateTime now = DateTime.now();
+
+                            DateTime endTime =
+                            (battleData["end_time"] as Timestamp).toDate();
+
+                            if (now.isAfter(endTime)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("This quiz has already ended."),
+                                ),
+                              );
+
+                              setState(() => isLoading = false);
+                              return;
+                            }
+
+                            User? user =
+                                FirebaseAuth.instance.currentUser;
+
+                            if (user == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "User not authenticated!",
                                   ),
-                                );
-                                return;
+                                ),
+                              );
+                              setState(() => isLoading = false);
+                              return;
+                            }
+
+                            // Fetch user's name directly from Firebase Auth or query 'player' collection by email
+                            String playerName = user.displayName ?? "";
+
+                            if (playerName.isEmpty) {
+                              // Query by player_email instead of assuming doc ID is user.uid
+
+                              QuerySnapshot playerQuery = await FirebaseFirestore.instance
+                                  .collection("player")
+                                  .where("player_email", isEqualTo: user.email)
+                                  .limit(1)
+                                  .get();
+
+                              if (playerQuery.docs.isNotEmpty) {
+                                var data = playerQuery.docs.first.data() as Map<String, dynamic>;
+                                playerName = data['player_name'] ?? "Player";
                               }
-
-                              setState(() => isLoading = true);
-
-                              try {
-                                QuerySnapshot snapshot = await FirebaseFirestore
-                                    .instance
-                                    .collection("Battle_Room_Details")
-                                    .where("room_code", isEqualTo: code)
-                                    .limit(1)
-                                    .get();
-
-                                if (snapshot.docs.isNotEmpty) {
-                                  String battleId = snapshot.docs.first.id;
-
-                                  var battleData = snapshot.docs.first.data() as Map<String, dynamic>;
-
-                                  DateTime now = DateTime.now();
-
-                                  DateTime startTime =
-                                  (battleData["start_time"] as Timestamp).toDate();
-
-                                  DateTime endTime =
-                                  (battleData["end_time"] as Timestamp).toDate();
-
-                                  if (now.isAfter(endTime)) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("This quiz has already ended."),
-                                      ),
-                                    );
-
-                                    setState(() => isLoading = false);
-                                    return;
-                                  }
-
-                                  if (now.isBefore(startTime)) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Quiz has not started yet."),
-                                      ),
-                                    );
-
-                                    setState(() => isLoading = false);
-                                    return;
-                                  }
-
-                                  User? user =
-                                      FirebaseAuth.instance.currentUser;
-
-                                  if (user == null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "User not authenticated!",
-                                        ),
-                                      ),
-                                    );
-                                    setState(() => isLoading = false);
-                                    return;
-                                  }
-
-                                  // Fetch user's name directly from Firebase Auth or query 'player' collection by email
-                                  String playerName = user.displayName ?? "";
-
-                                  if (playerName.isEmpty) {
-                                    // Query by player_email instead of assuming doc ID is user.uid
-                                    QuerySnapshot playerQuery = await FirebaseFirestore.instance
-                                        .collection("player")
-                                        .where("player_email", isEqualTo: user.email)
-                                        .limit(1)
-                                        .get();
-
-                                    if (playerQuery.docs.isNotEmpty) {
-                                      var data = playerQuery.docs.first.data() as Map<String, dynamic>;
-                                      playerName = data['player_name'] ?? "Player";
-                                    } else {
-                                      playerName = "Player";
-                                    }
-                                  }
-
-                                  // Save player details into the Battle Room subcollection
-                                  await FirebaseFirestore.instance
-                                      .collection("Battle_Room_Details")
-                                      .doc(battleId)
-                                      .collection("Players")
-                                      .doc(user.uid)
-                                      .set({
-                                        "player_id": user.uid,
-                                        "player_name": playerName,
-                                        "player_email": user.email ?? "",
-                                        "player_score": 0,
-                                        "joined_At":
-                                            FieldValue.serverTimestamp(),
-                                      });
-
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Joining Battle..."),
-                                      ),
-                                    );
-
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            WaitingRoom(roomcode: code,battleId:battleId,),
-                                      ),
-                                    );
-                                  }
-                                } else {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Enter Valid Room Code"),
-                                      ),
-                                    );
-                                  }
-                                }
-                              } catch (e) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text("Error: ${e.toString()}"),
-                                    ),
-                                  );
-                                }
-                              } finally {
-                                if (mounted) {
-                                  setState(() => isLoading = false);
-                                }
+                              else
+                              {
+                                playerName = "Player";
                               }
-                            },
+                            }
+
+                            // Save player details into the Battle Room subcollection
+                            await FirebaseFirestore.instance
+                                .collection("Battle_Room_Details")
+                                .doc(battleId)
+                                .collection("Players")
+                                .doc(user.uid)
+                                .set({
+
+                              // Player Information
+                              "player_id": user.uid,
+                              "player_name": playerName,
+                              "player_email": user.email ?? "",
+
+                              // Quiz Performance
+                              "correct": 0,
+                              "wrong": 0,
+                              "points": 0,
+                              "totalTime": 0.0,
+                              "fastestAnswers": 0,
+
+                              // Leaderboard
+                              "rank": 0,
+
+                              // Quiz Status
+                              "isFinished": false,
+
+                              // Join Time
+                              "joinedAt": FieldValue.serverTimestamp(),
+
+                            });
+
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Joining Battle..."),
+                                ),
+                              );
+
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      WaitingRoom(roomcode: code,battleId:battleId,),
+                                ),
+                              );
+                            }
+                          } else {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Enter Valid Room Code"),
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Error: ${e.toString()}"),
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() => isLoading = false);
+                          }
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
@@ -378,27 +382,27 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                           alignment: Alignment.center,
                           child: isLoading
                               ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
+                            color: Colors.white,
+                          )
                               : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.sports_esports_rounded,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(width: 10),
-                                    Text(
-                                      "JOIN BATTLE",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                                  ],
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.sports_esports_rounded,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                "JOIN BATTLE",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
                                 ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
