@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/player/waiting_room.dart';
+import 'package:quiz_battle/player/afterjoinroom.dart';
 
 class JoinBattleScreen extends StatefulWidget {
   const JoinBattleScreen({super.key});
@@ -272,12 +272,10 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                               return;
                             }
 
-                            // Fetch user's name directly from Firebase Auth or query 'player' collection by email
+                            // Fetch user's name directly from Firebase Auth or query 'player' collection
                             String playerName = user.displayName ?? "";
 
-                            if (playerName.isEmpty) {
-                              // Query by player_email instead of assuming doc ID is user.uid
-
+                            if (playerName.trim().isEmpty) {
                               QuerySnapshot playerQuery = await FirebaseFirestore.instance
                                   .collection("player")
                                   .where("player_email", isEqualTo: user.email)
@@ -286,10 +284,23 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
 
                               if (playerQuery.docs.isNotEmpty) {
                                 var data = playerQuery.docs.first.data() as Map<String, dynamic>;
-                                playerName = data['player_name'] ?? "Player";
-                              }
-                              else
-                              {
+
+                                // Check multiple possible key names used in user document
+                                String fetchedName = data['player_name'] ??
+                                    data['name'] ??
+                                    data['username'] ??
+                                    "";
+
+                                if (fetchedName.trim().isNotEmpty) {
+                                  playerName = fetchedName.trim();
+                                } else if (user.email != null && user.email!.contains('@')) {
+                                  playerName = user.email!.split('@').first;
+                                } else {
+                                  playerName = "Player";
+                                }
+                              } else if (user.email != null && user.email!.contains('@')) {
+                                playerName = user.email!.split('@').first;
+                              } else {
                                 playerName = "Player";
                               }
                             }

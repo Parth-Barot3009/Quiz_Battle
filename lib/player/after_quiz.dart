@@ -62,10 +62,11 @@ class _ResultScreenState extends State<ResultScreen> {
   static const Color textDark = Color(0xFF0F172A);
   static const Color textMuted = Color(0xFF64748B);
 
-  final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
 
   @override
   Widget build(BuildContext context) {
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
       backgroundColor: lightThemeBg,
       body: SafeArea(
@@ -86,23 +87,25 @@ class _ResultScreenState extends State<ResultScreen> {
               for (var doc in snapshot.data!.docs) {
                 Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
+                String rawName = (data["player_name"] ?? "").toString().trim();
+                String email = (data["player_email"] ?? "").toString();
+
+                String displayName = rawName.isNotEmpty
+                    ? rawName
+                    : (email.contains('@') ? email.split('@').first : "Player");
+
                 playersList.add(
                   PlayerPerformance(
                     id: doc.id,
-                    name: data["player_name"] ?? "Player",
-                    email: data["player_email"] ?? "",
-
+                    name: displayName,
+                    email: email,
                     correct: data["correct"] ?? 0,
                     wrong: data["wrong"] ?? 0,
-
                     points: data["points"] ?? 0,
                     bonusPoints: data["bonusPoints"] ?? 0,
                     finalPoints: data["finalPoints"] ?? 0,
-
                     rank: data["rank"] ?? 999,
-
                     totalTime: (data["totalTime"] ?? 0).toDouble(),
-
                     isCurrentUser: doc.id == currentUserId,
                   ),
                 );

@@ -293,20 +293,27 @@ class _QuizScreenState extends State<QuizScreen> {
 
     if (user != null) {
       try {
+        // Determine valid non-empty display name
+        String nameToSave = "Player";
+
+        if (user.displayName != null && user.displayName!.trim().isNotEmpty) {
+          nameToSave = user.displayName!.trim();
+        } else if (user.email != null && user.email!.contains('@')) {
+          nameToSave = user.email!.split('@').first;
+        }
+
         await FirebaseFirestore.instance
             .collection("Battle_Room_Details")
             .doc(widget.battleId)
             .collection("Players")
             .doc(user.uid)
             .set({
-          "player_name":
-          user.displayName ?? user.email?.split('@').first ?? "Player",
+          "player_name": nameToSave,
           "player_email": user.email ?? "",
-          //
           "completed_at": FieldValue.serverTimestamp(),
           "isFinished": true,
         }, SetOptions(merge: true));
-        //
+
         QuerySnapshot allPlayers = await FirebaseFirestore.instance
             .collection("Battle_Room_Details")
             .doc(widget.battleId)
@@ -314,9 +321,10 @@ class _QuizScreenState extends State<QuizScreen> {
             .get();
 
         bool allFinished = allPlayers.docs.every((doc) {
-          return doc["isFinished"] == true;
+          var data = doc.data() as Map<String, dynamic>;
+          return data["isFinished"] == true;
         });
-        //
+
         if (allFinished) {
           await calculateLeaderboard();
         }
@@ -324,20 +332,14 @@ class _QuizScreenState extends State<QuizScreen> {
       } catch (e) {
         debugPrint("Error saving final score: $e");
       }
-
     }
-    //
-
-
 
     if (mounted) {
-      print("Quiz totalQuestions = $totalQuestions");
-      print("questions.length = ${questions.length}");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => WaitingScreen(
-            battleId: widget.battleId, // <-- Pass the battle document ID
+            battleId: widget.battleId,
             myScore: score,
             totalQuestions: totalQuestions,
           ),
