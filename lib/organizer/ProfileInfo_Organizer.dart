@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
+import 'package:quiz_battle/organizer/editorganizerprofile.dart';
+import 'package:quiz_battle/player/edituserprofile.dart';
 
 class OrganiserProfileInfo extends StatefulWidget {
   const OrganiserProfileInfo({super.key});
@@ -348,6 +350,8 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                     }
 
                     var data = snapshot.data!.docs.first.data();
+                    String organizerName = data['o_name'] ?? '';
+                    String organizerEmail = data['o_email'] ?? '';
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,6 +441,45 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
+
+
+                        /// Edit Profile Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditProfileScreenOrganizer(
+                                    organizerName: organizerName,
+                                    organizerEmail: organizerEmail,
+                                  ),
+                                ),
+                              );
+
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon: const Icon(Icons.edit),
+                            label: const Text(
+                              "Edit Profile",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
 

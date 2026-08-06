@@ -41,7 +41,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
   Future<Map<String, dynamic>?> _getDocumentById(String docId) async {
     try {
       DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
-          .collection('player')
+          .collection('organizer')
           .doc(docId)
           .get();
 
