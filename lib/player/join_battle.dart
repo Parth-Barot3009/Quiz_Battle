@@ -239,6 +239,39 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
 
                                 if (snapshot.docs.isNotEmpty) {
                                   String battleId = snapshot.docs.first.id;
+
+                                  var battleData = snapshot.docs.first.data() as Map<String, dynamic>;
+
+                                  DateTime now = DateTime.now();
+
+                                  DateTime startTime =
+                                  (battleData["start_time"] as Timestamp).toDate();
+
+                                  DateTime endTime =
+                                  (battleData["end_time"] as Timestamp).toDate();
+
+                                  if (now.isAfter(endTime)) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("This quiz has already ended."),
+                                      ),
+                                    );
+
+                                    setState(() => isLoading = false);
+                                    return;
+                                  }
+
+                                  if (now.isBefore(startTime)) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Quiz has not started yet."),
+                                      ),
+                                    );
+
+                                    setState(() => isLoading = false);
+                                    return;
+                                  }
+
                                   User? user =
                                       FirebaseAuth.instance.currentUser;
 
