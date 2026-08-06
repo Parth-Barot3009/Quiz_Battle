@@ -44,6 +44,8 @@ class _QuizScreenState extends State<QuizScreen> {
 
   int timeLeft = 10;
   Timer? timer;
+  Timer? battleTimer;
+  DateTime? battleEndTime;
 
   final List<String> optionLetters = ["A", "B", "C", "D"];
   List<Question> questions = [];
@@ -53,11 +55,14 @@ class _QuizScreenState extends State<QuizScreen> {
     addBattleInPlayer();
     super.initState();
     fetchQuestions();
+
+
   }
 
   @override
   void dispose() {
     timer?.cancel();
+    battleTimer?.cancel();
     super.dispose();
   }
 
@@ -160,6 +165,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
         if (questions.isNotEmpty) {
           startTimer();
+          loadBattleEndTime();
         }
       }
     } catch (e) {
@@ -168,6 +174,33 @@ class _QuizScreenState extends State<QuizScreen> {
         setState(() => isLoading = false);
       }
     }
+  }
+
+  Future<void> loadBattleEndTime() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection("Battle_Room_Details")
+        .doc(widget.battleId)
+        .get();
+
+    Timestamp end = doc["end_time"];
+    battleEndTime = end.toDate();
+
+    startBattleTimer();
+  }
+
+  void startBattleTimer() {
+    battleTimer?.cancel();
+
+    battleTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (battleEndTime != null &&
+          DateTime.now().isAfter(battleEndTime!)) {
+        timer.cancel();
+
+        if (mounted) {
+          saveScoreAndNavigate();
+        }
+      }
+    });
   }
 
   // Timer Control
