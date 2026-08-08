@@ -684,20 +684,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 28),
-
-                  // 4. QUICK ACTIONS SECTION
-                  const Text(
-                    "QUICK ACTIONS",
-                    style: TextStyle(
-                      color: textGrey,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
                 ],
               ),
             ),

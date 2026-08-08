@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/player/afterjoinroom.dart';
+import 'package:quiz_battle/player/player_navigationbar.dart';
 
 class JoinBattleScreen extends StatefulWidget {
   const JoinBattleScreen({super.key});
@@ -86,7 +87,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                             color: darkText,
                           ),
                           onPressed: () {
-                            Navigator.pop(context);
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>player_navigationbar()));
                           },
                         ),
                       ),

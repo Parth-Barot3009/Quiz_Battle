@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 
 class OrganizerBattleHistory extends StatefulWidget {
   const OrganizerBattleHistory({super.key});
@@ -95,7 +96,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           child: InkWell(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Org_Navigationbar())),
                             borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.all(10),

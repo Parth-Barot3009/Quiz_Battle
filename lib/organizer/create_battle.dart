@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
+import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -363,7 +364,7 @@ class _create_battleState extends State<create_battle> {
                       children: [
                         // Back Button Box
                         InkWell(
-                          onTap: () => Navigator.maybePop(context),
+                          onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Org_Navigationbar())),
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
                             padding: const EdgeInsets.all(12),

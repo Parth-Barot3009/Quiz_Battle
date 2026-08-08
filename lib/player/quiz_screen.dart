@@ -315,7 +315,6 @@ class _QuizScreenState extends State<QuizScreen> {
       );
     }
   }
-
   // ✅ FIXED: Null-safe leaderboard point evaluation
   Future<void> calculateLeaderboard() async {
     QuerySnapshot snapshot = await FirebaseFirestore.instance

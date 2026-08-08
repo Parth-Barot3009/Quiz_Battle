@@ -416,30 +416,6 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                           ],
                                         ),
                                       ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFECFDF5),
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                        child: const Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 3,
-                                              backgroundColor: Color(0xFF10B981),
-                                            ),
-                                            SizedBox(width: 5),
-                                            Text(
-                                              "Active",
-                                              style: TextStyle(
-                                                color: Color(0xFF059669),
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
                                     ],
                                   ),
                                 ),

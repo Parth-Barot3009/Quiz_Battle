@@ -259,17 +259,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                         ),
                       ),
                       const SizedBox(height: 14),
-
-                      const Text(
-                        "Player",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
                       Text(
                         "Manage your student account",
                         style: TextStyle(
