@@ -6,8 +6,7 @@ import 'package:quiz_battle/auth/User_Registration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
-  final String? role;
-  const LoginScreen({super.key, this.role});
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -18,15 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  late String selectedRole;
   bool isPasswordVisible = false;
   bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedRole = widget.role ?? 'player';
-  }
 
   @override
   void dispose() {
@@ -35,7 +27,36 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> login(String activeRole) async {
+  /// Helper method to auto-detect role from Firestore collections based on email
+  Future<String?> _detectUserRole(String email) async {
+    // Check Admin collection
+    var adminQuery = await FirebaseFirestore.instance
+        .collection('admin')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+    if (adminQuery.docs.isNotEmpty) return "admin";
+
+    // Check Organizer collection
+    var orgQuery = await FirebaseFirestore.instance
+        .collection('organizer')
+        .where('o_email', isEqualTo: email)
+        .limit(1)
+        .get();
+    if (orgQuery.docs.isNotEmpty) return "organizer";
+
+    // Check Player collection
+    var playerQuery = await FirebaseFirestore.instance
+        .collection('player')
+        .where('player_email', isEqualTo: email)
+        .limit(1)
+        .get();
+    if (playerQuery.docs.isNotEmpty) return "player";
+
+    return null; // Email not found in any role collection
+  }
+
+  Future<void> login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -43,64 +64,55 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
+      String email = emailController.text.trim();
+      String password = passwordController.text.trim();
+
       // 1. Authenticate with Firebase Auth
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
-      String email = emailController.text.trim();
-      bool isValidUserRole = false;
+      // 2. Automatically detect role from Firestore
+      String? detectedRole = await _detectUserRole(email);
 
-      // 2. Validate Role in Firestore
-      if (activeRole == "admin") {
-        var adm = await FirebaseFirestore.instance
-            .collection('admin')
-            .where('email', isEqualTo: email)
-            .get();
-        isValidUserRole = adm.docs.isNotEmpty;
-      } else if (activeRole == "organizer" || activeRole == "organiser") {
-        var org = await FirebaseFirestore.instance
-            .collection('organizer')
-            .where('o_email', isEqualTo: email)
-            .get();
-        isValidUserRole = org.docs.isNotEmpty;
-      } else if (activeRole == "player") {
-        var ply = await FirebaseFirestore.instance
-            .collection('player')
-            .where('player_email', isEqualTo: email)
-            .get();
-        isValidUserRole = ply.docs.isNotEmpty;
-      }
-
-      // 3. Complete Login or Handle Mismatch
-      if (isValidUserRole) {
+      if (detectedRole != null) {
+        // Save detected role to SharedPreferences
         final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('role', activeRole);
+        await prefs.setString('role', detectedRole);
 
         if (!mounted) return;
+
+        // Navigate to Authentication wrapper
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const Authantication()),
               (route) => false,
         );
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Login Successful")),
         );
       } else {
+        // Sign out if credentials are valid but no corresponding Firestore role record exists
         await FirebaseAuth.instance.signOut();
         if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("This account is not registered as an $activeRole")),
+          const SnackBar(
+            content: Text("No user account record found. Please contact support or register."),
+          ),
         );
       }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.message ?? "Incorrect email or password"),
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login failed, please try again")),
       );
@@ -200,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    // Main Form Card Container (UNTOUCHED)
+                    // Main Form Card Container
                     Container(
                       constraints: const BoxConstraints(maxWidth: 420),
                       padding: const EdgeInsets.all(24.0),
@@ -230,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 4),
                             const Text(
-                              'Select your role and sign in to continue',
+                              'Sign in with your registered email and password',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Color(0xFF64748B),
@@ -374,231 +386,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 20),
-
-                            // Role Selection Label
-                            const Text(
-                              'Select Your Role',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
-                              ),
-                            ),
                             const SizedBox(height: 12),
-
-                            // 1. Admin Role Option
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedRole = 'admin';
-                                });
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: selectedRole == 'admin' ? const Color(0xFFEFF4FF) : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(14.0),
-                                  border: Border.all(
-                                    color: selectedRole == 'admin' ? const Color(0xFF1D61E7) : const Color(0xFFE2E8F0),
-                                    width: selectedRole == 'admin' ? 1.5 : 1.0,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: selectedRole == 'admin' ? const Color(0xFF1D61E7) : const Color(0xFF94A3B8),
-                                          width: selectedRole == 'admin' ? 6 : 1.5,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF1D61E7),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 22),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: const [
-                                          Text(
-                                            'Admin',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0F172A),
-                                            ),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            'Manage system & platform settings',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-
-                            // 2. Organiser Role Option
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedRole = 'organizer';
-                                });
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: selectedRole == 'organizer' || selectedRole == 'organiser' ? const Color(0xFFEFF4FF) : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(14.0),
-                                  border: Border.all(
-                                    color: selectedRole == 'organizer' || selectedRole == 'organiser' ? const Color(0xFF1D61E7) : const Color(0xFFE2E8F0),
-                                    width: selectedRole == 'organizer' || selectedRole == 'organiser' ? 1.5 : 1.0,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: selectedRole == 'organizer' || selectedRole == 'organiser' ? const Color(0xFF1D61E7) : const Color(0xFF94A3B8),
-                                          width: selectedRole == 'organizer' || selectedRole == 'organiser' ? 6 : 1.5,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF1D61E7),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 22),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: const [
-                                          Text(
-                                            'Organiser',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0F172A),
-                                            ),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            'Create & host quiz battles',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-
-                            // 3. Player Role Option
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedRole = 'player';
-                                });
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: selectedRole == 'player' ? const Color(0xFFEFF4FF) : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(14.0),
-                                  border: Border.all(
-                                    color: selectedRole == 'player' ? const Color(0xFF1D61E7) : const Color(0xFFE2E8F0),
-                                    width: selectedRole == 'player' ? 1.5 : 1.0,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: selectedRole == 'player' ? const Color(0xFF1D61E7) : const Color(0xFF94A3B8),
-                                          width: selectedRole == 'player' ? 6 : 1.5,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF1D61E7),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(Icons.person_rounded, color: Colors.white, size: 22),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: const [
-                                          Text(
-                                            'Player',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0F172A),
-                                            ),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            'Join battles & compete',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
 
                             // Forgot Password Link
                             Align(
@@ -629,7 +417,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   elevation: 0,
                                 ),
-                                onPressed: isLoading ? null : () => login(selectedRole),
+                                onPressed: isLoading ? null : login,
                                 child: isLoading
                                     ? const SizedBox(
                                   width: 24,
@@ -662,42 +450,40 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 20),
 
-                            // Option to Create Player Account
-                            if (selectedRole == "player") ...[
-                              Center(
-                                child: Wrap(
-                                  alignment: WrapAlignment.center,
-                                  children: [
-                                    const Text(
-                                      "Don't have an account? ",
+                            // Option to Create Account
+                            Center(
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  const Text(
+                                    "Don't have an account? ",
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const user_Register(),
+                                        ),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: const Text(
+                                      'Create Account',
                                       style: TextStyle(
-                                        color: Color(0xFF64748B),
+                                        color: Color(0xFF1D61E7),
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 13,
                                       ),
                                     ),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => const user_Register(),
-                                          ),
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: const Text(
-                                        'Create Account',
-                                        style: TextStyle(
-                                          color: Color(0xFF1D61E7),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ),

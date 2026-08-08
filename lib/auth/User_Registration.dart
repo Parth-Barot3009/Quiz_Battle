@@ -118,8 +118,8 @@ class _user_RegisterState extends State<user_Register> {
       'player_name': namecon.text.trim(),
       'player_email': emailcontroller.text.trim(),
       'role': role,
-      'played_battle':0,
-      'player_win':0,
+      'played_battle': 0,
+      'player_win': 0,
       'image_url': imageUrl,
     });
   }
@@ -211,7 +211,7 @@ class _user_RegisterState extends State<user_Register> {
                     ),
                     const SizedBox(height: 28),
 
-                    // Original Form Container (UNTOUCHED)
+                    // Original Form Container
                     Container(
                       constraints: const BoxConstraints(maxWidth: 420),
                       padding: const EdgeInsets.all(24.0),
@@ -624,8 +624,7 @@ class _user_RegisterState extends State<user_Register> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                          const LoginScreen(role: "player"),
+                                          builder: (context) => const LoginScreen(),
                                         ),
                                       );
                                     } catch (_) {
@@ -688,8 +687,7 @@ class _user_RegisterState extends State<user_Register> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                          const LoginScreen(role: "player"),
+                                          builder: (context) => const LoginScreen(),
                                         ),
                                       );
                                     },
