@@ -316,7 +316,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                   ),
                   const SizedBox(height: 12),
                   StreamBuilder(
-                      stream: FirebaseFirestore.instance.collection('Battle_Room_Details').where('o_email',isEqualTo: FirebaseAuth.instance.currentUser!.email).where('start_time',isLessThanOrEqualTo: Timestamp.now()).snapshots(),
+                      stream: FirebaseFirestore.instance.collection('Battle_Room_Details').where('o_email',isEqualTo: FirebaseAuth.instance.currentUser!.email).where('start_time',isLessThanOrEqualTo: Timestamp.now()).orderBy('start_time',descending: true).snapshots(),
                       builder: (context,snapshot){
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(
