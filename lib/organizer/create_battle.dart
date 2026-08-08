@@ -25,8 +25,21 @@ class _create_battleState extends State<create_battle> {
   Uint8List? selectedBytes;
   DateTime? selectedDate;
   int totalQuestions = 0;
+  bool isLoading = false;
   final TextEditingController roomname = TextEditingController();
   late String roomCode;
+
+  @override
+  void initState() {
+    super.initState();
+    roomCode = generateRoomCode();
+  }
+
+  @override
+  void dispose() {
+    roomname.dispose();
+    super.dispose();
+  }
 
   // Time Picker Logic
   Future<void> pickTime(bool isStartTime) async {
@@ -81,90 +94,67 @@ class _create_battleState extends State<create_battle> {
       ),
     );
 
-    print("Uploading Excel...");
     var response = await request.send();
     String body = await response.stream.bytesToString();
-
-    print(response.statusCode);
-    print(body);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(body);
       return data["secure_url"];
     }
 
-    throw Exception(body);
+    throw Exception("Failed to upload file to Cloudinary");
   }
 
   Future<void> uploadQuestionsToFirestore(String roomCode) async {
-    try {
-      DocumentSnapshot battleDoc =
-      await FirebaseFirestore.instance
-          .collection("Battle_Room_Details")
-          .doc(roomCode)
-          .get();
+    DocumentSnapshot battleDoc =
+    await FirebaseFirestore.instance
+        .collection("Battle_Room_Details")
+        .doc(roomCode)
+        .get();
 
-      String excelUrl = battleDoc["question_file"];
+    String excelUrl = battleDoc["question_file"];
 
-      final response = await http.get(Uri.parse(excelUrl));
+    final response = await http.get(Uri.parse(excelUrl));
 
-      if (response.statusCode != 200) {
-        throw Exception("Excel download failed");
+    if (response.statusCode != 200) {
+      throw Exception("Excel download failed");
+    }
+
+    var excelFile = excel.Excel.decodeBytes(response.bodyBytes);
+
+    int index = 0;
+
+    for (var sheet in excelFile.tables.keys) {
+      var table = excelFile.tables[sheet];
+
+      if (table == null) continue;
+
+      int que_id = 1;
+      // Skip header row
+      for (int row = 1; row < table.rows.length; row++) {
+        var currentRow = table.rows[row];
+
+        if (currentRow.isEmpty) continue;
+
+        await FirebaseFirestore.instance
+            .collection("Battle_Room_Details")
+            .doc(roomCode)
+            .collection("Questions")
+            .doc("Question :$que_id")
+            .set({
+          "question": currentRow[0]?.value.toString() ?? "",
+          "optionA": currentRow[1]?.value.toString() ?? "",
+          "optionB": currentRow[2]?.value.toString() ?? "",
+          "optionC": currentRow[3]?.value.toString() ?? "",
+          "optionD": currentRow[4]?.value.toString() ?? "",
+          "correctAnswer": currentRow[5]?.value.toString() ?? "",
+          "questionIndex": index,
+          "createdAt": FieldValue.serverTimestamp(),
+        });
+
+        index++;
+        que_id++;
       }
-
-      var excelFile = excel.Excel.decodeBytes(response.bodyBytes);
-
-      int index = 0;
-
-      for (var sheet in excelFile.tables.keys) {
-        var table = excelFile.tables[sheet];
-
-        if (table == null) continue;
-
-        int que_id = 1;
-        // Skip header row
-        for (int row = 1; row < table.rows.length; row++) {
-          var currentRow = table.rows[row];
-
-          if (currentRow.isEmpty) continue;
-
-          await FirebaseFirestore.instance
-              .collection("Battle_Room_Details")
-              .doc(roomCode)
-              .collection("Questions").doc("Question :${que_id}")
-              .set({
-            "question":
-            currentRow[0]?.value.toString() ?? "",
-
-            "optionA":
-            currentRow[1]?.value.toString() ?? "",
-
-            "optionB":
-            currentRow[2]?.value.toString() ?? "",
-
-            "optionC":
-            currentRow[3]?.value.toString() ?? "",
-
-            "optionD":
-            currentRow[4]?.value.toString() ?? "",
-
-            "correctAnswer":
-            currentRow[5]?.value.toString() ?? "",
-
-            "questionIndex": index,
-
-            "createdAt":
-            FieldValue.serverTimestamp(),
-          });
-
-          index++;
-          que_id++;
-        }
-      }
-
-      print("Questions Uploaded Successfully");
-    } catch (e) {
-      print("Error: $e");
     }
   }
 
@@ -178,8 +168,6 @@ class _create_battleState extends State<create_battle> {
     final excelFile = excel.Excel.decodeBytes(bytes);
 
     List<List<String>> rows = [];
-
-
 
     for (var sheet in excelFile.tables.keys) {
       int rowIndex = 0;
@@ -291,56 +279,136 @@ class _create_battleState extends State<create_battle> {
 
   // Firestore Addition Logic
   Future<void> addCreateRoomDetails() async {
-    try {
-      print("Uploading Excel...");
-      String? excelUrl = await uploadExcelToCloudinary();
+    String? excelUrl = await uploadExcelToCloudinary();
 
-      // Combine selectedDate and startTime into a full DateTime
-      DateTime fullStartDateTime = DateTime(
-        selectedDate!.year,
-        selectedDate!.month,
-        selectedDate!.day,
-        startTime!.hour,
-        startTime!.minute,
-      );
+    DateTime fullStartDateTime = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+      startTime!.hour,
+      startTime!.minute,
+    );
 
-      // Combine selectedDate and endTime into a full DateTime
-      DateTime fullEndDateTime = DateTime(
-        selectedDate!.year,
-        selectedDate!.month,
-        selectedDate!.day,
-        endTime!.hour,
-        endTime!.minute,
-      );
+    DateTime fullEndDateTime = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+      endTime!.hour,
+      endTime!.minute,
+    );
 
-      await FirebaseFirestore.instance
-          .collection("Battle_Room_Details")
-          .doc(roomCode)
-          .set({
-        "room_name": roomname.text.trim(),
-        "room_code": roomCode,
-        "questions": totalQuestions,
-        "start_time": Timestamp.fromDate(fullStartDateTime),
-        "end_time": Timestamp.fromDate(fullEndDateTime),
-        "status": "waiting", // Initial lobby status: "waiting", "live", "ended"
-        "battle_date": selectedDate,
-        "question_file": excelUrl,
-        "created_at": FieldValue.serverTimestamp(),
-        "o_email": FirebaseAuth.instance.currentUser?.email,
-        "leaderboardGenerated": false,
-        "winner_name":null
-      });
-
-      print("Firestore Saved");
-    } catch (e) {
-      print(e);
-    }
+    await FirebaseFirestore.instance
+        .collection("Battle_Room_Details")
+        .doc(roomCode)
+        .set({
+      "room_name": roomname.text.trim(),
+      "room_code": roomCode,
+      "questions": totalQuestions,
+      "start_time": Timestamp.fromDate(fullStartDateTime),
+      "end_time": Timestamp.fromDate(fullEndDateTime),
+      "status": "waiting",
+      "battle_date": selectedDate,
+      "question_file": excelUrl,
+      "created_at": FieldValue.serverTimestamp(),
+      "o_email": FirebaseAuth.instance.currentUser?.email,
+      "leaderboardGenerated": false,
+      "winner_name": null
+    });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    roomCode = generateRoomCode();
+  // Custom Error SnackBar Display
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 4,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+        ),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                color: Color(0xFFEF4444),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Color(0xFF1E293B),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Form Validation Check Logic
+  bool _validateForm() {
+    if (roomname.text.trim().isEmpty) {
+      _showErrorSnackBar("Please enter room name");
+      return false;
+    }
+    if (totalQuestions <= 0) {
+      _showErrorSnackBar("Please add questions for battle");
+      return false;
+    }
+    if (startTime == null) {
+      _showErrorSnackBar("Please select start time");
+      return false;
+    }
+    if (endTime == null) {
+      _showErrorSnackBar("Please select end time");
+      return false;
+    }
+    if (selectedDate == null) {
+      _showErrorSnackBar("Please select quiz date");
+      return false;
+    }
+
+    DateTime start = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+      startTime!.hour,
+      startTime!.minute,
+    );
+
+    DateTime end = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+      endTime!.hour,
+      endTime!.minute,
+    );
+
+    if (!end.isAfter(start)) {
+      _showErrorSnackBar("End time must be after start time");
+      return false;
+    }
+
+    if (selectedBytes == null) {
+      _showErrorSnackBar("Please upload question Excel file");
+      return false;
+    }
+
+    return true;
   }
 
   @override
@@ -364,7 +432,12 @@ class _create_battleState extends State<create_battle> {
                       children: [
                         // Back Button Box
                         InkWell(
-                          onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Org_Navigationbar())),
+                          onTap: () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const Org_Navigationbar(),
+                            ),
+                          ),
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
                             padding: const EdgeInsets.all(12),
@@ -474,12 +547,19 @@ class _create_battleState extends State<create_battle> {
                               ),
                             ),
                             const SizedBox(height: 3),
-                            TextField(
+                            TextFormField(
                               controller: roomname,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Please enter room name";
+                                }
+                                return null;
+                              },
                               decoration: const InputDecoration(
                                 hintText: "Enter Room Name",
                                 hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                                 border: InputBorder.none,
+                                errorStyle: TextStyle(fontSize: 10, height: 0.8),
                                 isDense: true,
                                 contentPadding: EdgeInsets.zero,
                               ),
@@ -964,57 +1044,78 @@ class _create_battleState extends State<create_battle> {
                       ),
                     ],
                   ),
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      if (selectedDate == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Please select date")),
-                        );
-                        return;
-                      }
-                      if (startTime == null || endTime == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Please select both start and end time"),
-                          ),
-                        );
-                        return;
-                      }
+                  child: ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                      if (!_validateForm()) return;
 
-                      DateTime start = DateTime(
-                        selectedDate!.year,
-                        selectedDate!.month,
-                        selectedDate!.day,
-                        startTime!.hour,
-                        startTime!.minute,
-                      );
+                      setState(() {
+                        isLoading = true;
+                      });
 
-                      DateTime end = DateTime(
-                        selectedDate!.year,
-                        selectedDate!.month,
-                        selectedDate!.day,
-                        endTime!.hour,
-                        endTime!.minute,
-                      );
+                      try {
+                        await addCreateRoomDetails();
+                        await uploadQuestionsToFirestore(roomCode);
 
-                      if (!end.isAfter(start)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("End time must be after start time"),
-                          ),
-                        );
-                        return;
-                      }
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              elevation: 4,
+                              behavior: SnackBarBehavior.floating,
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                              ),
+                              content: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF3B82F6).withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.check_circle_outline_rounded,
+                                      color: Color(0xFF3B82F6),
+                                      size: 22,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Text(
+                                      "Battle Room Created Successfully!",
+                                      style: TextStyle(
+                                        color: Color(0xFF1E293B),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
 
-                      await addCreateRoomDetails();
-                      await uploadQuestionsToFirestore(roomCode);
-                      if (context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Org_BattleRoom(roomCode: roomCode),
-                          ),
-                        );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Org_BattleRoom(roomCode: roomCode),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          _showErrorSnackBar(e.toString().replaceAll("Exception: ", ""));
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            isLoading = false;
+                          });
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -1024,14 +1125,29 @@ class _create_battleState extends State<create_battle> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    icon: const Icon(Icons.sports_esports_rounded, color: Colors.white),
-                    label: const Text(
-                      "Create Battle",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    child: isLoading
+                        ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
                         color: Colors.white,
+                        strokeWidth: 2.5,
                       ),
+                    )
+                        : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.sports_esports_rounded, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          "Create Battle",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

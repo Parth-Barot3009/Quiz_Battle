@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/Admin_Deshboard.dart';
 import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
 import 'package:quiz_battle/admin/Student_ListScreen.dart';
-import 'package:quiz_battle/admin/admin_setting.dart';
+import 'package:quiz_battle/admin/allbattlehistoryo.dart';
 
 class Admin_Nav extends StatefulWidget {
   const Admin_Nav({super.key});

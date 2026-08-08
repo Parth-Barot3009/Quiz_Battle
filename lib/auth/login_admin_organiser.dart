@@ -83,24 +83,96 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (!mounted) return;
 
+        // Success SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            elevation: 4,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+            ),
+            content: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1D61E7).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_outline_rounded,
+                    color: Color(0xFF1D61E7),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    "Login Successful!",
+                    style: TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
         // Navigate to Authentication wrapper
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const Authantication()),
               (route) => false,
         );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Login Successful")),
-        );
       } else {
         // Sign out if credentials are valid but no corresponding Firestore role record exists
         await FirebaseAuth.instance.signOut();
         if (!mounted) return;
 
+        // Warning / Error SnackBar
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("No user account record found. Please contact support or register."),
+          SnackBar(
+            elevation: 4,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+            ),
+            content: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.error_outline_rounded,
+                    color: Color(0xFFEF4444),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    "No user account record found. Please contact support or register.",
+                    style: TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       }
@@ -108,13 +180,84 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.message ?? "Incorrect email or password"),
+          elevation: 4,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+          ),
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: Color(0xFFEF4444),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  e.message ?? "Incorrect email or password",
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
+      // Error SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login failed, please try again")),
+        SnackBar(
+          elevation: 4,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+          ),
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: Color(0xFFEF4444),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  "Login failed, please try again",
+                  style: TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     } finally {
       if (mounted) {

@@ -27,6 +27,92 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
     super.dispose();
   }
 
+  // Custom Error SnackBar Display
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 4,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+        ),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                color: Color(0xFFEF4444),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: darkText,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Custom Success SnackBar Display
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 4,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: brandBlue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_outline_rounded,
+                color: brandBlue,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: darkText,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,7 +173,12 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                             color: darkText,
                           ),
                           onPressed: () {
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>player_navigationbar()));
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const player_navigationbar(),
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -220,11 +311,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                           : () async {
                         final code = roomCode.text.trim();
                         if (code.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please enter a room code"),
-                            ),
-                          );
+                          _showErrorSnackBar("Please enter a room code");
                           return;
                         }
 
@@ -240,35 +327,25 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
 
                           if (snapshot.docs.isNotEmpty) {
                             String battleId = snapshot.docs.first.id;
-                            var battleData = snapshot.docs.first.data() as Map<String, dynamic>;
+                            var battleData = snapshot.docs.first.data()
+                            as Map<String, dynamic>;
 
                             DateTime now = DateTime.now();
 
                             DateTime endTime =
-                            (battleData["end_time"] as Timestamp).toDate();
+                            (battleData["end_time"] as Timestamp)
+                                .toDate();
 
                             if (now.isAfter(endTime)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("This quiz has already ended."),
-                                ),
-                              );
-
+                              _showErrorSnackBar("This quiz has already ended.");
                               setState(() => isLoading = false);
                               return;
                             }
 
-                            User? user =
-                                FirebaseAuth.instance.currentUser;
+                            User? user = FirebaseAuth.instance.currentUser;
 
                             if (user == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "User not authenticated!",
-                                  ),
-                                ),
-                              );
+                              _showErrorSnackBar("User not authenticated!");
                               setState(() => isLoading = false);
                               return;
                             }
@@ -277,14 +354,16 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                             String playerName = user.displayName ?? "";
 
                             if (playerName.trim().isEmpty) {
-                              QuerySnapshot playerQuery = await FirebaseFirestore.instance
+                              QuerySnapshot playerQuery = await FirebaseFirestore
+                                  .instance
                                   .collection("player")
                                   .where("player_email", isEqualTo: user.email)
                                   .limit(1)
                                   .get();
 
                               if (playerQuery.docs.isNotEmpty) {
-                                var data = playerQuery.docs.first.data() as Map<String, dynamic>;
+                                var data = playerQuery.docs.first.data()
+                                as Map<String, dynamic>;
 
                                 // Check multiple possible key names used in user document
                                 String fetchedName = data['player_name'] ??
@@ -294,12 +373,14 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
 
                                 if (fetchedName.trim().isNotEmpty) {
                                   playerName = fetchedName.trim();
-                                } else if (user.email != null && user.email!.contains('@')) {
+                                } else if (user.email != null &&
+                                    user.email!.contains('@')) {
                                   playerName = user.email!.split('@').first;
                                 } else {
                                   playerName = "Player";
                                 }
-                              } else if (user.email != null && user.email!.contains('@')) {
+                              } else if (user.email != null &&
+                                  user.email!.contains('@')) {
                                 playerName = user.email!.split('@').first;
                               } else {
                                 playerName = "Player";
@@ -313,7 +394,6 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                                 .collection("Players")
                                 .doc(user.uid)
                                 .set({
-
                               // Player Information
                               "player_id": user.uid,
                               "player_name": playerName,
@@ -325,7 +405,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                               "points": 0,
                               "totalTime": 0.0,
                               "fastestAnswers": 0,
-                              "player_score":0,
+                              "player_score": 0,
 
                               // Leaderboard
                               "rank": 0,
@@ -335,40 +415,29 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
 
                               // Join Time
                               "joinedAt": FieldValue.serverTimestamp(),
-
                             });
 
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Joining Battle..."),
-                                ),
-                              );
+                              _showSuccessSnackBar("Joining Battle...");
 
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      WaitingRoom(roomcode: code,battleId:battleId,),
+                                  builder: (context) => WaitingRoom(
+                                    roomcode: code,
+                                    battleId: battleId,
+                                  ),
                                 ),
                               );
                             }
                           } else {
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Enter Valid Room Code"),
-                                ),
-                              );
+                              _showErrorSnackBar("Enter Valid Room Code");
                             }
                           }
                         } catch (e) {
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Error: ${e.toString()}"),
-                              ),
-                            );
+                            _showErrorSnackBar("Error: ${e.toString()}");
                           }
                         } finally {
                           if (mounted) {

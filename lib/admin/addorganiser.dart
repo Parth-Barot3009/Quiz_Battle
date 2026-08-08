@@ -266,7 +266,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                 ),
                                 const SizedBox(height: 10),
                                 const Text(
-                                  "Add Organizer Image",
+                                  "Add Organizer Image (Optional)",
                                   style: TextStyle(
                                     color: textGrey,
                                     fontSize: 12,
@@ -495,21 +495,15 @@ class _AddorganiserState extends State<Addorganiser> {
                                 try {
                                   if (!formKey.currentState!.validate()) return;
 
-                                  if (selectedXFile == null || selectedImageBytes == null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Please Select Image"),
-                                      ),
-                                    );
-                                    return;
-                                  }
-
                                   setState(() {
                                     isLoading = true;
                                   });
 
-                                  String imageUrl = await uploadImage(selectedXFile!, selectedImageBytes!);
-                                  debugPrint("Image Uploaded");
+                                  String imageUrl = "";
+                                  if (selectedXFile != null && selectedImageBytes != null) {
+                                    imageUrl = await uploadImage(selectedXFile!, selectedImageBytes!);
+                                    debugPrint("Image Uploaded");
+                                  }
 
                                   await createOrg();
                                   debugPrint("Auth Created");
@@ -522,8 +516,42 @@ class _AddorganiserState extends State<Addorganiser> {
                                       isLoading = false;
                                     });
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Add Organiser Successful"),
+                                      SnackBar(
+                                        elevation: 4,
+                                        behavior: SnackBarBehavior.floating,
+                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        backgroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                          side: const BorderSide(color: borderColor, width: 1),
+                                        ),
+                                        content: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: brandBlue.withOpacity(0.1),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.check_circle_outline_rounded,
+                                                color: brandBlue,
+                                                size: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            const Expanded(
+                                              child: Text(
+                                                "Add Organiser Successful",
+                                                style: TextStyle(
+                                                  color: textDark,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
 
@@ -537,7 +565,41 @@ class _AddorganiserState extends State<Addorganiser> {
                                     });
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(e.toString()),
+                                        elevation: 4,
+                                        behavior: SnackBarBehavior.floating,
+                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        backgroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                          side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+                                        ),
+                                        content: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFEF4444).withOpacity(0.1),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.error_outline_rounded,
+                                                color: Color(0xFFEF4444),
+                                                size: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                e.toString(),
+                                                style: const TextStyle(
+                                                  color: textDark,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
                                   }
@@ -570,7 +632,6 @@ class _AddorganiserState extends State<Addorganiser> {
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 24),
                         ],
                       ),

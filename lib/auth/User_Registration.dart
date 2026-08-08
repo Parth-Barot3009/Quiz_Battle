@@ -94,16 +94,82 @@ class _user_RegisterState extends State<user_Register> {
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            e.message ?? "Registration failed, please try again",
+          elevation: 4,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+          ),
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: Color(0xFFEF4444),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  e.message ?? "Registration failed, please try again",
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
       rethrow;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("An error occurred during registration."),
+        SnackBar(
+          elevation: 4,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+          ),
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: Color(0xFFEF4444),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  "An error occurred during registration.",
+                  style: TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
       rethrow;
@@ -616,11 +682,48 @@ class _user_RegisterState extends State<user_Register> {
                                     try {
                                       await sighUp();
                                       if (!mounted) return;
+
+                                      // Success SnackBar
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text("Registration Successful"),
+                                        SnackBar(
+                                          elevation: 4,
+                                          behavior: SnackBarBehavior.floating,
+                                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          backgroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(16),
+                                            side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                                          ),
+                                          content: Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF1D61E7).withOpacity(0.1),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.check_circle_outline_rounded,
+                                                  color: Color(0xFF1D61E7),
+                                                  size: 22,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              const Expanded(
+                                                child: Text(
+                                                  "Registration Successful!",
+                                                  style: TextStyle(
+                                                    color: Color(0xFF0F172A),
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       );
+
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
