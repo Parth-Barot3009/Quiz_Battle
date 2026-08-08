@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/addorganiser.dart';
+import 'package:quiz_battle/auth/login_admin_organiser.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminDeshboard extends StatefulWidget {
   const AdminDeshboard({super.key});
@@ -40,6 +42,12 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
     } catch (e) {
       return 0;
     }
+  }
+
+  Future<void> logout() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('role');
+    await FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -83,6 +91,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 1. TOP HEADER BAR
+                  // Replace your Top Header Bar Row with this:
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -109,6 +118,42 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                             ),
                           ),
                         ],
+                      ),
+
+                      // Red-accented Glassy Logout Button
+                      InkWell(
+                        onTap: () async {
+                          await logout();
+                          if (!context.mounted) return;
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                                (route) => false,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: surfaceWhite,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFFEE2E2)), // Subtle red border
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFEF4444).withOpacity(0.06),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.logout_rounded,
+                            color: Color(0xFFEF4444), // Soft Red Accent
+                            size: 20,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -653,79 +698,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Add Organizer Action Button
-                  Material(
-                    color: surfaceWhite,
-                    borderRadius: BorderRadius.circular(20),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Addorganiser(),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: borderColor, width: 1.2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: textDark.withOpacity(0.02),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: brandBlue,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(
-                                Icons.person_add_alt_1,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Add Organizer",
-                                    style: TextStyle(
-                                      color: textDark,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    "Create new organizer account",
-                                    style: TextStyle(
-                                      color: textGrey,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right_rounded, color: textGrey),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
