@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/player/player_navigationbar.dart';
 
 class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key});
@@ -141,22 +142,27 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                 ),
                               ],
                             ),
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: brandBlue,
-                              backgroundImage:
-                                  userInfo != null &&
-                                      userInfo!["image_url"] != null
-                                  ? NetworkImage(userInfo!["image_url"])
-                                  : null,
-                              child:
-                                  userInfo == null ||
-                                      userInfo!["image_url"] == null
-                                  ? const Icon(
-                                      Icons.person,
-                                      color: Colors.white,
-                                    )
-                                  : null,
+                            child: GestureDetector(
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>player_navigationbar(currentIndex: 3,)));
+                              },
+                              child: CircleAvatar(
+                                radius: 20,
+                                backgroundColor: brandBlue,
+                                backgroundImage:
+                                    userInfo != null &&
+                                        userInfo!["image_url"] != null
+                                    ? NetworkImage(userInfo!["image_url"])
+                                    : null,
+                                child:
+                                    userInfo == null ||
+                                        userInfo!["image_url"] == null
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                      )
+                                    : null,
+                              ),
                             ),
                           ),
                           Positioned(

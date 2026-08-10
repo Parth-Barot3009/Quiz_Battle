@@ -22,7 +22,6 @@ class _WaitingScreenState extends State<WaitingScreen> {
   bool navigated = false;
 
   static const Color primaryBlue = Color(0xFF2563EB);
-  static const Color darkBlue = Color(0xFF1D4ED8);
   static const Color background = Color(0xFFF5F9FF);
 
   Future<void> calculateLeaderboard() async {

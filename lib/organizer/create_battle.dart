@@ -435,7 +435,7 @@ class _create_battleState extends State<create_battle> {
                           onTap: () => Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const Org_Navigationbar(),
+                              builder: (context) => Org_Navigationbar(),
                             ),
                           ),
                           borderRadius: BorderRadius.circular(16),

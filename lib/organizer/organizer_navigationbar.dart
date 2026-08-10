@@ -5,14 +5,15 @@ import 'package:quiz_battle/organizer/create_battle.dart';
 import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 
 class Org_Navigationbar extends StatefulWidget {
-  const Org_Navigationbar({super.key});
+  int? currentIndex;
+  Org_Navigationbar({super.key, this.currentIndex});
 
   @override
   State<Org_Navigationbar> createState() => _Org_NavigationbarState();
 }
 
 class _Org_NavigationbarState extends State<Org_Navigationbar> {
-  int _currentIndex = 0;
+  int? _currentIndex;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -25,6 +26,17 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> {
     OrganizerBattleHistory(),
     OrganiserProfileInfo(),
   ];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if(widget.currentIndex != null) {
+      _currentIndex = widget.currentIndex!;
+    } else {
+      _currentIndex = 0;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

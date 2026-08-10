@@ -19,9 +19,9 @@ class Authantication extends StatelessWidget {
       if (role == "admin") {
         return const Admin_Nav();
       } else if (role == "organizer") {
-        return const Org_Navigationbar();
+        return Org_Navigationbar();
       } else if (role == "player") {
-        return const player_navigationbar();
+        return player_navigationbar();
       }
     }
 

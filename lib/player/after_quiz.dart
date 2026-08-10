@@ -610,7 +610,7 @@ class _ResultScreenState extends State<ResultScreen> {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (_) => const player_navigationbar()),
+              MaterialPageRoute(builder: (_) => player_navigationbar()),
                   (route) => false,
             );
           },

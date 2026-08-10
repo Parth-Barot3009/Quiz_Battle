@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quiz_battle/organizer/ProfileInfo_Organizer.dart';
+import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 
 class OrgDashboard extends StatefulWidget {
   const OrgDashboard({super.key});
@@ -137,18 +139,23 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                 ),
                               ],
                             ),
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: brandBlue,
-                              backgroundImage: userInfo != null && userInfo!["image_url"] != null
-                                  ? NetworkImage(userInfo!["image_url"])
-                                  : null,
-                              child: userInfo == null || userInfo!["image_url"] == null
-                                  ? Icon(
-                                Icons.person,
-                                color: Colors.white,
-                              )
-                                  : null,
+                            child: GestureDetector(
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_Navigationbar(currentIndex: 3,)));
+                              },
+                              child: CircleAvatar(
+                                radius: 20,
+                                backgroundColor: brandBlue,
+                                backgroundImage: userInfo != null && userInfo!["image_url"] != null
+                                    ? NetworkImage(userInfo!["image_url"])
+                                    : null,
+                                child: userInfo == null || userInfo!["image_url"] == null
+                                    ? Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                )
+                                    : null,
+                              ),
                             ),
                           ),
                           Positioned(

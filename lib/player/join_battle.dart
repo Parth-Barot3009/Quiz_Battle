@@ -176,7 +176,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const player_navigationbar(),
+                                builder: (context) => player_navigationbar(),
                               ),
                             );
                           },
