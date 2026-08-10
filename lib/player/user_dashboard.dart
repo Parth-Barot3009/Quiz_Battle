@@ -11,8 +11,6 @@ class StudentDashboard extends StatefulWidget {
 }
 
 class _StudentDashboardState extends State<StudentDashboard> {
-  Map<String, dynamic>? userInfo;
-
   // Theme Palette
   static const Color brandBlue = Color(0xFF2563EB);
   static const Color bgCanvas = Color(0xFFEBF1FF);
@@ -22,44 +20,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
   static const Color textGrey = Color(0xFF64748B);
 
   @override
-  void initState() {
-    getUser();
-    super.initState();
-  }
-
-  void getUser() async {
-    if (FirebaseAuth.instance.currentUser != null) {
-      userInfo = await getDocumentById(
-        FirebaseAuth.instance.currentUser!.uid.toString(),
-      );
-      if (mounted) {
-        setState(() {});
-      }
-    }
-  }
-
-  Future<Map<String, dynamic>?> getDocumentById(String docId) async {
-    try {
-      debugPrint(docId);
-      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
-          .collection('player')
-          .doc(docId)
-          .get();
-
-      if (docSnapshot.exists) {
-        return docSnapshot.data() as Map<String, dynamic>?;
-      } else {
-        debugPrint("Document does not exist");
-        return null;
-      }
-    } catch (e) {
-      debugPrint("Error fetching document: $e");
-      return null;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       backgroundColor: bgCanvas,
       body: Stack(
@@ -73,7 +36,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               height: 180,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0x1F2563EB), // Fixed opacity issue
+                color: Color(0x1F2563EB),
               ),
             ),
           ),
@@ -85,7 +48,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               height: 220,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0x142563EB), // Fixed opacity issue
+                color: Color(0x142563EB),
               ),
             ),
           ),
@@ -98,7 +61,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. TOP HEADER BAR
+                  // 1. TOP HEADER BAR WITH REAL-TIME PROFILE AVATAR
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -126,62 +89,87 @@ class _StudentDashboardState extends State<StudentDashboard> {
                           ),
                         ],
                       ),
-                      Stack(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x262563EB),
-                                  // Fixed opacity issue
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
+
+                      // Real-time Profile Avatar Stream
+                      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        stream: currentUserId != null
+                            ? FirebaseFirestore.instance
+                            .collection('player')
+                            .doc(currentUserId)
+                            .snapshots()
+                            : null,
+                        builder: (context, snapshot) {
+                          String? imageUrl;
+                          if (snapshot.hasData && snapshot.data!.exists) {
+                            var data = snapshot.data!.data();
+                            imageUrl = data?['image_url'];
+                          }
+
+                          return Stack(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x262563EB),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: GestureDetector(
-                              onTap: (){
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>player_navigationbar(currentIndex: 3,)));
-                              },
-                              child: CircleAvatar(
-                                radius: 20,
-                                backgroundColor: brandBlue,
-                                backgroundImage:
-                                    userInfo != null &&
-                                        userInfo!["image_url"] != null
-                                    ? NetworkImage(userInfo!["image_url"])
-                                    : null,
-                                child:
-                                    userInfo == null ||
-                                        userInfo!["image_url"] == null
-                                    ? const Icon(
-                                        Icons.person,
-                                        color: Colors.white,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 2,
-                            bottom: 2,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 1.5,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            player_navigationbar(
+                                              currentIndex: 3,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  child: CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: brandBlue,
+                                    backgroundImage:
+                                    imageUrl != null && imageUrl.isNotEmpty
+                                        ? NetworkImage(imageUrl)
+                                        : null,
+                                    child: imageUrl == null || imageUrl.isEmpty
+                                        ? const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                    )
+                                        : null,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
+                              Positioned(
+                                right: 2,
+                                bottom: 2,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -193,9 +181,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     stream: FirebaseFirestore.instance
                         .collection('player')
                         .where(
-                          'player_email',
-                          isEqualTo: FirebaseAuth.instance.currentUser?.email,
-                        )
+                      'player_email',
+                      isEqualTo: FirebaseAuth.instance.currentUser?.email,
+                    )
                         .snapshots(),
                     builder: (context, snapshot) {
                       String playerName = "Player";
@@ -219,7 +207,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                           ),
                           boxShadow: const [
                             BoxShadow(
-                              color: Color(0x591D4ED8), // Fixed opacity issue
+                              color: Color(0x591D4ED8),
                               blurRadius: 20,
                               offset: Offset(0, 8),
                             ),
@@ -235,7 +223,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                   "Hello,",
                                   style: TextStyle(
                                     color: Color(0xD9FFFFFF),
-                                    // Fixed opacity issue
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -256,12 +243,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
                               height: 58,
                               decoration: BoxDecoration(
                                 color: const Color(0x33FFFFFF),
-                                // Fixed opacity issue
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
-                                  color: const Color(
-                                    0x40FFFFFF,
-                                  ), // Fixed opacity issue
+                                  color: const Color(0x40FFFFFF),
                                 ),
                               ),
                               child: const Icon(
@@ -298,7 +282,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             ),
                             boxShadow: const [
                               BoxShadow(
-                                color: Color(0x144A7CFF), // Fixed opacity issue
+                                color: Color(0x144A7CFF),
                                 blurRadius: 10,
                                 offset: Offset(0, 4),
                               ),
@@ -314,29 +298,27 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                   child: Icon(
                                     Icons.sports_esports,
                                     size: 75,
-                                    color: Color(
-                                      0x144A7CFF,
-                                    ), // Fixed opacity issue
+                                    color: Color(0x144A7CFF),
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(14),
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(7),
                                             decoration: BoxDecoration(
                                               color: surfaceWhite,
                                               borderRadius:
-                                                  BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                             ),
                                             child: const Icon(
                                               Icons.sports_esports,
@@ -352,7 +334,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFDCE7FF),
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                              BorderRadius.circular(8),
                                             ),
                                             child: const Text(
                                               "Played Battles",
@@ -370,17 +352,18 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                         stream: FirebaseFirestore.instance
                                             .collection('player')
                                             .where(
-                                              'player_email',
-                                              isEqualTo: FirebaseAuth
-                                                  .instance
-                                                  .currentUser
-                                                  ?.email,
-                                            )
+                                          'player_email',
+                                          isEqualTo: FirebaseAuth
+                                              .instance
+                                              .currentUser
+                                              ?.email,
+                                        )
                                             .snapshots(),
                                         builder: (context, snapshot) {
                                           int totalBattle = 0;
 
-                                          if (snapshot.hasData) {
+                                          if (snapshot.hasData &&
+                                              snapshot.data!.docs.isNotEmpty) {
                                             var data = snapshot.data!.docs.first
                                                 .data();
                                             totalBattle =
@@ -389,11 +372,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
                                           return Column(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 "$totalBattle",
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   fontSize: 24,
                                                   fontWeight: FontWeight.w900,
                                                   color: textDark,
@@ -401,8 +384,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                                   height: 1.0,
                                                 ),
                                               ),
-                                              SizedBox(height: 3),
-                                              Text(
+                                              const SizedBox(height: 3),
+                                              const Text(
                                                 "Battles",
                                                 style: TextStyle(
                                                   color: textGrey,
@@ -441,7 +424,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             ),
                             boxShadow: const [
                               BoxShadow(
-                                color: Color(0x14FF8A00), // Fixed opacity issue
+                                color: Color(0x14FF8A00),
                                 blurRadius: 10,
                                 offset: Offset(0, 4),
                               ),
@@ -457,29 +440,27 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                   child: Icon(
                                     Icons.emoji_events,
                                     size: 75,
-                                    color: Color(
-                                      0x14FF8A00,
-                                    ), // Fixed opacity issue
+                                    color: Color(0x14FF8A00),
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(14),
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(7),
                                             decoration: BoxDecoration(
                                               color: surfaceWhite,
                                               borderRadius:
-                                                  BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                             ),
                                             child: const Icon(
                                               Icons.emoji_events,
@@ -495,7 +476,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFFFEAD8),
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                              BorderRadius.circular(8),
                                             ),
                                             child: const Text(
                                               "Victories",
@@ -513,17 +494,18 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                         stream: FirebaseFirestore.instance
                                             .collection('player')
                                             .where(
-                                              'player_email',
-                                              isEqualTo: FirebaseAuth
-                                                  .instance
-                                                  .currentUser
-                                                  ?.email,
-                                            )
+                                          'player_email',
+                                          isEqualTo: FirebaseAuth
+                                              .instance
+                                              .currentUser
+                                              ?.email,
+                                        )
                                             .snapshots(),
                                         builder: (context, snapshot) {
                                           int totalWins = 0;
 
-                                          if (snapshot.hasData) {
+                                          if (snapshot.hasData &&
+                                              snapshot.data!.docs.isNotEmpty) {
                                             var data = snapshot.data!.docs.first
                                                 .data();
                                             totalWins = data['player_win'] ?? 0;
@@ -531,11 +513,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
                                           return Column(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 "$totalWins",
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   fontSize: 24,
                                                   fontWeight: FontWeight.w900,
                                                   color: textDark,
@@ -543,8 +525,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                                   height: 1.0,
                                                 ),
                                               ),
-                                              SizedBox(height: 3),
-                                              Text(
+                                              const SizedBox(height: 3),
+                                              const Text(
                                                 "Wins",
                                                 style: TextStyle(
                                                   color: textGrey,
@@ -568,7 +550,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   ),
                   const SizedBox(height: 28),
 
-                  // 5. UPCOMING BATTLES SECTION
+                  // 4. UPCOMING BATTLES SECTION
                   const Text(
                     "Upcoming Battles",
                     style: TextStyle(
@@ -579,7 +561,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Upcoming Battle Tile
                   StreamBuilder(
                     stream: FirebaseFirestore.instance
                         .collection('Battle_Room_Details')
@@ -611,7 +592,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: borderColor, width: 1.2),
                           ),
-                          child: Text(
+                          child: const Text(
                             "No upcoming battles scheduled.",
                             style: TextStyle(color: textGrey, fontSize: 13),
                             textAlign: TextAlign.center,
@@ -623,9 +604,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
                       return ListView.builder(
                         shrinkWrap: true,
-                        // Required inside SingleChildScrollView
-                        physics: NeverScrollableScrollPhysics(),
-                        // Disables nested scrolling
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: data.length,
                         itemBuilder: (context, index) {
                           var battle = data[index].data();
@@ -634,33 +613,28 @@ class _StudentDashboardState extends State<StudentDashboard> {
                               battle['room_name'] ?? 'Unnamed Battle';
                           int totalQuestions = battle['questions'] ?? 0;
                           String code = battle['room_code'] ?? 'No code';
-                          // 1. Get the Timestamp from Firestore and convert to DateTime
+
                           Timestamp? startTimeStamp =
-                              battle['start_time'] as Timestamp?;
+                          battle['start_time'] as Timestamp?;
                           DateTime? battleDateTime = startTimeStamp?.toDate();
 
-                          // 2. Declare separate variables
                           String dateString = "TBD";
                           String timeString = "TBD";
 
                           if (battleDateTime != null) {
-                            // Extract separate Date variable (Format: DD/MM/YYYY)
                             dateString =
-                                "${battleDateTime.day.toString().padLeft(2, '0')}/${battleDateTime.month.toString().padLeft(2, '0')}/${battleDateTime.year}";
+                            "${battleDateTime.day.toString().padLeft(2, '0')}/${battleDateTime.month.toString().padLeft(2, '0')}/${battleDateTime.year}";
 
-                            // Extract separate Time variable (Format: 12-hour format with AM/PM)
                             TimeOfDay timeOfDay = TimeOfDay.fromDateTime(
                               battleDateTime,
                             );
-                            timeString = timeOfDay.format(
-                              context,
-                            ); // e.g., "06:30 PM"
+                            timeString = timeOfDay.format(context);
                           }
 
                           return Padding(
-                            padding: EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(10),
                             child: Container(
-                              padding: EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: surfaceWhite,
                                 borderRadius: BorderRadius.circular(20),
@@ -668,10 +642,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                   color: borderColor,
                                   width: 1.2,
                                 ),
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Color(0x051E293B),
-                                    // Fixed opacity issue
                                     blurRadius: 8,
                                     offset: Offset(0, 2),
                                   ),
@@ -697,23 +670,23 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           roomName,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: textDark,
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        SizedBox(height: 2),
+                                        const SizedBox(height: 2),
                                         Text(
                                           "Question: $totalQuestions\n"
-                                          "Date: $dateString\n"
-                                          "Time: $timeString\n"
+                                              "Date: $dateString\n"
+                                              "Time: $timeString\n"
                                               "Room Code: $code",
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: textGrey,
                                             fontSize: 12,
                                             fontWeight: FontWeight.w500,

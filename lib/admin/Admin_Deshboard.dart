@@ -432,7 +432,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                               BorderRadius.circular(8),
                                             ),
                                             child: const Text(
-                                              "Students",
+                                              "Players",
                                               style: TextStyle(
                                                 color: Color(0xFF10B981),
                                                 fontSize: 9,
@@ -468,7 +468,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                           ),
                                           const SizedBox(height: 3),
                                           const Text(
-                                            "Student",
+                                            "Players",
                                             style: TextStyle(
                                               color: textGrey,
                                               fontSize: 11,
