@@ -89,7 +89,7 @@ class _Stu_ListState extends State<Stu_List> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Text(
-                          "Students",
+                          "Players",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 30,
@@ -99,7 +99,7 @@ class _Stu_ListState extends State<Stu_List> {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          "View and manage registered students",
+                          "View registered players",
                           style: TextStyle(
                             color: Colors.white70,
                             fontSize: 13,
@@ -141,7 +141,7 @@ class _Stu_ListState extends State<Stu_List> {
                 },
                 style: const TextStyle(color: textDark, fontSize: 14),
                 decoration: const InputDecoration(
-                  hintText: "Search Student",
+                  hintText: "Search Player",
                   hintStyle: TextStyle(color: textGrey, fontSize: 13),
                   prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF306AE7), size: 22),
                   border: InputBorder.none,
@@ -356,7 +356,7 @@ class _Stu_ListState extends State<Stu_List> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      "You have $total registered students",
+                      "You have $total registered Player",
                       style: const TextStyle(
                         color: textGrey,
                         fontSize: 11,

@@ -259,8 +259,21 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                         ),
                       ),
                       const SizedBox(height: 14),
+
+                      // Profile Role Title
+                      const Text(
+                        "Player",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
                       Text(
-                        "Manage your student account",
+                        "Manage your player account",
                         style: TextStyle(
                           color: Colors.white.withAlpha(200),
                           fontSize: 13,

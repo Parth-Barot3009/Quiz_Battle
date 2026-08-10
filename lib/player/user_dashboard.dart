@@ -106,7 +106,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
                           Text(
-                            "STUDENT PORTAL",
+                            "PLAYER",
                             style: TextStyle(
                               color: textGrey,
                               fontSize: 10,
