@@ -88,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(
             elevation: 4,
             behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical:100),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical:60),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
