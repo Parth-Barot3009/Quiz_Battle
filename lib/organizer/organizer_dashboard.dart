@@ -140,17 +140,26 @@ class _OrgDashboardState extends State<OrgDashboard> {
                               ],
                             ),
                             child: GestureDetector(
-                              onTap: (){
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>Org_Navigationbar(currentIndex: 3,)));
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Org_Navigationbar(
+                                      currentIndex: 3,
+                                    ),
+                                  ),
+                                );
                               },
                               child: CircleAvatar(
                                 radius: 20,
                                 backgroundColor: brandBlue,
-                                backgroundImage: userInfo != null && userInfo!["image_url"] != null
+                                backgroundImage: userInfo != null &&
+                                    userInfo!["image_url"] != null
                                     ? NetworkImage(userInfo!["image_url"])
                                     : null,
-                                child: userInfo == null || userInfo!["image_url"] == null
-                                    ? Icon(
+                                child: userInfo == null ||
+                                    userInfo!["image_url"] == null
+                                    ? const Icon(
                                   Icons.person,
                                   color: Colors.white,
                                 )
@@ -167,7 +176,8 @@ class _OrgDashboardState extends State<OrgDashboard> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF10B981),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 1.5),
+                                border:
+                                Border.all(color: Colors.white, width: 1.5),
                               ),
                             ),
                           ),
@@ -187,13 +197,15 @@ class _OrgDashboardState extends State<OrgDashboard> {
                     builder: (context, snapshot) {
                       String name = "Organizer";
                       if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                        final data = snapshot.data!.docs.first.data() as Map<String, dynamic>?;
+                        final data = snapshot.data!.docs.first.data()
+                        as Map<String, dynamic>?;
                         name = data?['o_name'] ?? "Organizer";
                       }
 
                       return Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 22, vertical: 24),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(24),
                           gradient: const LinearGradient(
@@ -272,7 +284,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                   // 3. STATS CARDS
                   Row(
                     children: [
-                      // Student Card (Cool Blue)
+                      // Student Card
                       _buildReferenceCard(
                         title: "Total Students",
                         icon: Icons.groups_rounded,
@@ -285,11 +297,13 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         borderColor: const Color(0xFFD0E1FF),
                         badgeText: "Students",
                         watermarkIcon: Icons.groups_rounded,
-                        stream: FirebaseFirestore.instance.collection('player').snapshots(),
+                        stream: FirebaseFirestore.instance
+                            .collection('player')
+                            .snapshots(),
                       ),
                       const SizedBox(width: 14),
 
-                      // Active Rooms Card (Warm Orange)
+                      // Active Rooms Card (Filtered Client-Side for accuracy)
                       _buildReferenceCard(
                         title: "Active Rooms",
                         icon: Icons.bolt_rounded,
@@ -304,15 +318,16 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         watermarkIcon: Icons.bolt_rounded,
                         stream: FirebaseFirestore.instance
                             .collection('Battle_Room_Details')
-                            .where('start_time', isEqualTo: DateTime.now())
+                            .where('o_email', isEqualTo: currentUser?.email)
                             .snapshots(),
+                        filterActiveOnly: true, // Filters battles currently running
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 24),
 
-                  // 5. RECENT QUIZZES SECTION
+                  // 4. RECENT QUIZZES SECTION
                   const Text(
                     "Recent Quizzes",
                     style: TextStyle(
@@ -322,10 +337,14 @@ class _OrgDashboardState extends State<OrgDashboard> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  StreamBuilder(
-                      stream: FirebaseFirestore.instance.collection('Battle_Room_Details').where('o_email',isEqualTo: FirebaseAuth.instance.currentUser!.email).where('start_time',isLessThanOrEqualTo: Timestamp.now()).orderBy('start_time',descending: true).snapshots(),
-                      builder: (context,snapshot){
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                  StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('Battle_Room_Details')
+                          .where('o_email', isEqualTo: currentUser?.email)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const Center(
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 20),
@@ -336,7 +355,8 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         if (snapshot.hasError) {
                           return Text(
                             "Error loading battles: ${snapshot.error}",
-                            style: const TextStyle(color: textGrey, fontSize: 13),
+                            style:
+                            const TextStyle(color: textGrey, fontSize: 13),
                           );
                         }
                         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -346,10 +366,11 @@ class _OrgDashboardState extends State<OrgDashboard> {
                             decoration: BoxDecoration(
                               color: surfaceWhite,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: borderColor, width: 1.2),
+                              border:
+                              Border.all(color: borderColor, width: 1.2),
                             ),
-                            child: Text(
-                              "No upcoming battles scheduled.",
+                            child: const Text(
+                              "No battles scheduled.",
                               style: TextStyle(color: textGrey, fontSize: 13),
                               textAlign: TextAlign.center,
                             ),
@@ -362,18 +383,21 @@ class _OrgDashboardState extends State<OrgDashboard> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: data.length,
-                            itemBuilder: (context,index){
-                              var recentQuiz = data[index].data();
-                              String battlename = recentQuiz['room_name'];
-                              int totalQuestion = recentQuiz['questions'];
+                            itemBuilder: (context, index) {
+                              var recentQuiz =
+                              data[index].data() as Map<String, dynamic>;
+                              String battlename =
+                                  recentQuiz['room_name'] ?? 'Quiz Battle';
+                              int totalQuestion = recentQuiz['questions'] ?? 0;
                               return Padding(
-                                padding: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.only(bottom: 10),
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: surfaceWhite,
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: borderColor, width: 1.2),
+                                    border: Border.all(
+                                        color: borderColor, width: 1.2),
                                     boxShadow: [
                                       BoxShadow(
                                         color: textDark.withOpacity(0.02),
@@ -389,8 +413,10 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                         height: 48,
                                         decoration: BoxDecoration(
                                           color: bgCanvas,
-                                          borderRadius: BorderRadius.circular(14),
-                                          border: Border.all(color: borderColor),
+                                          borderRadius:
+                                          BorderRadius.circular(14),
+                                          border:
+                                          Border.all(color: borderColor),
                                         ),
                                         child: const Icon(
                                           Icons.quiz_rounded,
@@ -401,20 +427,21 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                       const SizedBox(width: 14),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               battlename,
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 color: textDark,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            SizedBox(height: 2),
+                                            const SizedBox(height: 2),
                                             Text(
                                               "$totalQuestion Questions",
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 color: textGrey,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w500,
@@ -429,9 +456,6 @@ class _OrgDashboardState extends State<OrgDashboard> {
                               );
                             });
                       }),
-
-                  // Quiz Item Tile
-
                 ],
               ),
             ),
@@ -452,6 +476,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
     required String badgeText,
     required IconData watermarkIcon,
     required Stream<QuerySnapshot> stream,
+    bool filterActiveOnly = false,
   }) {
     return Expanded(
       child: Container(
@@ -513,7 +538,8 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           child: Icon(icon, color: accentColor, size: 18),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: badgeBgColor,
                             borderRadius: BorderRadius.circular(10),
@@ -535,7 +561,37 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         StreamBuilder<QuerySnapshot>(
                           stream: stream,
                           builder: (context, snapshot) {
-                            final count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                            int count = 0;
+                            if (snapshot.hasData) {
+                              if (filterActiveOnly) {
+                                final now = DateTime.now();
+                                count = snapshot.data!.docs.where((doc) {
+                                  final data =
+                                  doc.data() as Map<String, dynamic>;
+
+                                  // Read timestamps if available
+                                  final Timestamp? start = data['start_time'];
+                                  final Timestamp? end = data['end_time'];
+
+                                  if (start != null) {
+                                    final startTime = start.toDate();
+                                    // If an end_time exists, check start <= now <= end
+                                    if (end != null) {
+                                      final endTime = end.toDate();
+                                      return now.isAfter(startTime) &&
+                                          now.isBefore(endTime);
+                                    }
+                                    // If no end_time, count all rooms started so far
+                                    return now.isAfter(startTime);
+                                  }
+
+                                  // If no time constraints, fallback to active status flag if present
+                                  return data['is_active'] == true;
+                                }).length;
+                              } else {
+                                count = snapshot.data!.docs.length;
+                              }
+                            }
                             return Text(
                               "$count",
                               style: const TextStyle(
