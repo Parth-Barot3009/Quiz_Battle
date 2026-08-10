@@ -62,7 +62,52 @@ class _ResultScreenState extends State<ResultScreen> {
   static const Color textDark = Color(0xFF0F172A);
   static const Color textMuted = Color(0xFF64748B);
 
+  @override
+  void initState() {
+    super.initState();
+    // Update player's stats once when the screen loads
+    _updatePlayerScore();
+  }
 
+  Future<void> _updatePlayerScore() async {
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (currentUserId == null) return;
+
+    try {
+      // 1. Fetch player document from the subcollection to check rank
+      final doc = await FirebaseFirestore.instance
+          .collection("Battle_Room_Details")
+          .doc(widget.battleId)
+          .collection("Players")
+          .doc(currentUserId)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        final int rank = data?["rank"] ?? 999;
+
+        // 2. Reference the main 'player' collection from your Firestore console
+        final playerRef = FirebaseFirestore.instance
+            .collection("player")
+            .doc(currentUserId);
+
+        // 3. Atomically increment stats
+        Map<String, dynamic> updateData = {
+          "played_battle": FieldValue.increment(1),
+        };
+
+        // If the user came in 1st place, increment 'player_win'
+        if (rank == 1) {
+          updateData["player_win"] = FieldValue.increment(1);
+        }
+
+        await playerRef.update(updateData);
+      }
+    } catch (e) {
+      debugPrint("Error updating player score: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
