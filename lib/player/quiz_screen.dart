@@ -59,7 +59,6 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   void initState() {
-    addBattleInPlayer();
     super.initState();
     fetchQuestions();
   }

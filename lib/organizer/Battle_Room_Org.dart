@@ -11,6 +11,35 @@ class Org_BattleRoom extends StatefulWidget {
 }
 
 class _Org_BattleRoomState extends State<Org_BattleRoom> {
+  // Helper method to format ONLY duration in Hours and Minutes
+  String _formatTimeAllocation(Timestamp? startTimestamp, Timestamp? endTimestamp) {
+    if (startTimestamp == null || endTimestamp == null) {
+      return "N/A";
+    }
+
+    final DateTime start = startTimestamp.toDate();
+    final DateTime end = endTimestamp.toDate();
+
+    final Duration diff = end.difference(start);
+
+    // Safety fallback for negative or equal time ranges
+    if (diff.isNegative || diff.inSeconds == 0) {
+      return "0 min";
+    }
+
+    final int hours = diff.inHours;
+    final int minutes = diff.inMinutes % 60;
+
+    // Return pure hours and minutes string
+    if (hours > 0 && minutes > 0) {
+      return "$hours hr $minutes min";
+    } else if (hours > 0) {
+      return "$hours hr";
+    } else {
+      return "$minutes min";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -130,20 +159,10 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                         data?['start_time'] as Timestamp?;
                         Timestamp? endTimestamp =
                         data?['end_time'] as Timestamp?;
-                        String durationText = "N/A";
 
-                        if (startTimestamp != null && endTimestamp != null) {
-                          DateTime startDateTime = startTimestamp.toDate();
-                          DateTime endDateTime = endTimestamp.toDate();
-                          Duration diff = endDateTime.difference(startDateTime);
-
-                          if (diff.inHours > 0) {
-                            durationText =
-                            "${diff.inHours} hr ${diff.inMinutes % 60} min";
-                          } else {
-                            durationText = "${diff.inMinutes} Minutes";
-                          }
-                        }
+                        // Execute formatting logic (hours & minutes only)
+                        String durationText =
+                        _formatTimeAllocation(startTimestamp, endTimestamp);
 
                         return Container(
                           width: double.infinity,
@@ -439,6 +458,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
@@ -459,7 +479,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
           ],
         ),
         const SizedBox(width: 12),
-        Flexible(
+        Expanded(
           child: Text(
             value,
             textAlign: TextAlign.end,
@@ -469,6 +489,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
               color: Color(0xFF2563EB),
             ),
             overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],

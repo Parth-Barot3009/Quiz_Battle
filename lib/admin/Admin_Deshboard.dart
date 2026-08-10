@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/admin/addorganiser.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,20 +22,23 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
   static const Color textDark = Color(0xFF1E293B);
   static const Color textGrey = Color(0xFF64748B);
 
-  // Exact Firebase Backend Logic
-  Future<int> getActiveBattleCount() async {
-    try {
-      AggregateQuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('Battle_Room_Details')
-          .where('start_time', isEqualTo: Timestamp.now())
-          .where('end_time', isEqualTo: Timestamp.now())
-          .count()
-          .get();
-
-      return snapshot.count ?? 0;
-    } catch (e) {
-      return 0;
-    }
+  // ✅ FIXED: Active Battles Query Logic
+  // Uses StreamBuilder for real-time live updates instead of static Future
+  Stream<int> getActiveBattleCountStream() {
+    final now = Timestamp.now();
+    return FirebaseFirestore.instance
+        .collection('Battle_Room_Details')
+        .where('start_time', isLessThanOrEqualTo: now)
+        .snapshots()
+        .map((snapshot) {
+      // Filter end_time manually to avoid complex compound index requirements
+      return snapshot.docs.where((doc) {
+        final data = doc.data();
+        final Timestamp? endTime = data['end_time'] as Timestamp?;
+        if (endTime == null) return false;
+        return endTime.compareTo(now) >= 0;
+      }).length;
+    });
   }
 
   Future<void> logout() async {
@@ -86,7 +88,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 1. TOP HEADER BAR
-                  // Replace your Top Header Bar Row with this:
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -134,7 +135,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                           decoration: BoxDecoration(
                             color: surfaceWhite,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFFEE2E2)), // Subtle red border
+                            border: Border.all(color: const Color(0xFFFEE2E2)),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(0xFFEF4444).withOpacity(0.06),
@@ -145,7 +146,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                           ),
                           child: const Icon(
                             Icons.logout_rounded,
-                            color: Color(0xFFEF4444), // Soft Red Accent
+                            color: Color(0xFFEF4444),
                             size: 20,
                           ),
                         ),
@@ -159,10 +160,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                   StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                     stream: FirebaseFirestore.instance
                         .collection('admin')
-                        .where(
-                      'email',
-                      isEqualTo: user?.email ?? "",
-                    )
+                        .where('email', isEqualTo: user?.email ?? "")
                         .snapshots(),
                     builder: (context, snapshot) {
                       String adminName = 'Admin';
@@ -173,16 +171,14 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
 
                       return Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 26),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 22, vertical: 26),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(24),
                           gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF3B82F6),
-                              Color(0xFF1D4ED8),
-                            ],
+                            colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -255,10 +251,12 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               end: Alignment.bottomRight,
                               colors: [Color(0xFFFFF5F5), Color(0xFFFEE2E2)],
                             ),
-                            border: Border.all(color: const Color(0xFFFECACA), width: 1.2),
+                            border: Border.all(
+                                color: const Color(0xFFFECACA), width: 1.2),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFEF4444).withOpacity(0.08),
+                                color:
+                                const Color(0xFFEF4444).withOpacity(0.08),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -274,31 +272,41 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                   child: Icon(
                                     Icons.group_outlined,
                                     size: 75,
-                                    color: const Color(0xFFEF4444).withOpacity(0.08),
+                                    color: const Color(0xFFEF4444)
+                                        .withOpacity(0.08),
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(14),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(7),
                                             decoration: BoxDecoration(
                                               color: surfaceWhite,
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                              BorderRadius.circular(10),
                                             ),
-                                            child: const Icon(Icons.group_outlined, color: Color(0xFFEF4444), size: 18),
+                                            child: const Icon(
+                                                Icons.group_outlined,
+                                                color: Color(0xFFEF4444),
+                                                size: 18),
                                           ),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 3),
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFFEE2E2),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                              BorderRadius.circular(8),
                                             ),
                                             child: const Text(
                                               "Organizers",
@@ -312,12 +320,17 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                         ],
                                       ),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                         children: [
                                           StreamBuilder<QuerySnapshot>(
-                                            stream: FirebaseFirestore.instance.collection('organizer').snapshots(),
+                                            stream: FirebaseFirestore.instance
+                                                .collection('organizer')
+                                                .snapshots(),
                                             builder: (context, snapshot) {
-                                              int count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                                              int count = snapshot.hasData
+                                                  ? snapshot.data!.docs.length
+                                                  : 0;
                                               return Text(
                                                 "$count",
                                                 style: const TextStyle(
@@ -362,10 +375,12 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               end: Alignment.bottomRight,
                               colors: [Color(0xFFF0FDF4), Color(0xFFDCFCE7)],
                             ),
-                            border: Border.all(color: const Color(0xFFA7F3D0), width: 1.2),
+                            border: Border.all(
+                                color: const Color(0xFFA7F3D0), width: 1.2),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF10B981).withOpacity(0.08),
+                                color:
+                                const Color(0xFF10B981).withOpacity(0.08),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -381,31 +396,40 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                   child: Icon(
                                     Icons.person,
                                     size: 75,
-                                    color: const Color(0xFF10B981).withOpacity(0.08),
+                                    color: const Color(0xFF10B981)
+                                        .withOpacity(0.08),
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(14),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(7),
                                             decoration: BoxDecoration(
                                               color: surfaceWhite,
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                              BorderRadius.circular(10),
                                             ),
-                                            child: const Icon(Icons.person, color: Color(0xFF10B981), size: 18),
+                                            child: const Icon(Icons.person,
+                                                color: Color(0xFF10B981),
+                                                size: 18),
                                           ),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 3),
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFD1FAE5),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                              BorderRadius.circular(8),
                                             ),
                                             child: const Text(
                                               "Students",
@@ -419,12 +443,17 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                         ],
                                       ),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                         children: [
                                           StreamBuilder<QuerySnapshot>(
-                                            stream: FirebaseFirestore.instance.collection('player').snapshots(),
+                                            stream: FirebaseFirestore.instance
+                                                .collection('player')
+                                                .snapshots(),
                                             builder: (context, snapshot) {
-                                              int count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                                              int count = snapshot.hasData
+                                                  ? snapshot.data!.docs.length
+                                                  : 0;
                                               return Text(
                                                 "$count",
                                                 style: const TextStyle(
@@ -463,7 +492,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                   // 3. STATS GRID (Row 2: Active Battles & Total Battles)
                   Row(
                     children: [
-                      // Active Battles Card
+                      // ✅ Active Battles Card (Updated with StreamBuilder)
                       Expanded(
                         child: Container(
                           height: 130,
@@ -474,10 +503,12 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               end: Alignment.bottomRight,
                               colors: [Color(0xFFFFF9F3), Color(0xFFFFF1E6)],
                             ),
-                            border: Border.all(color: const Color(0xFFFFE0C8), width: 1.2),
+                            border: Border.all(
+                                color: const Color(0xFFFFE0C8), width: 1.2),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFFF8A00).withOpacity(0.08),
+                                color:
+                                const Color(0xFFFF8A00).withOpacity(0.08),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -493,31 +524,41 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                   child: Icon(
                                     Icons.sports_esports,
                                     size: 75,
-                                    color: const Color(0xFFFF8A00).withOpacity(0.08),
+                                    color: const Color(0xFFFF8A00)
+                                        .withOpacity(0.08),
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(14),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(7),
                                             decoration: BoxDecoration(
                                               color: surfaceWhite,
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                              BorderRadius.circular(10),
                                             ),
-                                            child: const Icon(Icons.sports_esports, color: Color(0xFFFF8A00), size: 18),
+                                            child: const Icon(
+                                                Icons.sports_esports,
+                                                color: Color(0xFFFF8A00),
+                                                size: 18),
                                           ),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 3),
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFFFEAD8),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                              BorderRadius.circular(8),
                                             ),
                                             child: const Text(
                                               "Live Now",
@@ -531,10 +572,11 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                         ],
                                       ),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                         children: [
-                                          FutureBuilder<int>(
-                                            future: getActiveBattleCount(),
+                                          StreamBuilder<int>(
+                                            stream: getActiveBattleCountStream(),
                                             builder: (context, snapshot) {
                                               int count = snapshot.data ?? 0;
                                               return Text(
@@ -581,10 +623,12 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               end: Alignment.bottomRight,
                               colors: [Color(0xFFF5F8FF), Color(0xFFE8F1FF)],
                             ),
-                            border: Border.all(color: const Color(0xFFD0E1FF), width: 1.2),
+                            border: Border.all(
+                                color: const Color(0xFFD0E1FF), width: 1.2),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF4A7CFF).withOpacity(0.08),
+                                color:
+                                const Color(0xFF4A7CFF).withOpacity(0.08),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -600,31 +644,41 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                   child: Icon(
                                     Icons.book_outlined,
                                     size: 75,
-                                    color: const Color(0xFF4A7CFF).withOpacity(0.08),
+                                    color: const Color(0xFF4A7CFF)
+                                        .withOpacity(0.08),
                                   ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(14),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(7),
                                             decoration: BoxDecoration(
                                               color: surfaceWhite,
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                              BorderRadius.circular(10),
                                             ),
-                                            child: const Icon(Icons.book_outlined, color: Color(0xFF4A7CFF), size: 18),
+                                            child: const Icon(
+                                                Icons.book_outlined,
+                                                color: Color(0xFF4A7CFF),
+                                                size: 18),
                                           ),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 3),
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFDCE7FF),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                              BorderRadius.circular(8),
                                             ),
                                             child: const Text(
                                               "Total",
@@ -638,14 +692,17 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                         ],
                                       ),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                         children: [
                                           StreamBuilder<QuerySnapshot>(
                                             stream: FirebaseFirestore.instance
                                                 .collection('Battle_Room_Details')
                                                 .snapshots(),
                                             builder: (context, snapshot) {
-                                              int count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                                              int count = snapshot.hasData
+                                                  ? snapshot.data!.docs.length
+                                                  : 0;
                                               return Text(
                                                 "$count",
                                                 style: const TextStyle(

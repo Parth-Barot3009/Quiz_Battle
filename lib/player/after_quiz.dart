@@ -62,6 +62,9 @@ class _ResultScreenState extends State<ResultScreen> {
   static const Color textDark = Color(0xFF0F172A);
   static const Color textMuted = Color(0xFF64748B);
 
+  // ✅ Guard variable to prevent multiple score updates
+  bool _hasUpdatedScore = false;
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +73,10 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<void> _updatePlayerScore() async {
+    // Prevent duplicate updates if already executed
+    if (_hasUpdatedScore) return;
+    _hasUpdatedScore = true;
+
     final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     if (currentUserId == null) return;
@@ -87,17 +94,17 @@ class _ResultScreenState extends State<ResultScreen> {
         final data = doc.data();
         final int rank = data?["rank"] ?? 999;
 
-        // 2. Reference the main 'player' collection from your Firestore console
+        // 2. Reference the main 'player' collection
         final playerRef = FirebaseFirestore.instance
             .collection("player")
             .doc(currentUserId);
 
-        // 3. Atomically increment stats
+        // 3. Atomically increment stats by EXACTLY 1
         Map<String, dynamic> updateData = {
           "played_battle": FieldValue.increment(1),
         };
 
-        // If the user came in 1st place, increment 'player_win'
+        // If the user came in 1st place, increment 'player_win' by 1
         if (rank == 1) {
           updateData["player_win"] = FieldValue.increment(1);
         }
