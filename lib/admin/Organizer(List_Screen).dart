@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/addorganiser.dart';
 
@@ -350,6 +351,7 @@ class _Org_ListState extends State<Org_List> {
                                             .collection('organizer')
                                             .doc(organizer.id)
                                             .delete();
+                                        FirebaseAuth.instance.currentUser!.delete();
                                       },
                                       borderRadius: BorderRadius.circular(12),
                                       child: Container(

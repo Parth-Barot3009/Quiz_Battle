@@ -25,16 +25,11 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
 
   // Exact Firebase Backend Logic
   Future<int> getActiveBattleCount() async {
-    DateTime now = DateTime.now();
-
-    DateTime startOfDay = DateTime(now.year, now.month, now.day, 0, 0, 0);
-    DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
     try {
       AggregateQuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Battle_Room_Details')
-          .where('battle_date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-          .where('battle_date', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+          .where('start_time', isEqualTo: Timestamp.now())
+          .where('end_time', isEqualTo: Timestamp.now())
           .count()
           .get();
 

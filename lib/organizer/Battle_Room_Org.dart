@@ -20,12 +20,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Hardcoded dynamic data matching the dashboard layout
-    final String quizName = "Flutter";
-    final int questionsCount = 10;
-    final String status = "Waiting for players";
-    final List<String> players = ["Student 1", "Student 2"];
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -116,11 +110,12 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                     .doc(widget.roomCode)
                     .snapshots(),
                 builder: (context, snapshot) {
-                  Map<String, dynamic>? data = snapshot.data!.data();
+                  Map<String, dynamic>? data = snapshot.data?.data();
 
                   String battleName = data?['room_name'] ?? '';
                   int totalQuestion = data?['questions'] ?? 0;
-                  // 1. Extract Timestamps from Firestore Map safely
+
+                  // Extract Timestamps from Firestore Map safely
                   Timestamp? startTimestamp = data?['start_time'] as Timestamp?;
                   Timestamp? endTimestamp = data?['end_time'] as Timestamp?;
                   String durationText = "N/A";
@@ -133,7 +128,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
 
                     if (diff.inHours > 0) {
                       durationText =
-                          "${diff.inHours} hr ${diff.inMinutes % 60} min";
+                      "${diff.inHours} hr ${diff.inMinutes % 60} min";
                     } else {
                       durationText = "${diff.inMinutes} Minutes";
                     }
@@ -280,7 +275,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                             ),
                             Text(
                               durationText,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF2563EB),
@@ -343,8 +338,8 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                           ],
                         ),
 
-                        // Dynamic Roster List
-                        StreamBuilder(
+                        // Dynamic Active Player Counter Badge
+                        StreamBuilder<QuerySnapshot>(
                           stream: FirebaseFirestore.instance
                               .collection('Battle_Room_Details')
                               .doc(widget.roomCode)
@@ -378,20 +373,35 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                     ),
 
                     const SizedBox(height: 16),
-                    StreamBuilder(
+
+                    // Dynamic Player Roster List
+                    StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('Battle_Room_Details')
                           .doc(widget.roomCode)
                           .collection('Players')
                           .snapshots(),
                       builder: (context, snapshot) {
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Text(
+                              "Waiting for participants to join...",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                              ),
+                            ),
+                          );
+                        }
+
                         var data = snapshot.data!.docs;
                         return ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: data.length,
                           itemBuilder: (context, index) {
-                            var player = data[index].data();
+                            var player = data[index].data() as Map<String, dynamic>;
                             return Container(
                               margin: const EdgeInsets.only(bottom: 10),
                               padding: const EdgeInsets.symmetric(
@@ -404,11 +414,11 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                               ),
                               child: Row(
                                 mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
-                                      CircleAvatar(
+                                      const CircleAvatar(
                                         radius: 18,
                                         backgroundColor: Color(0xFF3B82F6),
                                         child: Icon(
@@ -420,10 +430,10 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                       const SizedBox(width: 12),
                                       Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            player['player_name'],
+                                            player['player_name'] ?? 'Player',
                                             style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
@@ -456,15 +466,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                     ),
                   ],
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  await FirebaseFirestore.instance
-                      .collection("Battle_Room_Details")
-                      .doc(widget.roomCode)
-                      .update({"status": "live"});
-                },
-                child: const Text("Start Battle Now"),
               ),
             ],
           ),

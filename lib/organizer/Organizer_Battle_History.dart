@@ -20,6 +20,14 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
   static const Color textDark = Color(0xFF1E293B);
   static const Color textGrey = Color(0xFF64748B);
 
+  // Dynamic Card Left Edge Accent Colors
+  static const List<Color> accentColors = [
+    Color(0xFF2563EB), // Royal Blue
+    Color(0xFF8B5CF6), // Purple
+    Color(0xFF10B981), // Emerald Green
+    Color(0xFFF59E0B), // Amber / Gold
+  ];
+
   // Helper method to format time into "05:05 AM"
   String formatTimeString(String rawTime, DateTime fallbackDate) {
     if (rawTime.isEmpty || rawTime == "N/A") {
@@ -47,14 +55,17 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
       backgroundColor: bgCanvas,
       body: Column(
         children: [
-          // 1. GRADIENT TOP HEADER BANNER
+          // 1. TOP HEADER BANNER
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
+                colors: [
+                  Color(0xFF4A7CFF),
+                  Color(0xFF306AE7),
+                ],
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(32),
@@ -68,27 +79,27 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // Watermark Illustration Icons
+                    // Background Watermark Icons
                     Positioned(
-                      right: 10,
+                      right: 40,
                       top: -10,
                       child: Icon(
-                        Icons.emoji_events_rounded,
+                        Icons.emoji_events_outlined,
                         size: 90,
                         color: Colors.white.withAlpha(25),
                       ),
                     ),
                     Positioned(
-                      right: 70,
+                      right: -10,
                       bottom: -20,
                       child: Icon(
-                        Icons.star_rounded,
-                        size: 60,
+                        Icons.sports_esports_outlined,
+                        size: 70,
                         color: Colors.white.withAlpha(20),
                       ),
                     ),
 
-                    // Navigation Back & Title
+                    // Navigation Back & Header Text
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -96,7 +107,12 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           child: InkWell(
-                            onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Org_Navigationbar())),
+                            onTap: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Org_Navigationbar(),
+                              ),
+                            ),
                             borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.all(10),
@@ -140,17 +156,17 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           // 2. FIRESTORE STREAM LIST
           Expanded(
-            child: StreamBuilder(
+            child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('Battle_Room_Details')
                   .where(
-                    'o_email',
-                    isEqualTo: FirebaseAuth.instance.currentUser?.email,
-                  )
+                'o_email',
+                isEqualTo: FirebaseAuth.instance.currentUser?.email,
+              )
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -160,30 +176,23 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                 }
 
                 if (snapshot.hasError) {
-                  return const Center(child: Text("Something went wrong"));
+                  return const Center(
+                    child: Text(
+                      "Something went wrong",
+                      style: TextStyle(color: textGrey, fontSize: 14),
+                    ),
+                  );
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.history_rounded, size: 48, color: textGrey),
-                        SizedBox(height: 8),
-                        Text(
-                          "No Battle Room Data Found",
-                          style: TextStyle(color: textGrey, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildEmptyState();
                 }
 
                 var roomDetails = snapshot.data!.docs;
 
                 return ListView.builder(
-                  physics: BouncingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   itemCount: roomDetails.length,
                   itemBuilder: (context, index) {
                     var roomDetailsList = roomDetails[index];
@@ -192,291 +201,346 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                     DateTime date = timestamp.toDate();
 
                     // Formatted Date (e.g., "01/08/2026")
-                    String formattedDate = DateFormat(
-                      "dd/MM/yyyy",
-                    ).format(date);
+                    String formattedDate = DateFormat("dd/MM/yyyy").format(date);
 
-                    // --- TIME FORMATTING FIX STARTS HERE ---
+                    // Formatted Time
                     dynamic rawStartTime = roomDetailsList['start_time'];
                     String startTime;
 
                     if (rawStartTime is Timestamp) {
-                      startTime = DateFormat(
-                        "hh:mm a",
-                      ).format(rawStartTime.toDate());
+                      startTime = DateFormat("hh:mm a").format(rawStartTime.toDate());
                     } else {
                       startTime = formatTimeString(
                         rawStartTime?.toString() ?? "",
                         date,
                       );
                     }
-                    // --- TIME FORMATTING FIX ENDS HERE ---
 
-                    String roomName =
-                        roomDetailsList['room_name'] ?? 'Battle Room';
+                    String roomName = roomDetailsList['room_name'] ?? 'Battle Room';
                     String roomCode = roomDetailsList['room_code'];
                     String winnerName = roomDetailsList['winner_name'] ?? 'Pending / TBD';
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: surfaceWhite,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: borderColor, width: 1.2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: textDark.withAlpha(6),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Stack(
-                          children: [
-                            // Front Left Accent Bar
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              bottom: 0,
-                              child: Container(
-                                width: 5,
-                                color: const Color(0xFF306AE7),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(18),
-                              child: Column(
-                                children: [
-                                  // Title Row
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF306AE7),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.emoji_events_rounded,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        roomName,
-                                        style: const TextStyle(
-                                          color: textDark,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                    final Color cardAccentColor = accentColors[index % accentColors.length];
 
-                                  const SizedBox(height: 14),
-
-                                  // Date & Time Banner Box
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF8FAFC),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.calendar_today_rounded,
-                                          size: 16,
-                                          color: brandBlue,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          formattedDate,
-                                          style: const TextStyle(
-                                            color: textDark,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Container(
-                                          height: 14,
-                                          width: 1,
-                                          color: borderColor,
-                                        ),
-                                        const Spacer(),
-                                        const Icon(
-                                          Icons.access_time_rounded,
-                                          size: 16,
-                                          color: brandBlue,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          startTime,
-                                          // Displayed as "05:05 AM" or formatted time
-                                          style: const TextStyle(
-                                            color: textDark,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 14),
-                                  // Participants Field (INLINE)
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(6),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.people_outline_rounded,
-                                          size: 16,
-                                          color: brandBlue,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        "Participants",
-                                        style: TextStyle(
-                                          color: textDark,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      StreamBuilder<QuerySnapshot>(
-                                        stream: FirebaseFirestore.instance
-                                            .collection('Battle_Room_Details')
-                                            .doc(roomCode)
-                                            .collection('Players')
-                                            .snapshots(),
-                                          builder: (context, snapshot) {
-                                          int count = snapshot.hasData ? snapshot.data!.docs.length : 0;
-                                          return Text(
-                                            "$count",
-                                            style: TextStyle(
-                                              color: brandBlue,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 8),
-                                    child: Divider(
-                                      color: Color(0xFFF1F5F9),
-                                      height: 1,
-                                    ),
-                                  ),
-
-                                  // Winner Field (INLINE)
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(6),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.emoji_events_outlined,
-                                          size: 16,
-                                          color: brandBlue,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        "Winner",
-                                        style: TextStyle(
-                                          color: textDark,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        winnerName,
-                                        style: TextStyle(
-                                          color: brandBlue,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 8),
-                                    child: Divider(
-                                      color: Color(0xFFF1F5F9),
-                                      height: 1,
-                                    ),
-                                  ),
-                                  // Room Code Field
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(6),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.pin_rounded,
-                                          size: 16,
-                                          color: brandBlue,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        "Room Code",
-                                        style: TextStyle(
-                                          color: textDark,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        roomCode,
-                                        style: TextStyle(
-                                          color: brandBlue,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    return _buildBattleCard(
+                      roomName: roomName,
+                      formattedDate: formattedDate,
+                      startTime: startTime,
+                      roomCode: roomCode,
+                      winnerName: winnerName,
+                      cardAccentColor: cardAccentColor,
                     );
                   },
                 );
               },
+            ),
+          ),
+
+          // 3. BOTTOM FOOTER COUNTER BADGE
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('Battle_Room_Details')
+                .where(
+              'o_email',
+              isEqualTo: FirebaseAuth.instance.currentUser?.email,
+            )
+                .snapshots(),
+            builder: (context, snapshot) {
+              final total = snapshot.hasData ? snapshot.data!.docs.length : 0;
+              return Container(
+                padding: const EdgeInsets.only(bottom: 16, top: 8),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: surfaceWhite,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: brandBlue.withAlpha(20),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.emoji_events_rounded,
+                        color: Color(0xFF306AE7),
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      "All Set!",
+                      style: TextStyle(
+                        color: Color(0xFF306AE7),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "There are $total total battles recorded",
+                      style: const TextStyle(
+                        color: textGrey,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- BATTLE ITEM CARD WIDGET ---
+  Widget _buildBattleCard({
+    required String roomName,
+    required String formattedDate,
+    required String startTime,
+    required String roomCode,
+    required String winnerName,
+    required Color cardAccentColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: surfaceWhite,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: textDark.withAlpha(6),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            // Left Side Dynamic Accent Bar
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 5,
+                color: cardAccentColor,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Row with Trophy Icon & Title
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: cardAccentColor.withAlpha(25),
+                        ),
+                        child: Icon(
+                          Icons.emoji_events_rounded,
+                          color: cardAccentColor,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          roomName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: textDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Date & Time Banner Box
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: bgCanvas,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 14,
+                              color: cardAccentColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              formattedDate,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 14,
+                              color: cardAccentColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              startTime,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Room Code Row
+                  _buildDataRow(
+                    icon: Icons.vpn_key_outlined,
+                    title: "Room Code",
+                    valueWidget: Text(
+                      roomCode,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: cardAccentColor,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Participants Row
+                  _buildDataRow(
+                    icon: Icons.group_outlined,
+                    title: "Participants",
+                    valueWidget: StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('Battle_Room_Details')
+                          .doc(roomCode)
+                          .collection('Players')
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        int participantCount =
+                        snapshot.hasData ? snapshot.data!.docs.length : 0;
+                        return Text(
+                          "$participantCount",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: cardAccentColor,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Winner Row
+                  _buildDataRow(
+                    icon: Icons.workspace_premium_outlined,
+                    title: "Winner",
+                    valueWidget: Text(
+                      winnerName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: cardAccentColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- HELPER DATA ROW ---
+  Widget _buildDataRow({
+    required IconData icon,
+    required String title,
+    required Widget valueWidget,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: textGrey),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 13,
+            color: textGrey,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const Spacer(),
+        valueWidget,
+      ],
+    );
+  }
+
+  // --- EMPTY STATE WIDGET ---
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(
+            Icons.history_toggle_off_rounded,
+            size: 60,
+            color: textGrey,
+          ),
+          SizedBox(height: 12),
+          Text(
+            "No Battles Found",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textDark,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            "There are currently no battles created.",
+            style: TextStyle(
+              fontSize: 12,
+              color: textGrey,
             ),
           ),
         ],

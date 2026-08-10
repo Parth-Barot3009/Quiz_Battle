@@ -633,6 +633,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                           String roomName =
                               battle['room_name'] ?? 'Unnamed Battle';
                           int totalQuestions = battle['questions'] ?? 0;
+                          String code = battle['room_code'] ?? 'No code';
                           // 1. Get the Timestamp from Firestore and convert to DateTime
                           Timestamp? startTimeStamp =
                               battle['start_time'] as Timestamp?;
@@ -710,7 +711,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                         Text(
                                           "Question: $totalQuestions\n"
                                           "Date: $dateString\n"
-                                          "Time: $timeString",
+                                          "Time: $timeString\n"
+                                              "Room Code: $code",
                                           style: TextStyle(
                                             color: textGrey,
                                             fontSize: 12,

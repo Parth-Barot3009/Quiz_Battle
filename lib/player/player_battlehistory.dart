@@ -22,6 +22,14 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
   static const Color textDark = Color(0xFF1E293B);
   static const Color textGrey = Color(0xFF64748B);
 
+  // Dynamic Card Left Edge Accent Colors
+  static const List<Color> accentColors = [
+    Color(0xFF2563EB), // Royal Blue
+    Color(0xFF8B5CF6), // Purple
+    Color(0xFF10B981), // Emerald Green
+    Color(0xFFF59E0B), // Amber / Gold
+  ];
+
   // Helper method to format time safely into "05:05 AM"
   String formatTimeString(dynamic rawTime, DateTime fallbackDate) {
     if (rawTime == null) {
@@ -71,14 +79,17 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
       backgroundColor: bgCanvas,
       body: Column(
         children: [
-          // 1. GRADIENT TOP HEADER BANNER
+          // 1. TOP HEADER BANNER
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF4A7CFF), Color(0xFF306AE7)],
+                colors: [
+                  Color(0xFF4A7CFF),
+                  Color(0xFF306AE7),
+                ],
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(32),
@@ -92,24 +103,27 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
+                    // Background Watermark Icons
                     Positioned(
-                      right: 10,
+                      right: 40,
                       top: -10,
                       child: Icon(
-                        Icons.sports_esports_rounded,
+                        Icons.sports_esports_outlined,
                         size: 90,
                         color: Colors.white.withAlpha(25),
                       ),
                     ),
                     Positioned(
-                      right: 70,
+                      right: -10,
                       bottom: -20,
                       child: Icon(
-                        Icons.star_rounded,
-                        size: 60,
+                        Icons.emoji_events_outlined,
+                        size: 70,
                         color: Colors.white.withAlpha(20),
                       ),
                     ),
+
+                    // Navigation Back & Header Text
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -117,7 +131,12 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           child: InkWell(
-                            onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>player_navigationbar())),
+                            onTap: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => player_navigationbar(),
+                              ),
+                            ),
                             borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.all(10),
@@ -148,6 +167,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 13,
+                                fontWeight: FontWeight.normal,
                               ),
                             ),
                           ],
@@ -160,9 +180,9 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
-          // 2. QUERY ALL 'Players' SUBCOLLECTIONS WHERE player_id MATCHES CURRENT USER
+          // 2. FIRESTORE COLLECTIONGROUP STREAM LIST
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -191,30 +211,14 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                 }
 
                 if (!playerSnapshot.hasData || playerSnapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.videogame_asset_off_rounded,
-                          size: 48,
-                          color: textGrey,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "You haven't played any battles yet!",
-                          style: TextStyle(color: textGrey, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildEmptyState();
                 }
 
                 var playerDocs = playerSnapshot.data!.docs;
 
                 return ListView.builder(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   itemCount: playerDocs.length,
                   itemBuilder: (context, index) {
                     var playerDoc = playerDocs[index];
@@ -225,6 +229,8 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                     DocumentReference? parentRoomRef = playerDoc.reference.parent.parent;
 
                     if (parentRoomRef == null) return const SizedBox.shrink();
+
+                    final Color cardAccentColor = accentColors[index % accentColors.length];
 
                     return StreamBuilder<DocumentSnapshot>(
                       stream: parentRoomRef.snapshots(),
@@ -251,219 +257,297 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                         // Player Score mapped directly from your schema
                         int myScore = playerData['player_score'] ?? 0;
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: surfaceWhite,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: borderColor, width: 1.2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: textDark.withAlpha(6),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: Stack(
-                              children: [
-                                Positioned(
-                                  left: 0,
-                                  top: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    width: 5,
-                                    color: const Color(0xFF306AE7),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(18),
-                                  child: Column(
-                                    children: [
-                                      // Room Title Row
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(10),
-                                            decoration: const BoxDecoration(
-                                              color: Color(0xFF306AE7),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(
-                                              Icons.emoji_events_rounded,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              roomName,
-                                              style: const TextStyle(
-                                                color: textDark,
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 14),
-
-                                      // Date & Time Box
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF8FAFC),
-                                          borderRadius: BorderRadius.circular(14),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.calendar_today_rounded,
-                                              size: 16,
-                                              color: brandBlue,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              formattedDate,
-                                              style: const TextStyle(
-                                                color: textDark,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            const Spacer(),
-                                            Container(
-                                              height: 14,
-                                              width: 1,
-                                              color: borderColor,
-                                            ),
-                                            const Spacer(),
-                                            const Icon(
-                                              Icons.access_time_rounded,
-                                              size: 16,
-                                              color: brandBlue,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              startTime,
-                                              style: const TextStyle(
-                                                color: textDark,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
-                                        child: Divider(
-                                          color: Color(0xFFF1F5F9),
-                                          height: 1,
-                                        ),
-                                      ),
-
-                                      // Score Row
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFEFF6FF),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: const Icon(
-                                              Icons.military_tech_rounded,
-                                              size: 16,
-                                              color: brandBlue,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          const Text(
-                                            "My Score",
-                                            style: TextStyle(
-                                              color: textDark,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            "$myScore pts",
-                                            style: const TextStyle(
-                                              color: brandBlue,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 8),
-                                        child: Divider(
-                                          color: Color(0xFFF1F5F9),
-                                          height: 1,
-                                        ),
-                                      ),
-
-                                      // Room Code Row
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFEFF6FF),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: const Icon(
-                                              Icons.pin_rounded,
-                                              size: 16,
-                                              color: brandBlue,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          const Text(
-                                            "Room Code",
-                                            style: TextStyle(
-                                              color: textDark,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            roomCode,
-                                            style: const TextStyle(
-                                              color: brandBlue,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        return _buildBattleCard(
+                          roomName: roomName,
+                          formattedDate: formattedDate,
+                          startTime: startTime,
+                          roomCode: roomCode,
+                          myScore: myScore,
+                          cardAccentColor: cardAccentColor,
                         );
                       },
                     );
                   },
                 );
               },
+            ),
+          ),
+
+          // 3. BOTTOM FOOTER COUNTER BADGE
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collectionGroup('Players')
+                .where('player_id', isEqualTo: currentUser.uid)
+                .snapshots(),
+            builder: (context, snapshot) {
+              final total = snapshot.hasData ? snapshot.data!.docs.length : 0;
+              return Container(
+                padding: const EdgeInsets.only(bottom: 16, top: 8),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: surfaceWhite,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: brandBlue.withAlpha(20),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.emoji_events_rounded,
+                        color: Color(0xFF306AE7),
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      "All Set!",
+                      style: TextStyle(
+                        color: Color(0xFF306AE7),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "There are $total total battles recorded",
+                      style: const TextStyle(
+                        color: textGrey,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- BATTLE ITEM CARD WIDGET ---
+  Widget _buildBattleCard({
+    required String roomName,
+    required String formattedDate,
+    required String startTime,
+    required String roomCode,
+    required int myScore,
+    required Color cardAccentColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: surfaceWhite,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: textDark.withAlpha(6),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            // Left Side Dynamic Accent Bar
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 5,
+                color: cardAccentColor,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Row with Trophy Icon & Title
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: cardAccentColor.withAlpha(25),
+                        ),
+                        child: Icon(
+                          Icons.emoji_events_rounded,
+                          color: cardAccentColor,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          roomName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: textDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Date & Time Banner Box
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: bgCanvas,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 14,
+                              color: cardAccentColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              formattedDate,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 14,
+                              color: cardAccentColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              startTime,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Room Code Row
+                  _buildDataRow(
+                    icon: Icons.vpn_key_outlined,
+                    title: "Room Code",
+                    valueWidget: Text(
+                      roomCode,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: cardAccentColor,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // My Score Row
+                  _buildDataRow(
+                    icon: Icons.military_tech_outlined,
+                    title: "My Score",
+                    valueWidget: Text(
+                      "$myScore pts",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: cardAccentColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- HELPER DATA ROW ---
+  Widget _buildDataRow({
+    required IconData icon,
+    required String title,
+    required Widget valueWidget,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: textGrey),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 13,
+            color: textGrey,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const Spacer(),
+        valueWidget,
+      ],
+    );
+  }
+
+  // --- EMPTY STATE WIDGET ---
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(
+            Icons.videogame_asset_off_rounded,
+            size: 60,
+            color: textGrey,
+          ),
+          SizedBox(height: 12),
+          Text(
+            "No Battles Found",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textDark,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            "You haven't played any battles yet!",
+            style: TextStyle(
+              fontSize: 12,
+              color: textGrey,
             ),
           ),
         ],
