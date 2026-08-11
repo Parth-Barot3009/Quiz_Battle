@@ -125,13 +125,12 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                 ),
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.push(
+                                    Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            player_navigationbar(
-                                              currentIndex: 3,
-                                            ),
+                                        builder: (context) => player_navigationbar(
+                                          currentIndex: 3,
+                                        ),
                                       ),
                                     );
                                   },
@@ -265,142 +264,156 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   // 3. STATS GRID (Row: Battles & Wins)
                   Row(
                     children: [
-                      // Battles Card
+                      // Battles Card (Redirects to Battle History - Index 2)
                       Expanded(
-                        child: Container(
-                          height: 130,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFFF5F8FF), Color(0xFFE8F1FF)],
-                            ),
-                            border: Border.all(
-                              color: const Color(0xFFD0E1FF),
-                              width: 1.2,
-                            ),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x144A7CFF),
-                                blurRadius: 10,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
-                            child: Stack(
-                              children: [
-                                const Positioned(
-                                  right: -10,
-                                  bottom: -10,
-                                  child: Icon(
-                                    Icons.sports_esports,
-                                    size: 75,
-                                    color: Color(0x144A7CFF),
-                                  ),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => player_navigationbar(
+                                  currentIndex: 2,
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(14),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(7),
-                                            decoration: BoxDecoration(
-                                              color: surfaceWhite,
-                                              borderRadius:
-                                              BorderRadius.circular(10),
-                                            ),
-                                            child: const Icon(
-                                              Icons.sports_esports,
-                                              color: Color(0xFF4A7CFF),
-                                              size: 18,
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 3,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFDCE7FF),
-                                              borderRadius:
-                                              BorderRadius.circular(8),
-                                            ),
-                                            child: const Text(
-                                              "Played Battles",
-                                              style: TextStyle(
-                                                color: Color(0xFF4A7CFF),
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      StreamBuilder(
-                                        stream: FirebaseFirestore.instance
-                                            .collection('player')
-                                            .where(
-                                          'player_email',
-                                          isEqualTo: FirebaseAuth
-                                              .instance
-                                              .currentUser
-                                              ?.email,
-                                        )
-                                            .snapshots(),
-                                        builder: (context, snapshot) {
-                                          int totalBattle = 0;
-
-                                          if (snapshot.hasData &&
-                                              snapshot.data!.docs.isNotEmpty) {
-                                            var data = snapshot.data!.docs.first
-                                                .data();
-                                            totalBattle =
-                                                data['played_battle'] ?? 0;
-                                          }
-
-                                          return Column(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "$totalBattle",
-                                                style: const TextStyle(
-                                                  fontSize: 24,
-                                                  fontWeight: FontWeight.w900,
-                                                  color: textDark,
-                                                  letterSpacing: -0.5,
-                                                  height: 1.0,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 3),
-                                              const Text(
-                                                "Battles",
-                                                style: TextStyle(
-                                                  color: textGrey,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            height: 130,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFFF5F8FF), Color(0xFFE8F1FF)],
+                              ),
+                              border: Border.all(
+                                color: const Color(0xFFD0E1FF),
+                                width: 1.2,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x144A7CFF),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
                                 ),
                               ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: Stack(
+                                children: [
+                                  const Positioned(
+                                    right: -10,
+                                    bottom: -10,
+                                    child: Icon(
+                                      Icons.sports_esports,
+                                      size: 75,
+                                      color: Color(0x144A7CFF),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(14),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(7),
+                                              decoration: BoxDecoration(
+                                                color: surfaceWhite,
+                                                borderRadius:
+                                                BorderRadius.circular(10),
+                                              ),
+                                              child: const Icon(
+                                                Icons.sports_esports,
+                                                color: Color(0xFF4A7CFF),
+                                                size: 18,
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 3,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFDCE7FF),
+                                                borderRadius:
+                                                BorderRadius.circular(8),
+                                              ),
+                                              child: const Text(
+                                                "Played Battles",
+                                                style: TextStyle(
+                                                  color: Color(0xFF4A7CFF),
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        StreamBuilder(
+                                          stream: FirebaseFirestore.instance
+                                              .collection('player')
+                                              .where(
+                                            'player_email',
+                                            isEqualTo: FirebaseAuth
+                                                .instance
+                                                .currentUser
+                                                ?.email,
+                                          )
+                                              .snapshots(),
+                                          builder: (context, snapshot) {
+                                            int totalBattle = 0;
+
+                                            if (snapshot.hasData &&
+                                                snapshot
+                                                    .data!.docs.isNotEmpty) {
+                                              var data = snapshot
+                                                  .data!.docs.first
+                                                  .data();
+                                              totalBattle =
+                                                  data['played_battle'] ?? 0;
+                                            }
+
+                                            return Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "$totalBattle",
+                                                  style: const TextStyle(
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: textDark,
+                                                    letterSpacing: -0.5,
+                                                    height: 1.0,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 3),
+                                                const Text(
+                                                  "Battles",
+                                                  style: TextStyle(
+                                                    color: textGrey,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -489,7 +502,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                           ),
                                         ],
                                       ),
-
                                       StreamBuilder(
                                         stream: FirebaseFirestore.instance
                                             .collection('player')

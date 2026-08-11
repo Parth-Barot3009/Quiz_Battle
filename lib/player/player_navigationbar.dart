@@ -5,15 +5,15 @@ import 'package:quiz_battle/player/player_battlehistory.dart';
 import 'package:quiz_battle/player/user_profile.dart';
 
 class player_navigationbar extends StatefulWidget {
-  int? currentIndex;
-  player_navigationbar({super.key, this.currentIndex});
+  final int? currentIndex;
+  const player_navigationbar({super.key, this.currentIndex});
 
   @override
   State<player_navigationbar> createState() => _player_navigationbarState();
 }
 
 class _player_navigationbarState extends State<player_navigationbar> {
-  int? _currentIndex;
+  late int _currentIndex;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -29,18 +29,14 @@ class _player_navigationbarState extends State<player_navigationbar> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    if(widget.currentIndex != null) {
-      _currentIndex = widget.currentIndex!;
-    } else {
-      _currentIndex = 0;
-    }
+    _currentIndex = widget.currentIndex ?? 0;
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // IndexedStack preserves state across screen switches without using PageView
+      // IndexedStack preserves state across screen switches
       body: IndexedStack(
         index: _currentIndex,
         children: _screen,

@@ -103,28 +103,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Material(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          child: InkWell(
-                            onTap: () => Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Org_Navigationbar(),
-                              ),
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              child: const Icon(
-                                Icons.arrow_back_ios_new_rounded,
-                                color: Color(0xFF306AE7),
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [

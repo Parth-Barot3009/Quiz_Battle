@@ -430,36 +430,6 @@ class _create_battleState extends State<create_battle> {
                   children: [
                     Row(
                       children: [
-                        // Back Button Box
-                        InkWell(
-                          onTap: () => Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Org_Navigationbar(),
-                            ),
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x0A000000),
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              size: 18,
-                              color: Color(0xFF3B82F6),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
                         // Title & Subtitle
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

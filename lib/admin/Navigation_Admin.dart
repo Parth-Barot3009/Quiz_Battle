@@ -5,14 +5,16 @@ import 'package:quiz_battle/admin/Student_ListScreen.dart';
 import 'package:quiz_battle/admin/allbattlehistoryo.dart';
 
 class Admin_Nav extends StatefulWidget {
-  const Admin_Nav({super.key});
+  final int initialIndex;
+
+  const Admin_Nav({super.key, this.initialIndex = 0});
 
   @override
   State<Admin_Nav> createState() => _Admin_NavState();
 }
 
 class _Admin_NavState extends State<Admin_Nav> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -27,15 +29,20 @@ class _Admin_NavState extends State<Admin_Nav> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // IndexedStack preserves state across screen switches without using PageView
       body: IndexedStack(
         index: _currentIndex,
         children: _screen,
       ),
       bottomNavigationBar: Container(
-        color: const Color(0xFFF4F7FF), // Matches screen canvas
+        color: const Color(0xFFF4F7FF),
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Container(
           height: 66,
@@ -70,7 +77,7 @@ class _Admin_NavState extends State<Admin_Nav> {
                 index: 2,
                 icon: Icons.school_rounded,
                 outlinedIcon: Icons.school_outlined,
-                label: "Students",
+                label: "Players",
               ),
               _buildNavItem(
                 index: 3,
@@ -85,7 +92,6 @@ class _Admin_NavState extends State<Admin_Nav> {
     );
   }
 
-  // Smooth Tab Button Builder
   Widget _buildNavItem({
     required int index,
     required IconData icon,

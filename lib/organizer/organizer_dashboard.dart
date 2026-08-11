@@ -302,10 +302,10 @@ class _OrgDashboardState extends State<OrgDashboard> {
                   // 3. STATS CARDS
                   Row(
                     children: [
-                      // Student Card
+                      // Total Battles Card (Redirects to History Tab)
                       _buildReferenceCard(
-                        title: "Total Students",
-                        icon: Icons.groups_rounded,
+                        title: "Total Battles",
+                        icon: Icons.quiz_rounded,
                         accentColor: const Color(0xFF4A7CFF),
                         badgeBgColor: const Color(0xFFDCE7FF),
                         gradientColors: [
@@ -313,11 +313,22 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           const Color(0xFFE8F1FF),
                         ],
                         borderColor: const Color(0xFFD0E1FF),
-                        badgeText: "Students",
-                        watermarkIcon: Icons.groups_rounded,
+                        badgeText: "Battles",
+                        watermarkIcon: Icons.quiz_rounded,
                         stream: FirebaseFirestore.instance
-                            .collection('player')
+                            .collection('Battle_Room_Details')
+                            .where('o_email', isEqualTo: currentUser?.email)
                             .snapshots(),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Org_Navigationbar(
+                                currentIndex: 2,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(width: 14),
 
@@ -345,9 +356,9 @@ class _OrgDashboardState extends State<OrgDashboard> {
 
                   const SizedBox(height: 24),
 
-                  // 4. RECENT QUIZZES SECTION
+                  // 4. ACTIVE BATTLES SECTION
                   const Text(
-                    "Recent Quizzes",
+                    "Active Battles",
                     style: TextStyle(
                       color: textDark,
                       fontSize: 16,
@@ -371,11 +382,31 @@ class _OrgDashboardState extends State<OrgDashboard> {
                       }
                       if (snapshot.hasError) {
                         return Text(
-                          "Error loading battles: ${snapshot.error}",
+                          "Error loading active battles: ${snapshot.error}",
                           style: const TextStyle(color: textGrey, fontSize: 13),
                         );
                       }
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+
+                      final now = DateTime.now();
+
+                      // Filter client-side to only keep active rooms based on start/end timestamps or is_active flag
+                      final activeDocs = (snapshot.data?.docs ?? []).where((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        final Timestamp? start = data['start_time'];
+                        final Timestamp? end = data['end_time'];
+
+                        if (start != null) {
+                          final startTime = start.toDate();
+                          if (end != null) {
+                            final endTime = end.toDate();
+                            return now.isAfter(startTime) && now.isBefore(endTime);
+                          }
+                          return now.isAfter(startTime);
+                        }
+                        return data['is_active'] == true;
+                      }).toList();
+
+                      if (activeDocs.isEmpty) {
                         return Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
@@ -385,25 +416,25 @@ class _OrgDashboardState extends State<OrgDashboard> {
                             border: Border.all(color: borderColor, width: 1.2),
                           ),
                           child: const Text(
-                            "No battles scheduled.",
+                            "No active battles live right now.",
                             style: TextStyle(color: textGrey, fontSize: 13),
                             textAlign: TextAlign.center,
                           ),
                         );
                       }
 
-                      var data = snapshot.data!.docs;
-
                       return ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: data.length,
+                        itemCount: activeDocs.length,
                         itemBuilder: (context, index) {
-                          var recentQuiz =
-                          data[index].data() as Map<String, dynamic>;
+                          var activeBattle =
+                          activeDocs[index].data() as Map<String, dynamic>;
                           String battlename =
-                              recentQuiz['room_name'] ?? 'Quiz Battle';
-                          int totalQuestion = recentQuiz['questions'] ?? 0;
+                              activeBattle['room_name'] ?? 'Quiz Battle';
+                          String roomCode = activeBattle['room_code'] ?? 'N/A';
+                          int totalQuestion = activeBattle['questions'] ?? 0;
+
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Container(
@@ -429,14 +460,16 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: bgCanvas,
+                                      color: const Color(0xFFFFF1E6),
                                       borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: borderColor),
+                                      border: Border.all(
+                                        color: const Color(0xFFFFE0C8),
+                                      ),
                                     ),
                                     child: const Icon(
-                                      Icons.quiz_rounded,
-                                      color: textGrey,
-                                      size: 22,
+                                      Icons.bolt_rounded,
+                                      color: Color(0xFFFF8A00),
+                                      size: 24,
                                     ),
                                   ),
                                   const SizedBox(width: 14),
@@ -455,7 +488,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          "$totalQuestion Questions",
+                                          "Code: $roomCode • $totalQuestion Questions",
                                           style: const TextStyle(
                                             color: textGrey,
                                             fontSize: 12,
@@ -463,6 +496,24 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                           ),
                                         ),
                                       ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFDCFCE7),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Text(
+                                      "LIVE",
+                                      style: TextStyle(
+                                        color: Color(0xFF10B981),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -494,148 +545,152 @@ class _OrgDashboardState extends State<OrgDashboard> {
     required IconData watermarkIcon,
     required Stream<QuerySnapshot> stream,
     bool filterActiveOnly = false,
+    VoidCallback? onTap,
   }) {
     return Expanded(
-      child: Container(
-        height: 135,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: gradientColors,
-          ),
-          border: Border.all(color: borderColor, width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: accentColor.withOpacity(0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 135,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: gradientColors,
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Stack(
-            children: [
-              // Background Watermark Graphic
-              Positioned(
-                right: -10,
-                bottom: -10,
-                child: Icon(
-                  watermarkIcon,
-                  size: 75,
-                  color: accentColor.withOpacity(0.08),
-                ),
-              ),
-
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: surfaceWhite,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Icon(icon, color: accentColor, size: 18),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: badgeBgColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            badgeText,
-                            style: TextStyle(
-                              color: accentColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        StreamBuilder<QuerySnapshot>(
-                          stream: stream,
-                          builder: (context, snapshot) {
-                            int count = 0;
-                            if (snapshot.hasData) {
-                              if (filterActiveOnly) {
-                                final now = DateTime.now();
-                                count = snapshot.data!.docs.where((doc) {
-                                  final data =
-                                  doc.data() as Map<String, dynamic>;
-
-                                  final Timestamp? start = data['start_time'];
-                                  final Timestamp? end = data['end_time'];
-
-                                  if (start != null) {
-                                    final startTime = start.toDate();
-                                    if (end != null) {
-                                      final endTime = end.toDate();
-                                      return now.isAfter(startTime) &&
-                                          now.isBefore(endTime);
-                                    }
-                                    return now.isAfter(startTime);
-                                  }
-
-                                  return data['is_active'] == true;
-                                }).length;
-                              } else {
-                                count = snapshot.data!.docs.length;
-                              }
-                            }
-                            return Text(
-                              "$count",
-                              style: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                                color: textDark,
-                                letterSpacing: -0.5,
-                                height: 1.0,
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: textGrey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+            border: Border.all(color: borderColor, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withOpacity(0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Stack(
+              children: [
+                // Background Watermark Graphic
+                Positioned(
+                  right: -10,
+                  bottom: -10,
+                  child: Icon(
+                    watermarkIcon,
+                    size: 75,
+                    color: accentColor.withOpacity(0.08),
+                  ),
+                ),
+
+                // Content
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: surfaceWhite,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(icon, color: accentColor, size: 18),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: badgeBgColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              badgeText,
+                              style: TextStyle(
+                                color: accentColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          StreamBuilder<QuerySnapshot>(
+                            stream: stream,
+                            builder: (context, snapshot) {
+                              int count = 0;
+                              if (snapshot.hasData) {
+                                if (filterActiveOnly) {
+                                  final now = DateTime.now();
+                                  count = snapshot.data!.docs.where((doc) {
+                                    final data =
+                                    doc.data() as Map<String, dynamic>;
+
+                                    final Timestamp? start = data['start_time'];
+                                    final Timestamp? end = data['end_time'];
+
+                                    if (start != null) {
+                                      final startTime = start.toDate();
+                                      if (end != null) {
+                                        final endTime = end.toDate();
+                                        return now.isAfter(startTime) &&
+                                            now.isBefore(endTime);
+                                      }
+                                      return now.isAfter(startTime);
+                                    }
+
+                                    return data['is_active'] == true;
+                                  }).length;
+                                } else {
+                                  count = snapshot.data!.docs.length;
+                                }
+                              }
+                              return Text(
+                                "$count",
+                                style: const TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                  color: textDark,
+                                  letterSpacing: -0.5,
+                                  height: 1.0,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: textGrey,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
