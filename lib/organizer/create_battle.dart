@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
-import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 
 class create_battle extends StatefulWidget {
   const create_battle({super.key});
@@ -39,6 +38,18 @@ class _create_battleState extends State<create_battle> {
   void dispose() {
     roomname.dispose();
     super.dispose();
+  }
+
+  /// Helper to reset all form fields back to default state
+  void _resetFormFields() {
+    roomname.clear();
+    totalQuestions = 0;
+    startTime = null;
+    endTime = null;
+    selectedDate = null;
+    selectedFileName = null;
+    selectedBytes = null;
+    roomCode = generateRoomCode(); // Generate new code for next battle
   }
 
   // Time Picker Logic
@@ -106,8 +117,7 @@ class _create_battleState extends State<create_battle> {
   }
 
   Future<void> uploadQuestionsToFirestore(String roomCode) async {
-    DocumentSnapshot battleDoc =
-    await FirebaseFirestore.instance
+    DocumentSnapshot battleDoc = await FirebaseFirestore.instance
         .collection("Battle_Room_Details")
         .doc(roomCode)
         .get();
@@ -182,7 +192,6 @@ class _create_battleState extends State<create_battle> {
       }
     }
 
-    // Show sample file dialog with a Close button
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -430,7 +439,6 @@ class _create_battleState extends State<create_battle> {
                   children: [
                     Row(
                       children: [
-                        // Title & Subtitle
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
@@ -454,8 +462,6 @@ class _create_battleState extends State<create_battle> {
                         ),
                       ],
                     ),
-
-                    // Header Badge/Icon
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
@@ -473,7 +479,7 @@ class _create_battleState extends State<create_battle> {
 
                 const SizedBox(height: 20),
 
-                // 2. ROOM NAME CARD (INLINE)
+                // 2. ROOM NAME CARD
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
@@ -548,7 +554,7 @@ class _create_battleState extends State<create_battle> {
 
                 const SizedBox(height: 12),
 
-                // 3. QUESTIONS FOR BATTLE CARD (INLINE)
+                // 3. QUESTIONS FOR BATTLE CARD
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
@@ -664,7 +670,7 @@ class _create_battleState extends State<create_battle> {
 
                 const SizedBox(height: 12),
 
-                // 4. START TIME CARD (INLINE)
+                // 4. START TIME CARD
                 InkWell(
                   onTap: () => pickTime(true),
                   borderRadius: BorderRadius.circular(16),
@@ -743,7 +749,7 @@ class _create_battleState extends State<create_battle> {
 
                 const SizedBox(height: 12),
 
-                // 5. END TIME CARD (INLINE)
+                // 5. END TIME CARD
                 InkWell(
                   onTap: () => pickTime(false),
                   borderRadius: BorderRadius.circular(16),
@@ -822,7 +828,7 @@ class _create_battleState extends State<create_battle> {
 
                 const SizedBox(height: 12),
 
-                // 6. QUIZ DATE CARD (INLINE)
+                // 6. QUIZ DATE CARD
                 InkWell(
                   onTap: pickDate,
                   borderRadius: BorderRadius.circular(16),
@@ -903,7 +909,7 @@ class _create_battleState extends State<create_battle> {
 
                 const SizedBox(height: 12),
 
-                // 7. QUESTION FILE CARD (INLINE)
+                // 7. QUESTION FILE CARD
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
@@ -994,7 +1000,7 @@ class _create_battleState extends State<create_battle> {
 
                 const SizedBox(height: 24),
 
-                // 8. CREATE BATTLE BUTTON (INLINE)
+                // 8. CREATE BATTLE BUTTON
                 Container(
                   width: double.infinity,
                   height: 54,
@@ -1033,18 +1039,21 @@ class _create_battleState extends State<create_battle> {
                             SnackBar(
                               elevation: 4,
                               behavior: SnackBarBehavior.floating,
-                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 60),
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 60),
                               backgroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                                side: const BorderSide(
+                                    color: Color(0xFFE2E8F0), width: 1),
                               ),
                               content: Row(
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF3B82F6).withOpacity(0.1),
+                                      color: const Color(0xFF3B82F6)
+                                          .withOpacity(0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -1069,16 +1078,28 @@ class _create_battleState extends State<create_battle> {
                             ),
                           );
 
-                          Navigator.push(
+                          // PUSH TO ROOM DETAILS & CLEAR STATE UPON RETURN
+                          final String currentRoomCode = roomCode;
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Org_BattleRoom(roomCode: roomCode),
+                              builder: (context) => Org_BattleRoom(
+                                roomCode: currentRoomCode,
+                              ),
                             ),
                           );
+
+                          // Reset form fields when user clicks Back from Org_BattleRoom
+                          if (mounted) {
+                            setState(() {
+                              _resetFormFields();
+                            });
+                          }
                         }
                       } catch (e) {
                         if (context.mounted) {
-                          _showErrorSnackBar(e.toString().replaceAll("Exception: ", ""));
+                          _showErrorSnackBar(
+                              e.toString().replaceAll("Exception: ", ""));
                         }
                       } finally {
                         if (mounted) {
@@ -1107,7 +1128,8 @@ class _create_battleState extends State<create_battle> {
                         : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
-                        Icon(Icons.sports_esports_rounded, color: Colors.white),
+                        Icon(Icons.sports_esports_rounded,
+                            color: Colors.white),
                         SizedBox(width: 8),
                         Text(
                           "Create Battle",

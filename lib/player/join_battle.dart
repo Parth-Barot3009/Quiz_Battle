@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:quiz_battle/player/afterjoinroom.dart';
 import 'package:quiz_battle/player/player_navigationbar.dart';
 
@@ -230,7 +231,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                   const SizedBox(height: 15),
 
                   //==========================
-                  // ROOM CODE TEXTFIELD
+                  // ROOM CODE TEXTFIELD (UPPERCASE ENFORCED)
                   //==========================
                   Container(
                     decoration: BoxDecoration(
@@ -247,6 +248,10 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                     child: TextField(
                       controller: roomCode,
                       textAlign: TextAlign.center,
+                      textCapitalization: TextCapitalization.characters, // 👈 Opens capital keyboard
+                      inputFormatters: [
+                        UpperCaseTextFormatter(), // 👈 Automatically converts input to UPPERCASE
+                      ],
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -581,6 +586,20 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// Custom TextInputFormatter to convert all input characters to UPPERCASE
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
     );
   }
 }
