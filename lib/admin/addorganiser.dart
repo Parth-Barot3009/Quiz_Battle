@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart'; // For kIsWeb / Uint8List
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -18,6 +19,7 @@ class _AddorganiserState extends State<Addorganiser> {
   final namecon = TextEditingController();
   final emailcontroller = TextEditingController();
   final passwordcontroller = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   static const String cloudName = "bjcbyn5j";
   static const String uploadPreset = "quizx-app";
@@ -28,6 +30,7 @@ class _AddorganiserState extends State<Addorganiser> {
   XFile? selectedXFile;
   Uint8List? selectedImageBytes;
   bool passwordvisible = true;
+  bool confirmPasswordVisible = true;
   bool isLoading = false;
 
   // App Theme Palette
@@ -43,6 +46,7 @@ class _AddorganiserState extends State<Addorganiser> {
     namecon.dispose();
     emailcontroller.dispose();
     passwordcontroller.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -64,7 +68,7 @@ class _AddorganiserState extends State<Addorganiser> {
     }
   }
 
-  // 2. UPLOAD IMAGE TO CLOUDINARY (Works on Web, Android, iOS)
+  // 2. UPLOAD IMAGE TO CLOUDINARY
   static Future<String> uploadImage(XFile imageFile, Uint8List imageBytes) async {
     try {
       final request = http.MultipartRequest("POST", _uploadUrl);
@@ -90,25 +94,44 @@ class _AddorganiserState extends State<Addorganiser> {
     }
   }
 
-  // 3. CREATE FIREBASE AUTH USER
-  Future createOrg() async {
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: emailcontroller.text.trim(),
-      password: passwordcontroller.text.trim(),
-    );
-  }
+  // 3. CREATE FIREBASE AUTH USER & STORE FIRESTORE DETAILS
+  // Uses a secondary app instance so the active Admin session is NOT signed out.
+  Future<void> createOrganizerAccount(String imageUrl) async {
+    FirebaseApp? tempApp;
+    try {
+      // Create secondary app instance
+      tempApp = await Firebase.initializeApp(
+        name: 'TempCreateApp_${DateTime.now().millisecondsSinceEpoch}',
+        options: Firebase.app().options,
+      );
 
-  // 4. ADD FIRESTORE ORGANIZER DOCUMENT
-  Future<void> addOrganizerDetail(String? role, String imageUrl) async {
-    await FirebaseFirestore.instance
-        .collection('organizer')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .set({
-      'o_name': namecon.text.trim(),
-      'o_email': emailcontroller.text.trim(),
-      'role': role,
-      'image_url': imageUrl,
-    });
+      FirebaseAuth tempAuth = FirebaseAuth.instanceFor(app: tempApp);
+
+      // Create new account on secondary Auth instance
+      UserCredential userCredential = await tempAuth.createUserWithEmailAndPassword(
+        email: emailcontroller.text.trim(),
+        password: passwordcontroller.text.trim(),
+      );
+
+      String newUid = userCredential.user!.uid;
+
+      // Store in Firestore using primary Firestore instance
+      await FirebaseFirestore.instance
+          .collection('organizer')
+          .doc(newUid)
+          .set({
+        'o_name': namecon.text.trim(),
+        'o_email': emailcontroller.text.trim(),
+        'password': passwordcontroller.text.trim(), // Stored for deletion authentication
+        'role': 'organizer',
+        'image_url': imageUrl,
+      });
+
+      // Sign out from the secondary app instance
+      await tempAuth.signOut();
+    } finally {
+      await tempApp?.delete();
+    }
   }
 
   @override
@@ -468,6 +491,75 @@ class _AddorganiserState extends State<Addorganiser> {
                                     return null;
                                   },
                                 ),
+
+                                const SizedBox(height: 18),
+
+                                // Confirm Password Field
+                                const Text(
+                                  "Confirm Password",
+                                  style: TextStyle(
+                                    color: textDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: confirmPasswordController,
+                                  obscureText: confirmPasswordVisible,
+                                  style: const TextStyle(color: textDark, fontSize: 14),
+                                  decoration: InputDecoration(
+                                    hintText: "Re-enter Password",
+                                    hintStyle: const TextStyle(color: textGrey, fontSize: 13),
+                                    filled: true,
+                                    fillColor: bgCanvas,
+                                    prefixIcon: const Icon(Icons.lock_outline_rounded, color: brandBlue, size: 20),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        confirmPasswordVisible
+                                            ? Icons.visibility_off_rounded
+                                            : Icons.visibility_rounded,
+                                        color: textGrey,
+                                        size: 20,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          confirmPasswordVisible = !confirmPasswordVisible;
+                                        });
+                                      },
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: borderColor, width: 1),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: brandBlue, width: 1.5),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please Confirm Your Password";
+                                    }
+                                    if (value != passwordcontroller.text) {
+                                      return "Passwords do not match";
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ],
                             ),
                           ),
@@ -505,11 +597,8 @@ class _AddorganiserState extends State<Addorganiser> {
                                     debugPrint("Image Uploaded");
                                   }
 
-                                  await createOrg();
-                                  debugPrint("Auth Created");
-
-                                  await addOrganizerDetail("organizer", imageUrl);
-                                  debugPrint("Firestore Added");
+                                  // Creates Auth account + Firestore doc via secondary Firebase app
+                                  await createOrganizerAccount(imageUrl);
 
                                   if (mounted) {
                                     setState(() {
@@ -519,7 +608,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                       SnackBar(
                                         elevation: 4,
                                         behavior: SnackBarBehavior.floating,
-                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 60),
+                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
                                         backgroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(16),
@@ -567,11 +656,11 @@ class _AddorganiserState extends State<Addorganiser> {
                                       SnackBar(
                                         elevation: 4,
                                         behavior: SnackBarBehavior.floating,
-                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
                                         backgroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(16),
-                                          side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+                                          side: const BorderSide(color: Color(0xFFEF4444), width: 1),
                                         ),
                                         content: Row(
                                           children: [

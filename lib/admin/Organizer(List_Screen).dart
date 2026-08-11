@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/addorganiser.dart';
 
@@ -34,6 +35,48 @@ class _Org_ListState extends State<Org_List> {
   void dispose() {
     search_organizer.dispose();
     super.dispose();
+  }
+
+  // Deletes organizer from Firebase Auth using a Secondary App instance
+  Future<void> _deleteOrganizerCompletely({
+    required String docId,
+    required String email,
+    required String password,
+  }) async {
+    FirebaseApp? tempApp;
+    try {
+      // 1. Create an isolated secondary Firebase App instance (keeps main Admin session active)
+      tempApp = await Firebase.initializeApp(
+        name: 'TempDeleteApp_${DateTime.now().millisecondsSinceEpoch}',
+        options: Firebase.app().options,
+      );
+
+      // 2. Get Auth instance for the secondary app
+      FirebaseAuth tempAuth = FirebaseAuth.instanceFor(app: tempApp);
+
+      // 3. Log into the target organizer account on the secondary instance
+      UserCredential userCredential = await tempAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // 4. Delete the user completely from Firebase Authentication
+      await userCredential.user?.delete();
+
+      // 5. Delete the organizer document from Firestore using primary Firestore instance
+      await FirebaseFirestore.instance
+          .collection('organizer')
+          .doc(docId)
+          .delete();
+
+      debugPrint("Successfully deleted organizer from Auth & Firestore.");
+    } catch (e) {
+      debugPrint("Error during deletion: $e");
+      rethrow;
+    } finally {
+      // 6. Dispose of the temporary Firebase App instance
+      await tempApp?.delete();
+    }
   }
 
   @override
@@ -346,12 +389,175 @@ class _Org_ListState extends State<Org_List> {
                                     borderRadius: BorderRadius.circular(12),
                                     child: InkWell(
                                       onTap: () async {
-                                        debugPrint("Document ID: ${organizer.id}");
-                                        await FirebaseFirestore.instance
-                                            .collection('organizer')
-                                            .doc(organizer.id)
-                                            .delete();
-                                        FirebaseAuth.instance.currentUser!.delete();
+                                        // 1. Show confirmation dialog
+                                        bool? confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text("Delete Organizer"),
+                                            content: Text("Are you sure you want to delete $name?"),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: const Text("Cancel"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, true),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: const Color(0xFFEF4444),
+                                                ),
+                                                child: const Text("Delete"),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm != true) return;
+
+                                        try {
+                                          final String password = data['password'] ?? '';
+
+                                          if (password.isEmpty) {
+                                            // Fallback: Delete Firestore document if password field isn't saved
+                                            await FirebaseFirestore.instance
+                                                .collection('organizer')
+                                                .doc(organizer.id)
+                                                .delete();
+
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  elevation: 4,
+                                                  behavior: SnackBarBehavior.floating,
+                                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+                                                  backgroundColor: Colors.white,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(16),
+                                                    side: const BorderSide(color: Color(0xFFFDBA74), width: 1),
+                                                  ),
+                                                  content: Row(
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.all(8),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.orange.withAlpha(25),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: const Icon(
+                                                          Icons.warning_amber_rounded,
+                                                          color: Colors.orange,
+                                                          size: 22,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 12),
+                                                      const Expanded(
+                                                        child: Text(
+                                                          "Organizer document deleted from Firestore (Password missing).",
+                                                          style: TextStyle(
+                                                            color: textDark,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            return;
+                                          }
+
+                                          // 2. Perform complete deletion from both Auth and Firestore
+                                          await _deleteOrganizerCompletely(
+                                            docId: organizer.id,
+                                            email: email,
+                                            password: password,
+                                          );
+
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                elevation: 4,
+                                                behavior: SnackBarBehavior.floating,
+                                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+                                                backgroundColor: Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  side: const BorderSide(color: borderColor, width: 1),
+                                                ),
+                                                content: Row(
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.all(8),
+                                                      decoration: BoxDecoration(
+                                                        color: brandBlue.withAlpha(25),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.check_circle_outline_rounded,
+                                                        color: brandBlue,
+                                                        size: 22,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    const Expanded(
+                                                      child: Text(
+                                                        "Organizer permanently deleted!",
+                                                        style: TextStyle(
+                                                          color: textDark,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                elevation: 4,
+                                                behavior: SnackBarBehavior.floating,
+                                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+                                                backgroundColor: Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+                                                ),
+                                                content: Row(
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.all(8),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(0xFFEF4444).withAlpha(25),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.error_outline_rounded,
+                                                        color: Color(0xFFEF4444),
+                                                        size: 22,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Deletion failed: ${e.toString()}",
+                                                        style: const TextStyle(
+                                                          color: textDark,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
                                       },
                                       borderRadius: BorderRadius.circular(12),
                                       child: Container(

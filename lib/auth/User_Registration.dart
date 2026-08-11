@@ -96,7 +96,7 @@ class _user_RegisterState extends State<user_Register> {
         SnackBar(
           elevation: 4,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -137,7 +137,7 @@ class _user_RegisterState extends State<user_Register> {
         SnackBar(
           elevation: 4,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -688,7 +688,7 @@ class _user_RegisterState extends State<user_Register> {
                                         SnackBar(
                                           elevation: 4,
                                           behavior: SnackBarBehavior.floating,
-                                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
                                           backgroundColor: Colors.white,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(16),

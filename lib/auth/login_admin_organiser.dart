@@ -88,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(
             elevation: 4,
             behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical:60),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical:70),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(
             elevation: 4,
             behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -182,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(
           elevation: 4,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -224,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(
           elevation: 4,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

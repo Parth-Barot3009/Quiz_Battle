@@ -331,7 +331,7 @@ class _create_battleState extends State<create_battle> {
       SnackBar(
         elevation: 4,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -1040,7 +1040,7 @@ class _create_battleState extends State<create_battle> {
                               elevation: 4,
                               behavior: SnackBarBehavior.floating,
                               margin: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 60),
+                                  horizontal: 16, vertical: 70),
                               backgroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
