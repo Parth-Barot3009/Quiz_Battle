@@ -152,7 +152,7 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
       backgroundColor: bgCanvas,
@@ -288,7 +288,7 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
             const SizedBox(height: 20),
 
-            // 2. FORM CONTAINER CARD WITH FIRESTORE STREAM
+            // 2. FORM CONTAINER CARD WITH FIRESTORE STREAM BY UID
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -305,14 +305,13 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                     ),
                   ],
                 ),
-                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: FirebaseFirestore.instance
+                child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: currentUid != null
+                      ? FirebaseFirestore.instance
                       .collection('player')
-                      .where(
-                    'player_email',
-                    isEqualTo: currentUserEmail,
-                  )
-                      .snapshots(),
+                      .doc(currentUid)
+                      .snapshots()
+                      : null,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -323,19 +322,19 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                       );
                     }
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
                       return const Padding(
                         padding: EdgeInsets.all(20.0),
                         child: Center(
                           child: Text(
-                            "Player not found",
+                            "Player profile not found",
                             style: TextStyle(color: textGrey, fontSize: 14),
                           ),
                         ),
                       );
                     }
 
-                    var data = snapshot.data!.docs.first.data();
+                    var data = snapshot.data!.data() ?? {};
                     String playerName = data['player_name'] ?? '';
                     String playerEmail = data['player_email'] ?? '';
 
@@ -414,12 +413,14 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                 size: 20,
                               ),
                               const SizedBox(width: 12),
-                              Text(
-                                playerEmail,
-                                style: const TextStyle(
-                                  color: textDark,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: Text(
+                                  playerEmail,
+                                  style: const TextStyle(
+                                    color: textDark,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
@@ -434,17 +435,15 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                           height: 52,
                           child: ElevatedButton.icon(
                             onPressed: () async {
-
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => EditProfileScreen(
                                     playerName: playerName,
-                                    playerEmail: playerEmail,
                                   ),
                                 ),
                               );
-
+                              getUser(); // Refresh local image/info
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,

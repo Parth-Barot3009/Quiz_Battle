@@ -4,19 +4,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileScreenOrganizer extends StatefulWidget {
   final String organizerName;
-  final String organizerEmail;
 
   const EditProfileScreenOrganizer({
     super.key,
     required this.organizerName,
-    required this.organizerEmail,
   });
 
   @override
-  State<EditProfileScreenOrganizer> createState() => _EditProfileScreenOrganizerState();
+  State<EditProfileScreenOrganizer> createState() =>
+      _EditProfileScreenOrganizerState();
 }
 
-class _EditProfileScreenOrganizerState extends State<EditProfileScreenOrganizer> {
+class _EditProfileScreenOrganizerState
+    extends State<EditProfileScreenOrganizer> {
   // Theme Constants
   static const Color brandBlue = Color(0xFF306AE7);
   static const Color accentOrange = Color(0xFFFF8C00);
@@ -26,7 +26,6 @@ class _EditProfileScreenOrganizerState extends State<EditProfileScreenOrganizer>
   static const Color textGrey = Color(0xFF64748B);
 
   late TextEditingController nameController;
-  late TextEditingController emailController;
 
   bool isLoading = false;
 
@@ -34,60 +33,107 @@ class _EditProfileScreenOrganizerState extends State<EditProfileScreenOrganizer>
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.organizerName);
-    emailController = TextEditingController(text: widget.organizerEmail);
   }
 
   @override
   void dispose() {
     nameController.dispose();
-    emailController.dispose();
     super.dispose();
+  }
+
+  // Custom Error SnackBar Display
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 4,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+        ),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                color: Color(0xFFEF4444),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: textDark,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Custom Success SnackBar Display
+  void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 4,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: brandBlue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_outline_rounded,
+                color: brandBlue,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: textDark,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> updateProfile() async {
     final newName = nameController.text.trim();
-    final newEmail = emailController.text.trim();
 
-    if (newName.isEmpty || newEmail.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          elevation: 4,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
-          ),
-          content: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  color: Color(0xFFEF4444),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  "Fields cannot be empty",
-                  style: TextStyle(
-                    color: textDark,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+    if (newName.isEmpty) {
+      _showErrorSnackBar("Name field cannot be empty");
       return;
     }
 
@@ -99,147 +145,23 @@ class _EditProfileScreenOrganizerState extends State<EditProfileScreenOrganizer>
       User? currentUser = FirebaseAuth.instance.currentUser;
 
       if (currentUser != null) {
-        // 1. Update Firebase Authentication Email (if changed)
-        if (newEmail != widget.organizerEmail) {
-          await currentUser.verifyBeforeUpdateEmail(newEmail);
-        }
-
-        // 2. Update (or create if missing) Firestore Document
+        // Update Firestore Document
         await FirebaseFirestore.instance
             .collection("organizer")
             .doc(currentUser.uid)
             .set({
           "o_name": newName,
-          "o_email": newEmail,
           "updated_at": FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
 
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            elevation: 4,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
-            ),
-            content: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: brandBlue.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check_circle_outline_rounded,
-                    color: brandBlue,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    "Profile Updated Successfully",
-                    style: TextStyle(
-                      color: textDark,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-
+        _showSuccessSnackBar("Profile Updated Successfully");
         Navigator.pop(context, true);
       }
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          elevation: 4,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
-          ),
-          content: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  color: Color(0xFFEF4444),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  e.message ?? "Authentication update failed",
-                  style: const TextStyle(
-                    color: textDark,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          elevation: 4,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
-          ),
-          content: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  color: Color(0xFFEF4444),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "Failed to update profile: $e",
-                  style: const TextStyle(
-                    color: textDark,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      _showErrorSnackBar("Failed to update profile: $e");
     } finally {
       if (mounted) {
         setState(() {
@@ -331,57 +253,6 @@ class _EditProfileScreenOrganizerState extends State<EditProfileScreenOrganizer>
                 ),
               ),
 
-              const SizedBox(height: 20),
-
-              // Email Field Label
-              RichText(
-                text: const TextSpan(
-                  text: "Email ",
-                  style: TextStyle(
-                    color: textDark,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: "*",
-                      style: TextStyle(color: Colors.redAccent),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Email Input
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(
-                  color: textDark,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: fieldBg,
-                  hintText: "Enter email address",
-                  hintStyle: const TextStyle(color: textGrey, fontSize: 14),
-                  prefixIcon: const Icon(
-                    Icons.mail_outline_rounded,
-                    color: brandBlue,
-                    size: 20,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 16,
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 32),
 
               // Edit Profile Button
@@ -406,9 +277,9 @@ class _EditProfileScreenOrganizerState extends State<EditProfileScreenOrganizer>
                       strokeWidth: 2.5,
                     ),
                   )
-                      : Row(
+                      : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.edit_rounded,
                         color: Colors.white,

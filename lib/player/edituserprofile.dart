@@ -4,12 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String playerName;
-  final String playerEmail;
 
   const EditProfileScreen({
     super.key,
     required this.playerName,
-    required this.playerEmail,
   });
 
   @override
@@ -26,7 +24,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   static const Color textGrey = Color(0xFF64748B);
 
   late TextEditingController nameController;
-  late TextEditingController emailController;
 
   bool isLoading = false;
 
@@ -34,18 +31,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.playerName);
-    emailController = TextEditingController(text: widget.playerEmail);
   }
 
   @override
   void dispose() {
     nameController.dispose();
-    emailController.dispose();
     super.dispose();
   }
 
   // Custom Error SnackBar Display
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         elevation: 4,
@@ -89,6 +85,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Custom Success SnackBar Display
   void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         elevation: 4,
@@ -132,10 +129,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> updateProfile() async {
     final newName = nameController.text.trim();
-    final newEmail = emailController.text.trim();
 
-    if (newName.isEmpty || newEmail.isEmpty) {
-      _showErrorSnackBar("Fields cannot be empty");
+    if (newName.isEmpty) {
+      _showErrorSnackBar("Name field cannot be empty");
       return;
     }
 
@@ -147,30 +143,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       User? currentUser = FirebaseAuth.instance.currentUser;
 
       if (currentUser != null) {
-        // 1. Update Firebase Authentication Email (if changed)
-        if (newEmail != widget.playerEmail) {
-          await currentUser.verifyBeforeUpdateEmail(newEmail);
-        }
-
-        // 2. Update (or create if missing) Firestore Document
+        // Update Firestore Document
         await FirebaseFirestore.instance
             .collection("player")
             .doc(currentUser.uid)
             .set({
           "player_name": newName,
-          "player_email": newEmail,
           "updated_at": FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
 
         if (!mounted) return;
 
         _showSuccessSnackBar("Profile Updated Successfully");
-
         Navigator.pop(context, true);
       }
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      _showErrorSnackBar(e.message ?? "Authentication update failed");
     } catch (e) {
       if (!mounted) return;
       _showErrorSnackBar("Failed to update profile: $e");
@@ -265,57 +251,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
-
-              // Email Field Label
-              RichText(
-                text: const TextSpan(
-                  text: "Email ",
-                  style: TextStyle(
-                    color: textDark,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: "*",
-                      style: TextStyle(color: Colors.redAccent),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Email Input
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(
-                  color: textDark,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: fieldBg,
-                  hintText: "Enter email address",
-                  hintStyle: const TextStyle(color: textGrey, fontSize: 14),
-                  prefixIcon: const Icon(
-                    Icons.mail_outline_rounded,
-                    color: brandBlue,
-                    size: 20,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 16,
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 32),
 
               // Save Profile Button
@@ -340,9 +275,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       strokeWidth: 2.5,
                     ),
                   )
-                      : Row(
+                      : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.edit_rounded,
                         color: Colors.white,

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:quiz_battle/organizer/editorganizerprofile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OrganiserProfileInfo extends StatefulWidget {
   const OrganiserProfileInfo({super.key});
@@ -22,7 +23,6 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
   bool isUploading = false;
 
   // Theme Palette
-  static const Color brandBlue = Color(0xFF2563EB);
   static const Color headerBlue = Color(0xFF306AE7);
   static const Color bgCanvas = Color(0xFFF4F7FF);
   static const Color surfaceWhite = Color(0xFFFFFFFF);
@@ -55,67 +55,6 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
     }
   }
 
-  /// Custom Helper Method for Beautiful SnackBars
-  void _showCustomSnackBar({
-    required String message,
-    required bool isSuccess,
-  }) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        duration: const Duration(seconds: 3),
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isSuccess ? const Color(0xFF059669) : const Color(0xFFDC2626),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: (isSuccess ? const Color(0xFF059669) : const Color(0xFFDC2626))
-                    .withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isSuccess
-                      ? Icons.check_circle_outline_rounded
-                      : Icons.error_outline_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  message,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   /// Select image from gallery and upload directly
   Future<void> pickAndUploadImage() async {
     final picker = ImagePicker();
@@ -138,16 +77,15 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
         getOrganizer();
 
         if (mounted) {
-          _showCustomSnackBar(
-            message: 'Profile image updated successfully!',
-            isSuccess: true,
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Profile image updated successfully!')),
           );
         }
       } catch (e) {
         if (mounted) {
-          _showCustomSnackBar(
-            message: 'Failed to update image: $e',
-            isSuccess: false,
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update image: $e')),
           );
         }
       } finally {
@@ -210,11 +148,15 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
   }
 
   Future<void> logout() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('role');
     await FirebaseAuth.instance.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       backgroundColor: bgCanvas,
       body: SingleChildScrollView(
@@ -241,120 +183,104 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                 bottom: false,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
-                  child: Stack(
-                    clipBehavior: Clip.none,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Watermark Background Pattern Icons
-                      Positioned(
-                        left: -20,
-                        top: 10,
-                        child: Icon(
-                          Icons.bubble_chart_rounded,
-                          size: 100,
-                          color: Colors.white.withOpacity(0.08),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Organizer Profile",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      // Profile Header Content
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Organizer Profile",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                      const SizedBox(height: 24),
+
+                      // Profile Avatar Image Container with Edit Trigger
+                      GestureDetector(
+                        onTap: isUploading ? null : pickAndUploadImage,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 96,
+                              height: 96,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: surfaceWhite,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withAlpha(20),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(3.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(48.0),
+                                  child: _buildAvatarContent(),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Profile Avatar Image Container with Edit Trigger
-                          GestureDetector(
-                            onTap: isUploading ? null : pickAndUploadImage,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: 96,
-                                  height: 96,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: surfaceWhite,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.08),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 6),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3.0),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(48.0),
-                                      child: _buildAvatarContent(),
-                                    ),
+                            if (isUploading)
+                              Container(
+                                width: 96,
+                                height: 96,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withAlpha(100),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
                                   ),
                                 ),
-                                if (isUploading)
-                                  Container(
-                                    width: 96,
-                                    height: 96,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.black.withOpacity(0.4),
-                                    ),
-                                    child: const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 3,
-                                      ),
-                                    ),
-                                  ),
-                                Positioned(
-                                  bottom: 2,
-                                  right: 2,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      color: headerBlue,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.edit,
-                                      size: 14,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                              ),
+                            Positioned(
+                              bottom: 2,
+                              right: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: headerBlue,
+                                  shape: BoxShape.circle,
                                 ),
-                              ],
+                                child: const Icon(
+                                  Icons.edit,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 14),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
 
-                          // Profile Role Title
-                          const Text(
-                            "Organizer",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "Manage your organizer account",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
+                      // Profile Role Title
+                      const Text(
+                        "Organizer",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Manage your organizer account",
+                        style: TextStyle(
+                          color: Colors.white.withAlpha(200),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ],
                   ),
@@ -364,7 +290,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
 
             const SizedBox(height: 20),
 
-            // 2. FORM CONTAINER CARD
+            // 2. FORM CONTAINER CARD WITH FIRESTORE STREAM BY UID
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -375,20 +301,19 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                   border: Border.all(color: borderColor, width: 1.2),
                   boxShadow: [
                     BoxShadow(
-                      color: textDark.withOpacity(0.03),
+                      color: textDark.withAlpha(8),
                       blurRadius: 14,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: FirebaseFirestore.instance
+                child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: currentUid != null
+                      ? FirebaseFirestore.instance
                       .collection('organizer')
-                      .where(
-                    'o_email',
-                    isEqualTo: FirebaseAuth.instance.currentUser?.email,
-                  )
-                      .snapshots(),
+                      .doc(currentUid)
+                      .snapshots()
+                      : null,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -399,19 +324,19 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                       );
                     }
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
                       return const Padding(
                         padding: EdgeInsets.all(20.0),
                         child: Center(
                           child: Text(
-                            "Organizer not found",
+                            "Organizer profile not found",
                             style: TextStyle(color: textGrey, fontSize: 14),
                           ),
                         ),
                       );
                     }
 
-                    var data = snapshot.data!.docs.first.data();
+                    var data = snapshot.data!.data() ?? {};
                     String organizerName = data['o_name'] ?? '';
                     String organizerEmail = data['o_email'] ?? '';
 
@@ -450,7 +375,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                data['o_name'] ?? '',
+                                organizerName,
                                 style: const TextStyle(
                                   color: textDark,
                                   fontSize: 15,
@@ -494,12 +419,14 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                 size: 20,
                               ),
                               const SizedBox(width: 12),
-                              Text(
-                                data['o_email'] ?? '',
-                                style: const TextStyle(
-                                  color: textDark,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: Text(
+                                  organizerEmail,
+                                  style: const TextStyle(
+                                    color: textDark,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
@@ -519,10 +446,10 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                 MaterialPageRoute(
                                   builder: (_) => EditProfileScreenOrganizer(
                                     organizerName: organizerName,
-                                    organizerEmail: organizerEmail,
                                   ),
                                 ),
                               );
+                              getOrganizer(); // Refresh local image/info
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
@@ -552,7 +479,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: headerBlue.withOpacity(0.3),
+                                color: headerBlue.withAlpha(77),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -562,11 +489,12 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                             onPressed: () async {
                               await logout();
                               if (!context.mounted) return;
-                              Navigator.pushReplacement(
+                              Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const LoginScreen(),
                                 ),
+                                    (route) => false,
                               );
                             },
                             style: ElevatedButton.styleFrom(
