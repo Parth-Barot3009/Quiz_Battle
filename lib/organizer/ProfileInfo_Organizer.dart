@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:quiz_battle/organizer/editorganizerprofile.dart';
-import 'package:quiz_battle/player/edituserprofile.dart';
 
 class OrganiserProfileInfo extends StatefulWidget {
   const OrganiserProfileInfo({super.key});
@@ -56,6 +55,67 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
     }
   }
 
+  /// Custom Helper Method for Beautiful SnackBars
+  void _showCustomSnackBar({
+    required String message,
+    required bool isSuccess,
+  }) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: const Duration(seconds: 3),
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSuccess ? const Color(0xFF059669) : const Color(0xFFDC2626),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: (isSuccess ? const Color(0xFF059669) : const Color(0xFFDC2626))
+                    .withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isSuccess
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.error_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Select image from gallery and upload directly
   Future<void> pickAndUploadImage() async {
     final picker = ImagePicker();
@@ -78,14 +138,16 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
         getOrganizer();
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile image updated successfully!')),
+          _showCustomSnackBar(
+            message: 'Profile image updated successfully!',
+            isSuccess: true,
           );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update image: $e')),
+          _showCustomSnackBar(
+            message: 'Failed to update image: $e',
+            isSuccess: false,
           );
         }
       } finally {
@@ -189,7 +251,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                         child: Icon(
                           Icons.bubble_chart_rounded,
                           size: 100,
-                          color: Colors.white.withAlpha(20),
+                          color: Colors.white.withOpacity(0.08),
                         ),
                       ),
                       // Profile Header Content
@@ -223,7 +285,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                     color: surfaceWhite,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withAlpha(20),
+                                        color: Colors.black.withOpacity(0.08),
                                         blurRadius: 16,
                                         offset: const Offset(0, 6),
                                       ),
@@ -243,7 +305,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                     height: 96,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: Colors.black.withAlpha(100),
+                                      color: Colors.black.withOpacity(0.4),
                                     ),
                                     child: const Center(
                                       child: CircularProgressIndicator(
@@ -287,7 +349,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                           Text(
                             "Manage your organizer account",
                             style: TextStyle(
-                              color: Colors.white.withAlpha(200),
+                              color: Colors.white.withOpacity(0.8),
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
                             ),
@@ -313,7 +375,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                   border: Border.all(color: borderColor, width: 1.2),
                   boxShadow: [
                     BoxShadow(
-                      color: textDark.withAlpha(8),
+                      color: textDark.withOpacity(0.03),
                       blurRadius: 14,
                       offset: const Offset(0, 4),
                     ),
@@ -446,14 +508,12 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
 
                         const SizedBox(height: 28),
 
-
                         /// Edit Profile Button
                         SizedBox(
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton.icon(
                             onPressed: () async {
-
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -463,7 +523,6 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                   ),
                                 ),
                               );
-
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
@@ -493,7 +552,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: headerBlue.withAlpha(77),
+                                color: headerBlue.withOpacity(0.3),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),

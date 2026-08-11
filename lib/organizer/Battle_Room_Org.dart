@@ -53,7 +53,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text(
-          "Battle Room Dashboard",
+          "Battle Room Details",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -364,6 +364,13 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                 itemBuilder: (context, index) {
                                   var player =
                                   data[index].data() as Map<String, dynamic>;
+
+                                  // Get player name and compute initial letter
+                                  String playerName = player['player_name'] ?? 'Player';
+                                  String firstLetter = playerName.trim().isNotEmpty
+                                      ? playerName.trim()[0].toUpperCase()
+                                      : 'P';
+
                                   return Container(
                                     margin: const EdgeInsets.only(bottom: 10),
                                     padding: const EdgeInsets.symmetric(
@@ -381,13 +388,17 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                         Expanded(
                                           child: Row(
                                             children: [
-                                              const CircleAvatar(
+                                              // Avatar with initial letter
+                                              CircleAvatar(
                                                 radius: 18,
-                                                backgroundColor: Color(0xFF3B82F6),
-                                                child: Icon(
-                                                  Icons.person,
-                                                  size: 20,
-                                                  color: Colors.white,
+                                                backgroundColor: const Color(0xFF3B82F6),
+                                                child: Text(
+                                                  firstLetter,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                               const SizedBox(width: 12),
@@ -397,8 +408,7 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                                   CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      player['player_name'] ??
-                                                          'Player',
+                                                      playerName,
                                                       style: const TextStyle(
                                                         fontSize: 14,
                                                         fontWeight:

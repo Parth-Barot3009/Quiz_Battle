@@ -337,12 +337,14 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                                 .toDate();
 
                             if (now.isAfter(endTime)) {
-                              _showErrorSnackBar("This quiz has already ended.");
+                              _showErrorSnackBar(
+                                  "This quiz has already ended.");
                               setState(() => isLoading = false);
                               return;
                             }
 
-                            User? user = FirebaseAuth.instance.currentUser;
+                            User? user =
+                                FirebaseAuth.instance.currentUser;
 
                             if (user == null) {
                               _showErrorSnackBar("User not authenticated!");
@@ -350,14 +352,40 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                               return;
                             }
 
+                            // ==========================================
+                            // CHECK IF PLAYER HAS ALREADY PLAYED/FINISHED
+                            // ==========================================
+                            DocumentSnapshot playerDoc =
+                            await FirebaseFirestore.instance
+                                .collection("Battle_Room_Details")
+                                .doc(battleId)
+                                .collection("Players")
+                                .doc(user.uid)
+                                .get();
+
+                            if (playerDoc.exists) {
+                              var playerData = playerDoc.data()
+                              as Map<String, dynamic>?;
+                              bool isFinished =
+                                  playerData?['isFinished'] ?? false;
+
+                              if (isFinished) {
+                                _showErrorSnackBar(
+                                    "You have already played this battle!");
+                                setState(() => isLoading = false);
+                                return;
+                              }
+                            }
+
                             // Fetch user's name directly from Firebase Auth or query 'player' collection
                             String playerName = user.displayName ?? "";
 
                             if (playerName.trim().isEmpty) {
-                              QuerySnapshot playerQuery = await FirebaseFirestore
-                                  .instance
+                              QuerySnapshot playerQuery =
+                              await FirebaseFirestore.instance
                                   .collection("player")
-                                  .where("player_email", isEqualTo: user.email)
+                                  .where("player_email",
+                                  isEqualTo: user.email)
                                   .limit(1)
                                   .get();
 
@@ -365,7 +393,6 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                                 var data = playerQuery.docs.first.data()
                                 as Map<String, dynamic>;
 
-                                // Check multiple possible key names used in user document
                                 String fetchedName = data['player_name'] ??
                                     data['name'] ??
                                     data['username'] ??
@@ -375,47 +402,40 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                                   playerName = fetchedName.trim();
                                 } else if (user.email != null &&
                                     user.email!.contains('@')) {
-                                  playerName = user.email!.split('@').first;
+                                  playerName =
+                                      user.email!.split('@').first;
                                 } else {
                                   playerName = "Player";
                                 }
                               } else if (user.email != null &&
                                   user.email!.contains('@')) {
-                                playerName = user.email!.split('@').first;
+                                playerName =
+                                    user.email!.split('@').first;
                               } else {
                                 playerName = "Player";
                               }
                             }
 
-                            // Save player details into the Battle Room subcollection
+                            // Save or update player details into the Battle Room subcollection
                             await FirebaseFirestore.instance
                                 .collection("Battle_Room_Details")
                                 .doc(battleId)
                                 .collection("Players")
                                 .doc(user.uid)
                                 .set({
-                              // Player Information
                               "player_id": user.uid,
                               "player_name": playerName,
                               "player_email": user.email ?? "",
-
-                              // Quiz Performance
                               "correct": 0,
                               "wrong": 0,
                               "points": 0,
                               "totalTime": 0.0,
                               "fastestAnswers": 0,
                               "player_score": 0,
-
-                              // Leaderboard
                               "rank": 0,
-
-                              // Quiz Status
                               "isFinished": false,
-
-                              // Join Time
                               "joinedAt": FieldValue.serverTimestamp(),
-                            });
+                            }, SetOptions(merge: true));
 
                             if (mounted) {
                               _showSuccessSnackBar("Joining Battle...");

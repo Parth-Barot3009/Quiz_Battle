@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/organizer/ProfileInfo_Organizer.dart';
 import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 
 class OrgDashboard extends StatefulWidget {
@@ -124,64 +123,83 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           ),
                         ],
                       ),
-                      Stack(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: brandBlue.withOpacity(0.15),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                      StreamBuilder<DocumentSnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('organizer')
+                            .doc(currentUser?.uid)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          String? imageUrl;
+                          if (snapshot.hasData && snapshot.data!.exists) {
+                            final data =
+                            snapshot.data!.data() as Map<String, dynamic>?;
+                            imageUrl = data?['image_url'];
+                          }
+                          return Stack(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: brandBlue.withOpacity(0.15),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Org_Navigationbar(
-                                      currentIndex: 3,
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                        Org_Navigationbar(
+                                            currentIndex: 3),
+                                      ),
+                                    );
+                                    _getUser(); // Re-fetch local snapshot when returning
+                                  },
+                                  child: CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: brandBlue,
+                                    backgroundImage:
+                                    imageUrl != null && imageUrl.isNotEmpty
+                                        ? NetworkImage(imageUrl)
+                                        : null,
+                                    child: imageUrl == null || imageUrl.isEmpty
+                                        ? const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                    )
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 2,
+                                bottom: 2,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1.5,
                                     ),
                                   ),
-                                );
-                              },
-                              child: CircleAvatar(
-                                radius: 20,
-                                backgroundColor: brandBlue,
-                                backgroundImage: userInfo != null &&
-                                    userInfo!["image_url"] != null
-                                    ? NetworkImage(userInfo!["image_url"])
-                                    : null,
-                                child: userInfo == null ||
-                                    userInfo!["image_url"] == null
-                                    ? const Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                )
-                                    : null,
+                                ),
                               ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 2,
-                            bottom: 2,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981),
-                                shape: BoxShape.circle,
-                                border:
-                                Border.all(color: Colors.white, width: 1.5),
-                              ),
-                            ),
-                          ),
-                        ],
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -197,7 +215,8 @@ class _OrgDashboardState extends State<OrgDashboard> {
                     builder: (context, snapshot) {
                       String name = "Organizer";
                       if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                        final data = snapshot.data!.docs.first.data()
+                        final data =
+                        snapshot.data!.docs.first.data()
                         as Map<String, dynamic>?;
                         name = data?['o_name'] ?? "Organizer";
                       }
@@ -205,16 +224,15 @@ class _OrgDashboardState extends State<OrgDashboard> {
                       return Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 22, vertical: 24),
+                          horizontal: 22,
+                          vertical: 24,
+                        ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(24),
                           gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF3B82F6),
-                              Color(0xFF1D4ED8),
-                            ],
+                            colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -303,7 +321,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                       ),
                       const SizedBox(width: 14),
 
-                      // Active Rooms Card (Filtered Client-Side for accuracy)
+                      // Active Rooms Card
                       _buildReferenceCard(
                         title: "Active Rooms",
                         icon: Icons.bolt_rounded,
@@ -320,7 +338,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                             .collection('Battle_Room_Details')
                             .where('o_email', isEqualTo: currentUser?.email)
                             .snapshots(),
-                        filterActiveOnly: true, // Filters battles currently running
+                        filterActiveOnly: true,
                       ),
                     ],
                   ),
@@ -338,124 +356,123 @@ class _OrgDashboardState extends State<OrgDashboard> {
                   ),
                   const SizedBox(height: 12),
                   StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('Battle_Room_Details')
-                          .where('o_email', isEqualTo: currentUser?.email)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return Text(
-                            "Error loading battles: ${snapshot.error}",
-                            style:
-                            const TextStyle(color: textGrey, fontSize: 13),
-                          );
-                        }
-                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                          return Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: surfaceWhite,
-                              borderRadius: BorderRadius.circular(20),
-                              border:
-                              Border.all(color: borderColor, width: 1.2),
-                            ),
-                            child: const Text(
-                              "No battles scheduled.",
-                              style: TextStyle(color: textGrey, fontSize: 13),
-                              textAlign: TextAlign.center,
-                            ),
-                          );
-                        }
+                    stream: FirebaseFirestore.instance
+                        .collection('Battle_Room_Details')
+                        .where('o_email', isEqualTo: currentUser?.email)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return Text(
+                          "Error loading battles: ${snapshot.error}",
+                          style: const TextStyle(color: textGrey, fontSize: 13),
+                        );
+                      }
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: surfaceWhite,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: borderColor, width: 1.2),
+                          ),
+                          child: const Text(
+                            "No battles scheduled.",
+                            style: TextStyle(color: textGrey, fontSize: 13),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
 
-                        var data = snapshot.data!.docs;
+                      var data = snapshot.data!.docs;
 
-                        return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: data.length,
-                            itemBuilder: (context, index) {
-                              var recentQuiz =
-                              data[index].data() as Map<String, dynamic>;
-                              String battlename =
-                                  recentQuiz['room_name'] ?? 'Quiz Battle';
-                              int totalQuestion = recentQuiz['questions'] ?? 0;
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: surfaceWhite,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                        color: borderColor, width: 1.2),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: textDark.withOpacity(0.02),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 48,
-                                        height: 48,
-                                        decoration: BoxDecoration(
-                                          color: bgCanvas,
-                                          borderRadius:
-                                          BorderRadius.circular(14),
-                                          border:
-                                          Border.all(color: borderColor),
-                                        ),
-                                        child: const Icon(
-                                          Icons.quiz_rounded,
-                                          color: textGrey,
-                                          size: 22,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 14),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              battlename,
-                                              style: const TextStyle(
-                                                color: textDark,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              "$totalQuestion Questions",
-                                              style: const TextStyle(
-                                                color: textGrey,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          var recentQuiz =
+                          data[index].data() as Map<String, dynamic>;
+                          String battlename =
+                              recentQuiz['room_name'] ?? 'Quiz Battle';
+                          int totalQuestion = recentQuiz['questions'] ?? 0;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: surfaceWhite,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: borderColor,
+                                  width: 1.2,
                                 ),
-                              );
-                            });
-                      }),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: textDark.withOpacity(0.02),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: bgCanvas,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: borderColor),
+                                    ),
+                                    child: const Icon(
+                                      Icons.quiz_rounded,
+                                      color: textGrey,
+                                      size: 22,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          battlename,
+                                          style: const TextStyle(
+                                            color: textDark,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          "$totalQuestion Questions",
+                                          style: const TextStyle(
+                                            color: textGrey,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -539,7 +556,9 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: badgeBgColor,
                             borderRadius: BorderRadius.circular(10),
@@ -569,23 +588,19 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                   final data =
                                   doc.data() as Map<String, dynamic>;
 
-                                  // Read timestamps if available
                                   final Timestamp? start = data['start_time'];
                                   final Timestamp? end = data['end_time'];
 
                                   if (start != null) {
                                     final startTime = start.toDate();
-                                    // If an end_time exists, check start <= now <= end
                                     if (end != null) {
                                       final endTime = end.toDate();
                                       return now.isAfter(startTime) &&
                                           now.isBefore(endTime);
                                     }
-                                    // If no end_time, count all rooms started so far
                                     return now.isAfter(startTime);
                                   }
 
-                                  // If no time constraints, fallback to active status flag if present
                                   return data['is_active'] == true;
                                 }).length;
                               } else {
