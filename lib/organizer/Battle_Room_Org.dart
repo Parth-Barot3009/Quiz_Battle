@@ -1,17 +1,57 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
-class Org_BattleRoom extends StatefulWidget {
+class OrgBattleRoom extends StatefulWidget {
   final String roomCode;
 
-  const Org_BattleRoom({super.key, required this.roomCode});
+  const OrgBattleRoom({super.key, required this.roomCode});
 
   @override
-  State<Org_BattleRoom> createState() => _Org_BattleRoomState();
+  State<OrgBattleRoom> createState() => _OrgBattleRoomState();
 }
 
-class _Org_BattleRoomState extends State<Org_BattleRoom> {
-  // Helper method to format ONLY duration in Hours and Minutes
+class _OrgBattleRoomState extends State<OrgBattleRoom> {
+  // Trigger system share sheet with fallback logic
+  Future<void> _shareRoomCode(BuildContext shareContext) async {
+    final String message =
+        "Join my Battle Room! Use room code: ${widget.roomCode} to enter.";
+
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      final RenderBox? box = shareContext.findRenderObject() as RenderBox?;
+
+      // Fixed: Share.share now returns ShareResult in share_plus v10+
+      final ShareResult result = await Share.share(
+        message,
+        subject: 'Battle Room Invitation',
+        sharePositionOrigin: box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
+      );
+
+      if (result.status == ShareResultStatus.dismissed) {
+        debugPrint('Share dialog dismissed.');
+      }
+    } catch (e) {
+      debugPrint("Error sharing code: $e");
+
+      // Fallback: Copy to clipboard if native share sheet fails
+      await Clipboard.setData(ClipboardData(text: message));
+      if (mounted) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text("Could not open share panel. Code copied to clipboard!"),
+            backgroundColor: Color(0xFF3B82F6),
+          ),
+        );
+      }
+    }
+  }
+
+  // Helper method to format duration in Hours and Minutes
   String _formatTimeAllocation(Timestamp? startTimestamp, Timestamp? endTimestamp) {
     if (startTimestamp == null || endTimestamp == null) {
       return "N/A";
@@ -22,7 +62,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
 
     final Duration diff = end.difference(start);
 
-    // Safety fallback for negative or equal time ranges
     if (diff.isNegative || diff.inSeconds == 0) {
       return "0 min";
     }
@@ -30,7 +69,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
     final int hours = diff.inHours;
     final int minutes = diff.inMinutes % 60;
 
-    // Return pure hours and minutes string
     if (hours > 0 && minutes > 0) {
       return "$hours hr $minutes min";
     } else if (hours > 0) {
@@ -73,7 +111,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            // Caps max width for wide tablet/desktop viewports
             constraints: const BoxConstraints(maxWidth: 700),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -115,18 +152,39 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              widget.roomCode,
-                              style: TextStyle(
-                                fontSize: (screenWidth * 0.1).clamp(32.0, 48.0),
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: 4,
+
+                          // Room Code with Integrated Share Button
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    widget.roomCode,
+                                    style: TextStyle(
+                                      fontSize: (screenWidth * 0.1).clamp(32.0, 48.0),
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      letterSpacing: 4,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              Builder(
+                                builder: (buttonContext) {
+                                  return IconButton(
+                                    onPressed: () => _shareRoomCode(buttonContext),
+                                    icon: const Icon(Icons.share_rounded),
+                                    color: Colors.white,
+                                    tooltip: 'Share Room Code',
+                                  );
+                                },
+                              ),
+                            ],
                           ),
+
                           const SizedBox(height: 8),
                           const Text(
                             "Share this code with participants to begin",
@@ -160,7 +218,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                         Timestamp? endTimestamp =
                         data?['end_time'] as Timestamp?;
 
-                        // Execute formatting logic (hours & minutes only)
                         String durationText =
                         _formatTimeAllocation(startTimestamp, endTimestamp);
 
@@ -180,7 +237,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                           ),
                           child: Column(
                             children: [
-                              // Header Row
                               Row(
                                 children: [
                                   Container(
@@ -214,7 +270,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                 child: Divider(height: 1, color: Color(0xFFF1F5F9)),
                               ),
 
-                              // Dynamic Responsive Config Rows
                               _buildConfigRow(
                                 icon: Icons.quiz_outlined,
                                 label: "Name Of Battle",
@@ -261,7 +316,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                       ),
                       child: Column(
                         children: [
-                          // Card Title Bar
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -298,7 +352,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
 
                               const SizedBox(width: 8),
 
-                              // Dynamic Counter Badge
                               StreamBuilder<QuerySnapshot>(
                                 stream: FirebaseFirestore.instance
                                     .collection('Battle_Room_Details')
@@ -334,7 +387,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
 
                           const SizedBox(height: 16),
 
-                          // Dynamic Player List
                           StreamBuilder<QuerySnapshot>(
                             stream: FirebaseFirestore.instance
                                 .collection('Battle_Room_Details')
@@ -365,8 +417,8 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                   var player =
                                   data[index].data() as Map<String, dynamic>;
 
-                                  // Get player name and compute initial letter
-                                  String playerName = player['player_name'] ?? 'Player';
+                                  String playerName =
+                                      player['player_name'] ?? 'Player';
                                   String firstLetter = playerName.trim().isNotEmpty
                                       ? playerName.trim()[0].toUpperCase()
                                       : 'P';
@@ -388,10 +440,10 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
                                         Expanded(
                                           child: Row(
                                             children: [
-                                              // Avatar with initial letter
                                               CircleAvatar(
                                                 radius: 18,
-                                                backgroundColor: const Color(0xFF3B82F6),
+                                                backgroundColor:
+                                                const Color(0xFF3B82F6),
                                                 child: Text(
                                                   firstLetter,
                                                   style: const TextStyle(
@@ -460,7 +512,6 @@ class _Org_BattleRoomState extends State<Org_BattleRoom> {
     );
   }
 
-  // Helper row builder to ensure clean text-overflow handling
   Widget _buildConfigRow({
     required IconData icon,
     required String label,
