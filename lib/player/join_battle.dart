@@ -417,7 +417,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                             if (mounted) {
                               _showSuccessSnackBar("Joining Battle...");
 
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => WaitingRoom(

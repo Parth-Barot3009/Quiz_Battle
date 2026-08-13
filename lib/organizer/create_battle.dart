@@ -1083,7 +1083,7 @@ class _create_battleState extends State<create_battle> {
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Org_BattleRoom(
+                              builder: (context) => OrgBattleRoom(
                                 roomCode: currentRoomCode,
                               ),
                             ),

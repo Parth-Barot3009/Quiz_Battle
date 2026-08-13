@@ -268,7 +268,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.pushReplacement(
+                            Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => player_navigationbar(

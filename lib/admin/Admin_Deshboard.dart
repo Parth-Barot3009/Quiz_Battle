@@ -47,7 +47,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
   }
 
   void _navigateToTab(int index) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Admin_Nav(initialIndex: index),
