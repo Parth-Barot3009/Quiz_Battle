@@ -311,7 +311,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                           accentColor: const Color(0xFFFF8A00),
                           badgeColor: const Color(0xFFFFEAD8),
                           stream: getActiveBattleCountStream(),
-                          onTap: () => _navigateToTab(3),
+                          onTap: (){},
                         ),
                       ),
                       const SizedBox(width: 14),
