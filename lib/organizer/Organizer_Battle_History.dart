@@ -196,7 +196,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
                     String roomName = roomDetailsList['room_name'] ?? 'Battle Room';
                     String roomCode = roomDetailsList['room_code'];
-                    String winnerName = roomDetailsList['winner_name'] ?? 'Pending / TBD';
+                    String winnerName = roomDetailsList['winner_name'] ?? 'Pending';
 
                     final Color cardAccentColor = accentColors[index % accentColors.length];
 

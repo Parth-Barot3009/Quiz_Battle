@@ -36,56 +36,70 @@ class _Admin_NavState extends State<Admin_Nav> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screen,
-      ),
-      bottomNavigationBar: Container(
-        color: const Color(0xFFF4F7FF),
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Container(
-          height: 66,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF1E293B).withOpacity(0.08),
-                blurRadius: 16,
-                spreadRadius: 2,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                index: 0,
-                icon: Icons.home_rounded,
-                outlinedIcon: Icons.home_outlined,
-                label: "Home",
-              ),
-              _buildNavItem(
-                index: 1,
-                icon: Icons.people_rounded,
-                outlinedIcon: Icons.people_outline_rounded,
-                label: "Organizers",
-              ),
-              _buildNavItem(
-                index: 2,
-                icon: Icons.school_rounded,
-                outlinedIcon: Icons.school_outlined,
-                label: "Players",
-              ),
-              _buildNavItem(
-                index: 3,
-                icon: Icons.emoji_events,
-                outlinedIcon: Icons.emoji_events,
-                label: "Battles",
-              ),
-            ],
+    return PopScope(
+      // Allows the system to pop the screen ONLY when already on index 0
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
+
+        // Redirect to Index 0 if press back from any other tab
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _screen,
+        ),
+        bottomNavigationBar: Container(
+          color: const Color(0xFFF4F7FF),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Container(
+            height: 66,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1E293B).withOpacity(0.08),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  index: 0,
+                  icon: Icons.home_rounded,
+                  outlinedIcon: Icons.home_outlined,
+                  label: "Home",
+                ),
+                _buildNavItem(
+                  index: 1,
+                  icon: Icons.people_rounded,
+                  outlinedIcon: Icons.people_outline_rounded,
+                  label: "Organizers",
+                ),
+                _buildNavItem(
+                  index: 2,
+                  icon: Icons.school_rounded,
+                  outlinedIcon: Icons.school_outlined,
+                  label: "Players",
+                ),
+                _buildNavItem(
+                  index: 3,
+                  icon: Icons.emoji_events,
+                  outlinedIcon: Icons.emoji_events,
+                  label: "Battles",
+                ),
+              ],
+            ),
           ),
         ),
       ),

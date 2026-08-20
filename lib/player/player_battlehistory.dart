@@ -2,9 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:quiz_battle/organizer/organizer_dashboard.dart';
-import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
-import 'package:quiz_battle/player/player_navigationbar.dart';
 
 class PlayerBattleHistory extends StatefulWidget {
   const PlayerBattleHistory({super.key});

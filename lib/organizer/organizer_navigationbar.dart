@@ -5,15 +5,15 @@ import 'package:quiz_battle/organizer/create_battle.dart';
 import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 
 class Org_Navigationbar extends StatefulWidget {
-  int? currentIndex;
-  Org_Navigationbar({super.key, this.currentIndex});
+  final int? currentIndex;
+  const Org_Navigationbar({super.key, this.currentIndex});
 
   @override
   State<Org_Navigationbar> createState() => _Org_NavigationbarState();
 }
 
 class _Org_NavigationbarState extends State<Org_Navigationbar> {
-  int? _currentIndex;
+  late int _currentIndex;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -29,68 +29,77 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    if(widget.currentIndex != null) {
-      _currentIndex = widget.currentIndex!;
-    } else {
-      _currentIndex = 0;
-    }
+    _currentIndex = widget.currentIndex ?? 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // IndexedStack preserves state across screen switches without using PageView
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screen,
-      ),
-      bottomNavigationBar: Container(
-        color: const Color(0xFFF4F7FF), // Matches screen canvas
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Container(
-          height: 66,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF1E293B).withOpacity(0.08),
-                blurRadius: 16,
-                spreadRadius: 2,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                index: 0,
-                icon: Icons.home_rounded,
-                outlinedIcon: Icons.home_outlined,
-                label: "Home",
-              ),
-              _buildNavItem(
-                index: 1,
-                icon: Icons.add_circle_rounded,
-                outlinedIcon: Icons.add_circle_outline_rounded,
-                label: "Create",
-              ),
-              _buildNavItem(
-                index: 2,
-                icon: Icons.emoji_events_rounded,
-                outlinedIcon: Icons.emoji_events_outlined,
-                label: "History",
-              ),
-              _buildNavItem(
-                index: 3,
-                icon: Icons.person_rounded,
-                outlinedIcon: Icons.person_outline_rounded,
-                label: "Profile",
-              ),
-            ],
+    return PopScope(
+      // Allows popping/exiting only when already on index 0
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
+
+        // Redirect to Home tab (index 0) if on any other tab
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+        }
+      },
+      child: Scaffold(
+        // IndexedStack preserves state across screen switches
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _screen,
+        ),
+        bottomNavigationBar: Container(
+          color: const Color(0xFFF4F7FF), // Matches screen canvas
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Container(
+            height: 66,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1E293B).withOpacity(0.08),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  index: 0,
+                  icon: Icons.home_rounded,
+                  outlinedIcon: Icons.home_outlined,
+                  label: "Home",
+                ),
+                _buildNavItem(
+                  index: 1,
+                  icon: Icons.add_circle_rounded,
+                  outlinedIcon: Icons.add_circle_outline_rounded,
+                  label: "Create",
+                ),
+                _buildNavItem(
+                  index: 2,
+                  icon: Icons.emoji_events_rounded,
+                  outlinedIcon: Icons.emoji_events_outlined,
+                  label: "History",
+                ),
+                _buildNavItem(
+                  index: 3,
+                  icon: Icons.person_rounded,
+                  outlinedIcon: Icons.person_outline_rounded,
+                  label: "Profile",
+                ),
+              ],
+            ),
           ),
         ),
       ),
