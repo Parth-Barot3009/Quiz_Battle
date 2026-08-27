@@ -45,25 +45,20 @@ class _Org_ListState extends State<Org_List> {
   }) async {
     FirebaseApp? tempApp;
     try {
-      // 1. Create an isolated secondary Firebase App instance (keeps main Admin session active)
       tempApp = await Firebase.initializeApp(
         name: 'TempDeleteApp_${DateTime.now().millisecondsSinceEpoch}',
         options: Firebase.app().options,
       );
 
-      // 2. Get Auth instance for the secondary app
       FirebaseAuth tempAuth = FirebaseAuth.instanceFor(app: tempApp);
 
-      // 3. Log into the target organizer account on the secondary instance
       UserCredential userCredential = await tempAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // 4. Delete the user completely from Firebase Authentication
       await userCredential.user?.delete();
 
-      // 5. Delete the organizer document from Firestore using primary Firestore instance
       await FirebaseFirestore.instance
           .collection('organizer')
           .doc(docId)
@@ -74,9 +69,74 @@ class _Org_ListState extends State<Org_List> {
       debugPrint("Error during deletion: $e");
       rethrow;
     } finally {
-      // 6. Dispose of the temporary Firebase App instance
       await tempApp?.delete();
     }
+  }
+
+  // Toggle Block/Unblock Status in Firestore
+  Future<void> _toggleBlockOrganizer({
+    required String docId,
+    required bool currentStatus,
+  }) async {
+    await FirebaseFirestore.instance
+        .collection('organizer')
+        .doc(docId)
+        .update({'is_blocked': !currentStatus});
+  }
+
+  void _showSnackBar(String message, {bool isError = false, bool isWarning = false}) {
+    if (!mounted) return;
+    Color iconColor = brandBlue;
+    IconData icon = Icons.check_circle_outline_rounded;
+
+    if (isError) {
+      iconColor = const Color(0xFFEF4444);
+      icon = Icons.error_outline_rounded;
+    } else if (isWarning) {
+      iconColor = Colors.orange;
+      icon = Icons.warning_amber_rounded;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 4,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isError
+                ? const Color(0xFFFECDD3)
+                : (isWarning ? const Color(0xFFFDBA74) : borderColor),
+            width: 1,
+          ),
+        ),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withAlpha(25),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: textDark,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -109,7 +169,6 @@ class _Org_ListState extends State<Org_List> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // Background Watermark Icons
                     Positioned(
                       right: 40,
                       top: -10,
@@ -128,8 +187,6 @@ class _Org_ListState extends State<Org_List> {
                         color: Colors.white.withAlpha(20),
                       ),
                     ),
-
-                    // Header Text & Add Button
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -157,8 +214,6 @@ class _Org_ListState extends State<Org_List> {
                             ),
                           ],
                         ),
-
-                        // Round Add (+) Button
                         Material(
                           color: Colors.white,
                           shape: const CircleBorder(),
@@ -254,7 +309,6 @@ class _Org_ListState extends State<Org_List> {
                   );
                 }
 
-                // Filter items according to search query
                 final organizerList = snapshot.data!.docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   final name = (data['o_name'] ?? '').toString().toLowerCase();
@@ -279,6 +333,7 @@ class _Org_ListState extends State<Org_List> {
                     final String name = data['o_name'] ?? '';
                     final String email = data['o_email'] ?? '';
                     final String? imageUrl = data['image_url'];
+                    final bool isBlocked = data['is_blocked'] ?? false;
 
                     final Color cardAccentColor = accentColors[index % accentColors.length];
 
@@ -300,14 +355,13 @@ class _Org_ListState extends State<Org_List> {
                         borderRadius: BorderRadius.circular(20),
                         child: Stack(
                           children: [
-                            // Front Accent Bar
                             Positioned(
                               left: 0,
                               top: 0,
                               bottom: 0,
                               child: Container(
                                 width: 5,
-                                color: cardAccentColor,
+                                color: isBlocked ? const Color(0xFFEF4444) : cardAccentColor,
                               ),
                             ),
                             Padding(
@@ -315,8 +369,6 @@ class _Org_ListState extends State<Org_List> {
                               child: Row(
                                 children: [
                                   const SizedBox(width: 4),
-
-                                  // Avatar Image / Fallback Icon
                                   Stack(
                                     children: [
                                       Container(
@@ -347,7 +399,9 @@ class _Org_ListState extends State<Org_List> {
                                           width: 10,
                                           height: 10,
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF10B981),
+                                            color: isBlocked
+                                                ? const Color(0xFFEF4444)
+                                                : const Color(0xFF10B981),
                                             shape: BoxShape.circle,
                                             border: Border.all(color: Colors.white, width: 1.5),
                                           ),
@@ -356,19 +410,42 @@ class _Org_ListState extends State<Org_List> {
                                     ],
                                   ),
                                   const SizedBox(width: 14),
-
-                                  // Name & Email
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          name,
-                                          style: const TextStyle(
-                                            color: textDark,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  color: textDark,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (isBlocked) ...[
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFFEE2E2),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: const Text(
+                                                  "Blocked",
+                                                  style: TextStyle(
+                                                    color: Color(0xFFEF4444),
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
@@ -383,18 +460,75 @@ class _Org_ListState extends State<Org_List> {
                                     ),
                                   ),
 
-                                  // Delete Button Action
-                                  Material(
-                                    color: const Color(0xFFFEE2E2),
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: InkWell(
-                                      onTap: () async {
-                                        // 1. Show confirmation dialog
+                                  // Three-Dot Action Menu
+                                  PopupMenuButton<String>(
+                                    icon: const Icon(
+                                      Icons.more_vert_rounded,
+                                      color: textGrey,
+                                      size: 22,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    elevation: 4,
+                                    onSelected: (value) async {
+                                      if (value == 'block') {
+                                        // Confirm Block / Unblock Dialog
                                         bool? confirm = await showDialog<bool>(
                                           context: context,
                                           builder: (context) => AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            title: Text(isBlocked ? "Unblock Organizer" : "Block Organizer"),
+                                            content: Text(
+                                              isBlocked
+                                                  ? "Are you sure you want to unblock $name?"
+                                                  : "Are you sure you want to block $name? They won't be able to log in or organize quizzes.",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: const Text("Cancel"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, true),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: isBlocked
+                                                      ? const Color(0xFF10B981)
+                                                      : const Color(0xFFF59E0B),
+                                                ),
+                                                child: Text(isBlocked ? "Unblock" : "Block"),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm != true) return;
+
+                                        try {
+                                          await _toggleBlockOrganizer(
+                                            docId: organizer.id,
+                                            currentStatus: isBlocked,
+                                          );
+                                          _showSnackBar(
+                                            isBlocked
+                                                ? "Organizer unblocked successfully!"
+                                                : "Organizer blocked successfully!",
+                                          );
+                                        } catch (e) {
+                                          _showSnackBar("Failed to update status: $e", isError: true);
+                                        }
+                                      } else if (value == 'delete') {
+                                        // Confirm Delete Dialog
+                                        bool? confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
                                             title: const Text("Delete Organizer"),
-                                            content: Text("Are you sure you want to delete $name?"),
+                                            content: Text("Are you sure you want to delete $name permanently?"),
                                             actions: [
                                               TextButton(
                                                 onPressed: () => Navigator.pop(context, false),
@@ -417,158 +551,72 @@ class _Org_ListState extends State<Org_List> {
                                           final String password = data['password'] ?? '';
 
                                           if (password.isEmpty) {
-                                            // Fallback: Delete Firestore document if password field isn't saved
                                             await FirebaseFirestore.instance
                                                 .collection('organizer')
                                                 .doc(organizer.id)
                                                 .delete();
-
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  elevation: 4,
-                                                  behavior: SnackBarBehavior.floating,
-                                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
-                                                  backgroundColor: Colors.white,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(16),
-                                                    side: const BorderSide(color: Color(0xFFFDBA74), width: 1),
-                                                  ),
-                                                  content: Row(
-                                                    children: [
-                                                      Container(
-                                                        padding: const EdgeInsets.all(8),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.orange.withAlpha(25),
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: const Icon(
-                                                          Icons.warning_amber_rounded,
-                                                          color: Colors.orange,
-                                                          size: 22,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 12),
-                                                      const Expanded(
-                                                        child: Text(
-                                                          "Organizer document deleted from Firestore (Password missing).",
-                                                          style: TextStyle(
-                                                            color: textDark,
-                                                            fontWeight: FontWeight.w600,
-                                                            fontSize: 14,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              );
-                                            }
+                                            _showSnackBar(
+                                              "Organizer document deleted from Firestore (Password missing).",
+                                              isWarning: true,
+                                            );
                                             return;
                                           }
 
-                                          // 2. Perform complete deletion from both Auth and Firestore
                                           await _deleteOrganizerCompletely(
                                             docId: organizer.id,
                                             email: email,
                                             password: password,
                                           );
-
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                elevation: 4,
-                                                behavior: SnackBarBehavior.floating,
-                                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
-                                                backgroundColor: Colors.white,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(16),
-                                                  side: const BorderSide(color: borderColor, width: 1),
-                                                ),
-                                                content: Row(
-                                                  children: [
-                                                    Container(
-                                                      padding: const EdgeInsets.all(8),
-                                                      decoration: BoxDecoration(
-                                                        color: brandBlue.withAlpha(25),
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                      child: const Icon(
-                                                        Icons.check_circle_outline_rounded,
-                                                        color: brandBlue,
-                                                        size: 22,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    const Expanded(
-                                                      child: Text(
-                                                        "Organizer permanently deleted!",
-                                                        style: TextStyle(
-                                                          color: textDark,
-                                                          fontWeight: FontWeight.w600,
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          }
+                                          _showSnackBar("Organizer permanently deleted!");
                                         } catch (e) {
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                elevation: 4,
-                                                behavior: SnackBarBehavior.floating,
-                                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
-                                                backgroundColor: Colors.white,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(16),
-                                                  side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
-                                                ),
-                                                content: Row(
-                                                  children: [
-                                                    Container(
-                                                      padding: const EdgeInsets.all(8),
-                                                      decoration: BoxDecoration(
-                                                        color: const Color(0xFFEF4444).withAlpha(25),
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                      child: const Icon(
-                                                        Icons.error_outline_rounded,
-                                                        color: Color(0xFFEF4444),
-                                                        size: 22,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: Text(
-                                                        "Deletion failed: ${e.toString()}",
-                                                        style: const TextStyle(
-                                                          color: textDark,
-                                                          fontWeight: FontWeight.w600,
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          }
+                                          _showSnackBar("Deletion failed: $e", isError: true);
                                         }
-                                      },
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        child: const Icon(
-                                          Icons.delete_outline_rounded,
-                                          color: Color(0xFFEF4444),
-                                          size: 20,
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) => [
+                                      PopupMenuItem<String>(
+                                        value: 'block',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              isBlocked ? Icons.lock_open_rounded : Icons.block_rounded,
+                                              color: isBlocked ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              isBlocked ? "Unblock Organizer" : "Block Organizer",
+                                              style: TextStyle(
+                                                color: isBlocked ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
+                                      PopupMenuItem<String>(
+                                        value: 'delete',
+                                        child: Row(
+                                          children: const [
+                                            Icon(
+                                              Icons.delete_outline_rounded,
+                                              color: Color(0xFFEF4444),
+                                              size: 18,
+                                            ),
+                                            SizedBox(width: 10),
+                                            Text(
+                                              "Delete Organizer",
+                                              style: TextStyle(
+                                                color: Color(0xFFEF4444),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

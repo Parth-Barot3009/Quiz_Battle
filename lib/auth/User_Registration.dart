@@ -187,6 +187,7 @@ class _user_RegisterState extends State<user_Register> {
       'played_battle': 0,
       'player_win': 0,
       'image_url': imageUrl,
+      'is_blocked':false
     });
   }
 

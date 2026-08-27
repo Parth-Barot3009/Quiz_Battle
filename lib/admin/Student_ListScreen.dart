@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 class Stu_List extends StatefulWidget {
@@ -34,6 +36,108 @@ class _Stu_ListState extends State<Stu_List> {
     super.dispose();
   }
 
+  // Deletes player from Firebase Auth using a Secondary App instance
+  Future<void> _deletePlayerCompletely({
+    required String docId,
+    required String email,
+    required String password,
+  }) async {
+    FirebaseApp? tempApp;
+    try {
+      tempApp = await Firebase.initializeApp(
+        name: 'TempDeletePlayerApp_${DateTime.now().millisecondsSinceEpoch}',
+        options: Firebase.app().options,
+      );
+
+      FirebaseAuth tempAuth = FirebaseAuth.instanceFor(app: tempApp);
+
+      UserCredential userCredential = await tempAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      await userCredential.user?.delete();
+
+      await FirebaseFirestore.instance
+          .collection('player')
+          .doc(docId)
+          .delete();
+
+      debugPrint("Successfully deleted player from Auth & Firestore.");
+    } catch (e) {
+      debugPrint("Error during player deletion: $e");
+      rethrow;
+    } finally {
+      await tempApp?.delete();
+    }
+  }
+
+  // Toggle Block/Unblock Status in Firestore
+  Future<void> _toggleBlockPlayer({
+    required String docId,
+    required bool currentStatus,
+  }) async {
+    await FirebaseFirestore.instance
+        .collection('player')
+        .doc(docId)
+        .update({'is_blocked': !currentStatus});
+  }
+
+  void _showSnackBar(String message, {bool isError = false, bool isWarning = false}) {
+    if (!mounted) return;
+    Color iconColor = brandBlue;
+    IconData icon = Icons.check_circle_outline_rounded;
+
+    if (isError) {
+      iconColor = const Color(0xFFEF4444);
+      icon = Icons.error_outline_rounded;
+    } else if (isWarning) {
+      iconColor = Colors.orange;
+      icon = Icons.warning_amber_rounded;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 4,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isError
+                ? const Color(0xFFFECDD3)
+                : (isWarning ? const Color(0xFFFDBA74) : borderColor),
+            width: 1,
+          ),
+        ),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withAlpha(25),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: textDark,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +168,6 @@ class _Stu_ListState extends State<Stu_List> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // Background Watermark Icons
                     Positioned(
                       right: 40,
                       top: -10,
@@ -83,8 +186,6 @@ class _Stu_ListState extends State<Stu_List> {
                         color: Colors.white.withAlpha(20),
                       ),
                     ),
-
-                    // Header Text
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
@@ -153,7 +254,7 @@ class _Stu_ListState extends State<Stu_List> {
 
           const SizedBox(height: 12),
 
-          // 3. STUDENTS FIRESTORE STREAM LIST ('player' collection)
+          // 3. STUDENTS FIRESTORE STREAM LIST
           Expanded(
             child: StreamBuilder(
               stream: FirebaseFirestore.instance.collection('player').snapshots(),
@@ -176,7 +277,6 @@ class _Stu_ListState extends State<Stu_List> {
                   );
                 }
 
-                // Filtering based on search query
                 final playerList = snapshot.data!.docs.where((doc) {
                   final data = doc.data();
                   final name = (data['player_name'] ?? '').toString().toLowerCase();
@@ -196,11 +296,12 @@ class _Stu_ListState extends State<Stu_List> {
                   itemCount: playerList.length,
                   itemBuilder: (context, index) {
                     final player = playerList[index];
-                    final data = player.data() as Map<String, dynamic>;
+                    final data = player.data();
 
                     final String name = data['player_name'] ?? '';
                     final String email = data['player_email'] ?? '';
                     final String? imageUrl = data['image_url'];
+                    final bool isBlocked = data['is_blocked'] ?? false;
 
                     final Color cardAccentColor = accentColors[index % accentColors.length];
 
@@ -222,14 +323,13 @@ class _Stu_ListState extends State<Stu_List> {
                         borderRadius: BorderRadius.circular(20),
                         child: Stack(
                           children: [
-                            // Front Accent Color Bar
                             Positioned(
                               left: 0,
                               top: 0,
                               bottom: 0,
                               child: Container(
                                 width: 5,
-                                color: cardAccentColor,
+                                color: isBlocked ? const Color(0xFFEF4444) : cardAccentColor,
                               ),
                             ),
                             Padding(
@@ -237,8 +337,6 @@ class _Stu_ListState extends State<Stu_List> {
                               child: Row(
                                 children: [
                                   const SizedBox(width: 4),
-
-                                  // Profile Avatar
                                   Stack(
                                     children: [
                                       Container(
@@ -269,7 +367,9 @@ class _Stu_ListState extends State<Stu_List> {
                                           width: 10,
                                           height: 10,
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF10B981),
+                                            color: isBlocked
+                                                ? const Color(0xFFEF4444)
+                                                : const Color(0xFF10B981),
                                             shape: BoxShape.circle,
                                             border: Border.all(color: Colors.white, width: 1.5),
                                           ),
@@ -278,19 +378,42 @@ class _Stu_ListState extends State<Stu_List> {
                                     ],
                                   ),
                                   const SizedBox(width: 14),
-
-                                  // Name & Email
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          name,
-                                          style: const TextStyle(
-                                            color: textDark,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  color: textDark,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (isBlocked) ...[
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFFEE2E2),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: const Text(
+                                                  "Blocked",
+                                                  style: TextStyle(
+                                                    color: Color(0xFFEF4444),
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
@@ -303,6 +426,165 @@ class _Stu_ListState extends State<Stu_List> {
                                         ),
                                       ],
                                     ),
+                                  ),
+
+                                  // Three-Dot Action Menu
+                                  PopupMenuButton<String>(
+                                    icon: const Icon(
+                                      Icons.more_vert_rounded,
+                                      color: textGrey,
+                                      size: 22,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    elevation: 4,
+                                    onSelected: (value) async {
+                                      if (value == 'block') {
+                                        // Confirm Block / Unblock Dialog
+                                        bool? confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            title: Text(isBlocked ? "Unblock Player" : "Block Player"),
+                                            content: Text(
+                                              isBlocked
+                                                  ? "Are you sure you want to unblock $name?"
+                                                  : "Are you sure you want to block $name? They won't be able to log in or play quizzes.",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: const Text("Cancel"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, true),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: isBlocked
+                                                      ? const Color(0xFF10B981)
+                                                      : const Color(0xFFF59E0B),
+                                                ),
+                                                child: Text(isBlocked ? "Unblock" : "Block"),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm != true) return;
+
+                                        try {
+                                          await _toggleBlockPlayer(
+                                            docId: player.id,
+                                            currentStatus: isBlocked,
+                                          );
+                                          _showSnackBar(
+                                            isBlocked
+                                                ? "Player unblocked successfully!"
+                                                : "Player blocked successfully!",
+                                          );
+                                        } catch (e) {
+                                          _showSnackBar("Failed to update status: $e", isError: true);
+                                        }
+                                      } else if (value == 'delete') {
+                                        // Confirm Delete Dialog
+                                        bool? confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            title: const Text("Delete Player"),
+                                            content: Text("Are you sure you want to delete $name permanently?"),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: const Text("Cancel"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, true),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: const Color(0xFFEF4444),
+                                                ),
+                                                child: const Text("Delete"),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm != true) return;
+
+                                        try {
+                                          final String password = data['password'] ?? '';
+
+                                          if (password.isEmpty) {
+                                            await FirebaseFirestore.instance
+                                                .collection('player')
+                                                .doc(player.id)
+                                                .delete();
+                                            _showSnackBar(
+                                              "Player document deleted from Firestore (Password missing).",
+                                              isWarning: true,
+                                            );
+                                            return;
+                                          }
+
+                                          await _deletePlayerCompletely(
+                                            docId: player.id,
+                                            email: email,
+                                            password: password,
+                                          );
+                                          _showSnackBar("Player permanently deleted!");
+                                        } catch (e) {
+                                          _showSnackBar("Deletion failed: $e", isError: true);
+                                        }
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) => [
+                                      PopupMenuItem<String>(
+                                        value: 'block',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              isBlocked ? Icons.lock_open_rounded : Icons.block_rounded,
+                                              color: isBlocked ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              isBlocked ? "Unblock Player" : "Block Player",
+                                              style: TextStyle(
+                                                color: isBlocked ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'delete',
+                                        child: Row(
+                                          children: const [
+                                            Icon(
+                                              Icons.delete_outline_rounded,
+                                              color: Color(0xFFEF4444),
+                                              size: 18,
+                                            ),
+                                            SizedBox(width: 10),
+                                            Text(
+                                              "Delete Player",
+                                              style: TextStyle(
+                                                color: Color(0xFFEF4444),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

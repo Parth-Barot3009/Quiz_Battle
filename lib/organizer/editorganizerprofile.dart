@@ -44,11 +44,13 @@ class _EditProfileScreenOrganizerState
   // Custom Error SnackBar Display
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         elevation: 4,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -59,7 +61,7 @@ class _EditProfileScreenOrganizerState
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withOpacity(0.1),
+                color: const Color(0xFFEF4444).withAlpha(25),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -88,11 +90,13 @@ class _EditProfileScreenOrganizerState
   // Custom Success SnackBar Display
   void _showSuccessSnackBar(String message) {
     if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         elevation: 4,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -103,7 +107,7 @@ class _EditProfileScreenOrganizerState
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: brandBlue.withOpacity(0.1),
+                color: brandBlue.withAlpha(25),
                 shape: BoxShape.circle,
               ),
               child: const Icon(

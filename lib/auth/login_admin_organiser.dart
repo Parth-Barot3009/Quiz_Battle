@@ -28,32 +28,43 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// Helper method to auto-detect role from Firestore collections based on email
-  Future<String?> _detectUserRole(String email) async {
-    // Check Admin collection
+  /// and check if the account is blocked
+  Future<Map<String, dynamic>?> _detectUserRole(String email) async {
+    // 1. Check Admin collection
     var adminQuery = await FirebaseFirestore.instance
         .collection('admin')
         .where('email', isEqualTo: email)
         .limit(1)
         .get();
-    if (adminQuery.docs.isNotEmpty) return "admin";
+    if (adminQuery.docs.isNotEmpty) {
+      return {'role': 'admin', 'isBlocked': false};
+    }
 
-    // Check Organizer collection
+    // 2. Check Organizer collection & verify block status
     var orgQuery = await FirebaseFirestore.instance
         .collection('organizer')
         .where('o_email', isEqualTo: email)
         .limit(1)
         .get();
-    if (orgQuery.docs.isNotEmpty) return "organizer";
+    if (orgQuery.docs.isNotEmpty) {
+      final data = orgQuery.docs.first.data();
+      final bool isBlocked = data['is_blocked'] ?? false;
+      return {'role': 'organizer', 'isBlocked': isBlocked};
+    }
 
-    // Check Player collection
+    // 3. Check Player collection & verify block status
     var playerQuery = await FirebaseFirestore.instance
         .collection('player')
         .where('player_email', isEqualTo: email)
         .limit(1)
         .get();
-    if (playerQuery.docs.isNotEmpty) return "player";
+    if (playerQuery.docs.isNotEmpty) {
+      final data = playerQuery.docs.first.data();
+      final bool isBlocked = data['is_blocked'] ?? false;
+      return {'role': 'player', 'isBlocked': isBlocked};
+    }
 
-    return null; // Email not found in any role collection
+    return null;
   }
 
   Future<void> login() async {
@@ -73,10 +84,60 @@ class _LoginScreenState extends State<LoginScreen> {
         password: password,
       );
 
-      // 2. Automatically detect role from Firestore
-      String? detectedRole = await _detectUserRole(email);
+      // 2. Automatically detect role & check block status from Firestore
+      Map<String, dynamic>? userDetails = await _detectUserRole(email);
 
-      if (detectedRole != null) {
+      if (userDetails != null) {
+        String detectedRole = userDetails['role'];
+        bool isBlocked = userDetails['isBlocked'] ?? false;
+
+        // If organizer or player is blocked, revoke access
+        if (isBlocked) {
+          await FirebaseAuth.instance.signOut();
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              elevation: 4,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Color(0xFFFECDD3), width: 1),
+              ),
+              content: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withAlpha(25),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.block_rounded,
+                      color: Color(0xFFEF4444),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      "Your account has been blocked by the admin. Please contact support.",
+                      style: TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+          return;
+        }
+
         // Save detected role to SharedPreferences
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('role', detectedRole);
@@ -88,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(
             elevation: 4,
             behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical:70),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -99,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1D61E7).withOpacity(0.1),
+                    color: const Color(0xFF1D61E7).withAlpha(25),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -131,11 +192,9 @@ class _LoginScreenState extends State<LoginScreen> {
               (route) => false,
         );
       } else {
-        // Sign out if credentials are valid but no corresponding Firestore role record exists
         await FirebaseAuth.instance.signOut();
         if (!mounted) return;
 
-        // Warning / Error SnackBar
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             elevation: 4,
@@ -151,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEF4444).withOpacity(0.1),
+                    color: const Color(0xFFEF4444).withAlpha(25),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -193,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  color: const Color(0xFFEF4444).withAlpha(25),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -219,7 +278,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      // Error SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           elevation: 4,
@@ -235,7 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  color: const Color(0xFFEF4444).withAlpha(25),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -299,7 +357,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF1D61E7).withOpacity(0.12),
+                color: const Color(0xFF1D61E7).withAlpha(30),
               ),
             ),
           ),
@@ -311,7 +369,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF60A5FA).withOpacity(0.15),
+                color: const Color(0xFF60A5FA).withAlpha(38),
               ),
             ),
           ),
@@ -364,7 +422,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(24.0),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withAlpha(10),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
