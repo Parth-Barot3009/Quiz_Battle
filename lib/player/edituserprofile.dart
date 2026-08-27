@@ -47,7 +47,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       SnackBar(
         elevation: 4,
         behavior: SnackBarBehavior.floating,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
@@ -93,7 +92,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       SnackBar(
         elevation: 4,
         behavior: SnackBarBehavior.floating,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
