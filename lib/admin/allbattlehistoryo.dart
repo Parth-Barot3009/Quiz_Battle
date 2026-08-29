@@ -11,7 +11,10 @@ class GlobalBattleHistoryScreen extends StatefulWidget {
 
 class _GlobalBattleHistoryScreenState
     extends State<GlobalBattleHistoryScreen> {
-  // Color System matching Screen 1
+  final search_battle = TextEditingController();
+  String _searchQuery = "";
+
+  // Color System
   static const Color brandBlue = Color(0xFF2563EB);
   static const Color bgCanvas = Color(0xFFF4F7FF);
   static const Color surfaceWhite = Color(0xFFFFFFFF);
@@ -28,12 +31,18 @@ class _GlobalBattleHistoryScreenState
   ];
 
   @override
+  void dispose() {
+    search_battle.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgCanvas,
-      body: Column(
+    return Container(
+      color: bgCanvas,
+      child: Column(
         children: [
-          // 1. TOP HEADER BANNER (Styled like Screen 1)
+          // 1. TOP HEADER BANNER
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
@@ -109,7 +118,44 @@ class _GlobalBattleHistoryScreenState
 
           const SizedBox(height: 16),
 
-          // 2. BATTLE HISTORY STREAM LIST
+          // 2. SEARCH BAR
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: surfaceWhite,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: borderColor, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: textDark.withAlpha(8),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: search_battle,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase().trim();
+                  });
+                },
+                style: const TextStyle(color: textDark, fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: "Search Battle",
+                  hintStyle: TextStyle(color: textGrey, fontSize: 13),
+                  prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF306AE7), size: 22),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // 3. BATTLE HISTORY STREAM LIST WITH IN-LINE "ALL SET" FOOTER
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -135,73 +181,91 @@ class _GlobalBattleHistoryScreenState
                   return _buildEmptyState();
                 }
 
-                final battleDocs = snapshot.data!.docs;
+                final battleDocs = snapshot.data!.docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final roomName = (data['room_name'] ?? data['battle_name'] ?? '').toString().toLowerCase();
+                  final roomCode = (data['room_code'] ?? '').toString().toLowerCase();
+                  final winner = (data['winner_name'] ?? '').toString().toLowerCase();
+
+                  return roomName.contains(_searchQuery) ||
+                      roomCode.contains(_searchQuery) ||
+                      winner.contains(_searchQuery);
+                }).toList();
+
+                if (battleDocs.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "No Battles Found",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: textGrey,
+                      ),
+                    ),
+                  );
+                }
+
+                final bool showFooter = _searchQuery.isEmpty;
 
                 return ListView.builder(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  itemCount: battleDocs.length,
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 120),
+                  itemCount: showFooter ? battleDocs.length + 1 : battleDocs.length,
                   itemBuilder: (context, index) {
+                    // Render "All Set!" badge smoothly at the bottom of the scroll list
+                    if (showFooter && index == battleDocs.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 16, bottom: 20),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: surfaceWhite,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: brandBlue.withAlpha(20),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.emoji_events_rounded,
+                                color: Color(0xFF306AE7),
+                                size: 26,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              "All Set!",
+                              style: TextStyle(
+                                color: Color(0xFF306AE7),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "There are ${battleDocs.length} total battles recorded",
+                              style: const TextStyle(
+                                color: textGrey,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
                     var data = battleDocs[index].data() as Map<String, dynamic>;
                     return _buildBattleCard(data, battleDocs[index].id, index);
                   },
                 );
               },
             ),
-          ),
-
-          // 3. BOTTOM FOOTER COUNTER BADGE (Styled like Screen 1)
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('Battle_Room_Details')
-                .snapshots(),
-            builder: (context, snapshot) {
-              final total = snapshot.hasData ? snapshot.data!.docs.length : 0;
-              return Container(
-                padding: const EdgeInsets.only(bottom: 16, top: 8),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: surfaceWhite,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: brandBlue.withAlpha(20),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.emoji_events_rounded,
-                        color: Color(0xFF306AE7),
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      "All Set!",
-                      style: TextStyle(
-                        color: Color(0xFF306AE7),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "There are $total total battles recorded",
-                      style: const TextStyle(
-                        color: textGrey,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
           ),
         ],
       ),

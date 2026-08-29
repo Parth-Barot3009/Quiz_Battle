@@ -14,11 +14,20 @@ class _OrgDashboardState extends State<OrgDashboard> {
   final currentUser = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? userInfo;
 
-  Future<void> _handleRefresh() async {
-    // Triggers a State rebuild to update time-dependent Firestore queries
-    setState(() {});
+  // Dynamic greeting based on the current hour of the day
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return "GOOD MORNING";
+    } else if (hour >= 12 && hour < 17) {
+      return "GOOD AFTERNOON";
+    } else {
+      return "GOOD EVENING";
+    }
+  }
 
-    // Optional: Add a brief artificial delay to ensure the refresh indicator gives visual feedback
+  Future<void> _handleRefresh() async {
+    setState(() {});
     await Future.delayed(const Duration(milliseconds: 1000));
   }
 
@@ -109,24 +118,24 @@ class _OrgDashboardState extends State<OrgDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. TOP HEADER
+                    // 1. TOP HEADER WITH DYNAMIC GREETING
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              "GOOD EVENING",
-                              style: TextStyle(
+                              _getGreeting(),
+                              style: const TextStyle(
                                 color: textGrey,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 1.2,
                               ),
                             ),
-                            SizedBox(height: 2),
-                            Text(
+                            const SizedBox(height: 2),
+                            const Text(
                               "Dashboard",
                               style: TextStyle(
                                 color: textDark,
@@ -173,11 +182,11 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                          Org_Navigationbar(
+                                          const Org_Navigationbar(
                                               currentIndex: 3),
                                         ),
                                       );
-                                      _getUser(); // Re-fetch local snapshot when returning
+                                      _getUser();
                                     },
                                     child: CircleAvatar(
                                       radius: 20,
@@ -316,7 +325,6 @@ class _OrgDashboardState extends State<OrgDashboard> {
                     // 3. STATS CARDS
                     Row(
                       children: [
-                        // Total Battles Card (Redirects to History Tab)
                         _buildReferenceCard(
                           title: "Total Battles",
                           icon: Icons.quiz_rounded,
@@ -337,7 +345,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => Org_Navigationbar(
+                                builder: (context) => const Org_Navigationbar(
                                   currentIndex: 2,
                                 ),
                               ),
@@ -345,8 +353,6 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           },
                         ),
                         const SizedBox(width: 14),
-
-                        // Active Rooms Card
                         _buildReferenceCard(
                           title: "Active Rooms",
                           icon: Icons.bolt_rounded,
@@ -403,7 +409,6 @@ class _OrgDashboardState extends State<OrgDashboard> {
 
                         final now = DateTime.now();
 
-                        // Filter client-side to only keep active rooms based on start/end timestamps or is_active flag
                         final activeDocs = (snapshot.data?.docs ?? []).where((doc) {
                           final data = doc.data() as Map<String, dynamic>;
                           final Timestamp? start = data['start_time'];
@@ -587,7 +592,6 @@ class _OrgDashboardState extends State<OrgDashboard> {
             borderRadius: BorderRadius.circular(18),
             child: Stack(
               children: [
-                // Background Watermark Graphic
                 Positioned(
                   right: -10,
                   bottom: -10,
@@ -597,8 +601,6 @@ class _OrgDashboardState extends State<OrgDashboard> {
                     color: accentColor.withOpacity(0.08),
                   ),
                 ),
-
-                // Content
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(

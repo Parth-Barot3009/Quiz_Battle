@@ -12,8 +12,9 @@ class Org_Navigationbar extends StatefulWidget {
   State<Org_Navigationbar> createState() => _Org_NavigationbarState();
 }
 
-class _Org_NavigationbarState extends State<Org_Navigationbar> {
+class _Org_NavigationbarState extends State<Org_Navigationbar> with WidgetsBindingObserver {
   late int _currentIndex;
+  bool _isKeyboardVisible = false;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -31,6 +32,25 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> {
   void initState() {
     super.initState();
     _currentIndex = widget.currentIndex ?? 0;
+    WidgetsBinding.instance.addObserver(this); // Listen for keyboard metrics
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding.instance.platformDispatcher.views.first.viewInsets.bottom;
+    final isVisible = bottomInset > 0;
+    if (isVisible != _isKeyboardVisible) {
+      setState(() {
+        _isKeyboardVisible = isVisible;
+      });
+    }
   }
 
   @override
@@ -49,58 +69,74 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> {
         }
       },
       child: Scaffold(
-        // IndexedStack preserves state across screen switches
-        body: IndexedStack(
-          index: _currentIndex,
-          children: _screen,
-        ),
-        bottomNavigationBar: Container(
-          color: const Color(0xFFF4F7FF), // Matches screen canvas
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Container(
-            height: 66,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF1E293B).withOpacity(0.08),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        resizeToAvoidBottomInset: false,
+        backgroundColor: const Color(0xFFF4F7FF),
+        body: Stack(
+          children: [
+            // 1. Screens view
+            Positioned.fill(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _screen,
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(
-                  index: 0,
-                  icon: Icons.home_rounded,
-                  outlinedIcon: Icons.home_outlined,
-                  label: "Home",
+
+            // 2. Navigation bar explicitly hidden when keyboard is open
+            if (!_isKeyboardVisible)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  color: Colors.transparent,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Container(
+                    height: 66,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1E293B).withOpacity(0.08),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildNavItem(
+                          index: 0,
+                          icon: Icons.home_rounded,
+                          outlinedIcon: Icons.home_outlined,
+                          label: "Home",
+                        ),
+                        _buildNavItem(
+                          index: 1,
+                          icon: Icons.add_circle_rounded,
+                          outlinedIcon: Icons.add_circle_outline_rounded,
+                          label: "Create",
+                        ),
+                        _buildNavItem(
+                          index: 2,
+                          icon: Icons.emoji_events_rounded,
+                          outlinedIcon: Icons.emoji_events_outlined,
+                          label: "History",
+                        ),
+                        _buildNavItem(
+                          index: 3,
+                          icon: Icons.person_rounded,
+                          outlinedIcon: Icons.person_outline_rounded,
+                          label: "Profile",
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                _buildNavItem(
-                  index: 1,
-                  icon: Icons.add_circle_rounded,
-                  outlinedIcon: Icons.add_circle_outline_rounded,
-                  label: "Create",
-                ),
-                _buildNavItem(
-                  index: 2,
-                  icon: Icons.emoji_events_rounded,
-                  outlinedIcon: Icons.emoji_events_outlined,
-                  label: "History",
-                ),
-                _buildNavItem(
-                  index: 3,
-                  icon: Icons.person_rounded,
-                  outlinedIcon: Icons.person_outline_rounded,
-                  label: "Profile",
-                ),
-              ],
-            ),
-          ),
+              ),
+          ],
         ),
       ),
     );

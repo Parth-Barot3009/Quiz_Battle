@@ -13,8 +13,9 @@ class Admin_Nav extends StatefulWidget {
   State<Admin_Nav> createState() => _Admin_NavState();
 }
 
-class _Admin_NavState extends State<Admin_Nav> {
+class _Admin_NavState extends State<Admin_Nav> with WidgetsBindingObserver {
   late int _currentIndex;
+  bool _isKeyboardVisible = false;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -32,17 +33,34 @@ class _Admin_NavState extends State<Admin_Nav> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    WidgetsBinding.instance.addObserver(this); // Listen for keyboard metrics
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding.instance.platformDispatcher.views.first.viewInsets.bottom;
+    final isVisible = bottomInset > 0;
+    if (isVisible != _isKeyboardVisible) {
+      setState(() {
+        _isKeyboardVisible = isVisible;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      // Allows the system to pop the screen ONLY when already on index 0
       canPop: _currentIndex == 0,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) return;
 
-        // Redirect to Index 0 if press back from any other tab
         if (_currentIndex != 0) {
           setState(() {
             _currentIndex = 0;
@@ -50,57 +68,74 @@ class _Admin_NavState extends State<Admin_Nav> {
         }
       },
       child: Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
-          children: _screen,
-        ),
-        bottomNavigationBar: Container(
-          color: const Color(0xFFF4F7FF),
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Container(
-            height: 66,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF1E293B).withOpacity(0.08),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        resizeToAvoidBottomInset: false,
+        backgroundColor: const Color(0xFFF4F7FF),
+        body: Stack(
+          children: [
+            // 1. Screens view
+            Positioned.fill(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _screen,
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(
-                  index: 0,
-                  icon: Icons.home_rounded,
-                  outlinedIcon: Icons.home_outlined,
-                  label: "Home",
+
+            // 2. Navigation bar explicitly hidden when keyboard is open
+            if (!_isKeyboardVisible)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  color: Colors.transparent,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Container(
+                    height: 66,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1E293B).withOpacity(0.08),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildNavItem(
+                          index: 0,
+                          icon: Icons.home_rounded,
+                          outlinedIcon: Icons.home_outlined,
+                          label: "Home",
+                        ),
+                        _buildNavItem(
+                          index: 1,
+                          icon: Icons.people_rounded,
+                          outlinedIcon: Icons.people_outline_rounded,
+                          label: "Organizers",
+                        ),
+                        _buildNavItem(
+                          index: 2,
+                          icon: Icons.school_rounded,
+                          outlinedIcon: Icons.school_outlined,
+                          label: "Players",
+                        ),
+                        _buildNavItem(
+                          index: 3,
+                          icon: Icons.emoji_events,
+                          outlinedIcon: Icons.emoji_events,
+                          label: "Battles",
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                _buildNavItem(
-                  index: 1,
-                  icon: Icons.people_rounded,
-                  outlinedIcon: Icons.people_outline_rounded,
-                  label: "Organizers",
-                ),
-                _buildNavItem(
-                  index: 2,
-                  icon: Icons.school_rounded,
-                  outlinedIcon: Icons.school_outlined,
-                  label: "Players",
-                ),
-                _buildNavItem(
-                  index: 3,
-                  icon: Icons.emoji_events,
-                  outlinedIcon: Icons.emoji_events,
-                  label: "Battles",
-                ),
-              ],
-            ),
-          ),
+              ),
+          ],
         ),
       ),
     );

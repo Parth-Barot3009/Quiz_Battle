@@ -49,7 +49,7 @@ class _create_battleState extends State<create_battle> {
     selectedDate = null;
     selectedFileName = null;
     selectedBytes = null;
-    roomCode = generateRoomCode(); // Generate new code for next battle
+    roomCode = generateRoomCode();
   }
 
   // Time Picker Logic
@@ -140,7 +140,6 @@ class _create_battleState extends State<create_battle> {
       if (table == null) continue;
 
       int que_id = 1;
-      // Skip header row
       for (int row = 1; row < table.rows.length; row++) {
         var currentRow = table.rows[row];
 
@@ -184,7 +183,7 @@ class _create_battleState extends State<create_battle> {
       for (var row in excelFile.tables[sheet]!.rows) {
         if (rowIndex == 1) {
           rowIndex++;
-          continue; // Skip 2nd row
+          continue;
         }
         rows.add(
           row.map((e) => e?.value.toString() ?? "").toList(),
@@ -422,11 +421,11 @@ class _create_battleState extends State<create_battle> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FD),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xFFF6F8FD),
+      child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
+          padding: const EdgeInsets.fromLTRB(18.0, 12.0, 18.0, 100.0),
           child: Form(
             key: formKey,
             child: Column(
@@ -1078,7 +1077,6 @@ class _create_battleState extends State<create_battle> {
                             ),
                           );
 
-                          // PUSH TO ROOM DETAILS & CLEAR STATE UPON RETURN
                           final String currentRoomCode = roomCode;
                           await Navigator.push(
                             context,
@@ -1089,7 +1087,6 @@ class _create_battleState extends State<create_battle> {
                             ),
                           );
 
-                          // Reset form fields when user clicks Back from Org_BattleRoom
                           if (mounted) {
                             setState(() {
                               _resetFormFields();

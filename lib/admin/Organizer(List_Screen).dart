@@ -37,39 +37,46 @@ class _Org_ListState extends State<Org_List> {
     super.dispose();
   }
 
-  // Deletes organizer from Firebase Auth using a Secondary App instance
+  // Deletes organizer from Firebase Auth using a Secondary App instance & Firestore
   Future<void> _deleteOrganizerCompletely({
     required String docId,
     required String email,
     required String password,
   }) async {
     FirebaseApp? tempApp;
+    final String tempAppName = 'DeleteOrganizerApp_${DateTime.now().microsecondsSinceEpoch}';
+
     try {
       tempApp = await Firebase.initializeApp(
-        name: 'TempDeleteApp_${DateTime.now().millisecondsSinceEpoch}',
+        name: tempAppName,
         options: Firebase.app().options,
       );
 
       FirebaseAuth tempAuth = FirebaseAuth.instanceFor(app: tempApp);
 
       UserCredential userCredential = await tempAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+        email: email.trim(),
+        password: password.trim(),
       );
 
-      await userCredential.user?.delete();
+      if (userCredential.user != null) {
+        await userCredential.user!.delete();
+        debugPrint("Successfully deleted organizer from Firebase Auth: $email");
+      }
 
       await FirebaseFirestore.instance
           .collection('organizer')
           .doc(docId)
           .delete();
 
-      debugPrint("Successfully deleted organizer from Auth & Firestore.");
+      debugPrint("Successfully deleted organizer document from Firestore: $docId");
     } catch (e) {
       debugPrint("Error during deletion: $e");
       rethrow;
     } finally {
-      await tempApp?.delete();
+      if (tempApp != null) {
+        await tempApp.delete();
+      }
     }
   }
 
@@ -141,9 +148,9 @@ class _Org_ListState extends State<Org_List> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgCanvas,
-      body: Column(
+    return Container(
+      color: bgCanvas,
+      child: Column(
         children: [
           // 1. TOP HEADER BANNER
           Container(
@@ -322,11 +329,62 @@ class _Org_ListState extends State<Org_List> {
                   );
                 }
 
+                // Show the "All Set!" badge ONLY when not searching
+                final bool showFooter = _searchQuery.isEmpty;
+
                 return ListView.builder(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  itemCount: organizerList.length,
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 120),
+                  itemCount: showFooter ? organizerList.length + 1 : organizerList.length,
                   itemBuilder: (context, index) {
+                    // Render "All Set!" footer at the end only when search is empty
+                    if (showFooter && index == organizerList.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 16, bottom: 20),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: surfaceWhite,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: brandBlue.withAlpha(20),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.folder_shared_rounded,
+                                color: Color(0xFF306AE7),
+                                size: 26,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              "All Set!",
+                              style: TextStyle(
+                                color: Color(0xFF306AE7),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "You've added ${organizerList.length} organizers",
+                              style: const TextStyle(
+                                color: textGrey,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
                     final organizer = organizerList[index];
                     final data = organizer.data() as Map<String, dynamic>;
 
@@ -460,7 +518,7 @@ class _Org_ListState extends State<Org_List> {
                                     ),
                                   ),
 
-                                  // Three-Dot Action Menu
+                                  // Action Popup Menu
                                   PopupMenuButton<String>(
                                     icon: const Icon(
                                       Icons.more_vert_rounded,
@@ -473,7 +531,6 @@ class _Org_ListState extends State<Org_List> {
                                     elevation: 4,
                                     onSelected: (value) async {
                                       if (value == 'block') {
-                                        // Confirm Block / Unblock Dialog
                                         bool? confirm = await showDialog<bool>(
                                           context: context,
                                           builder: (context) => AlertDialog(
@@ -520,7 +577,6 @@ class _Org_ListState extends State<Org_List> {
                                           _showSnackBar("Failed to update status: $e", isError: true);
                                         }
                                       } else if (value == 'delete') {
-                                        // Confirm Delete Dialog
                                         bool? confirm = await showDialog<bool>(
                                           context: context,
                                           builder: (context) => AlertDialog(
@@ -548,7 +604,7 @@ class _Org_ListState extends State<Org_List> {
                                         if (confirm != true) return;
 
                                         try {
-                                          final String password = data['password'] ?? '';
+                                          final String password = (data['password'] ?? data['o_password'] ?? '').toString().trim();
 
                                           if (password.isEmpty) {
                                             await FirebaseFirestore.instance
@@ -556,7 +612,7 @@ class _Org_ListState extends State<Org_List> {
                                                 .doc(organizer.id)
                                                 .delete();
                                             _showSnackBar(
-                                              "Organizer document deleted from Firestore (Password missing).",
+                                              "Organizer deleted from Firestore (Password missing for Auth deletion).",
                                               isWarning: true,
                                             );
                                             return;
@@ -567,7 +623,7 @@ class _Org_ListState extends State<Org_List> {
                                             email: email,
                                             password: password,
                                           );
-                                          _showSnackBar("Organizer permanently deleted!");
+                                          _showSnackBar("Organizer permanently deleted from Auth & Firestore!");
                                         } catch (e) {
                                           _showSnackBar("Deletion failed: $e", isError: true);
                                         }
@@ -629,58 +685,6 @@ class _Org_ListState extends State<Org_List> {
                 );
               },
             ),
-          ),
-
-          // 4. BOTTOM FOOTER COUNTER BADGE
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('organizer').snapshots(),
-            builder: (context, snapshot) {
-              final total = snapshot.hasData ? snapshot.data!.docs.length : 0;
-              return Container(
-                padding: const EdgeInsets.only(bottom: 16, top: 4),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: surfaceWhite,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: brandBlue.withAlpha(20),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.folder_shared_rounded,
-                        color: Color(0xFF306AE7),
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      "All Set!",
-                      style: TextStyle(
-                        color: Color(0xFF306AE7),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "You've added $total organizers",
-                      style: const TextStyle(
-                        color: textGrey,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
           ),
         ],
       ),

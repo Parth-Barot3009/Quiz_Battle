@@ -11,6 +11,9 @@ class PlayerBattleHistory extends StatefulWidget {
 }
 
 class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
+  final search_battle = TextEditingController();
+  String _searchQuery = "";
+
   // Theme Palette
   static const Color brandBlue = Color(0xFF2563EB);
   static const Color bgCanvas = Color(0xFFF4F7FF);
@@ -26,6 +29,12 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
     Color(0xFF10B981), // Emerald Green
     Color(0xFFF59E0B), // Amber / Gold
   ];
+
+  @override
+  void dispose() {
+    search_battle.dispose();
+    super.dispose();
+  }
 
   // Helper method to format time safely into "05:05 AM"
   String formatTimeString(dynamic rawTime, DateTime fallbackDate) {
@@ -59,11 +68,10 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
 
-    // Safety check if user is not logged in
     if (currentUser == null) {
-      return Scaffold(
-        backgroundColor: bgCanvas,
-        body: const Center(
+      return Container(
+        color: bgCanvas,
+        child: const Center(
           child: Text(
             "Please log in to view your battle history.",
             style: TextStyle(color: textDark, fontSize: 16),
@@ -72,9 +80,9 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: bgCanvas,
-      body: Column(
+    return Container(
+      color: bgCanvas,
+      child: Column(
         children: [
           // 1. TOP HEADER BANNER
           Container(
@@ -120,7 +128,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                       ),
                     ),
 
-                    // Navigation Back & Header Text
+                    // Header Text
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -157,7 +165,44 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
 
           const SizedBox(height: 16),
 
-          // 2. FIRESTORE COLLECTIONGROUP STREAM LIST
+          // 2. SEARCH BAR
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: surfaceWhite,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: borderColor, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: textDark.withAlpha(8),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: search_battle,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase().trim();
+                  });
+                },
+                style: const TextStyle(color: textDark, fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: "Search Battle",
+                  hintStyle: TextStyle(color: textGrey, fontSize: 13),
+                  prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF306AE7), size: 22),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // 3. FIRESTORE COLLECTIONGROUP STREAM LIST WITH IN-LINE "ALL SET" FOOTER
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -191,46 +236,133 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
 
                 var playerDocs = playerSnapshot.data!.docs;
 
-                return ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  itemCount: playerDocs.length,
-                  itemBuilder: (context, index) {
-                    var playerDoc = playerDocs[index];
-                    Map<String, dynamic> playerData =
-                    playerDoc.data() as Map<String, dynamic>;
+                // FutureBuilder to resolve and filter parent Battle details before list rendering
+                return FutureBuilder<List<Map<String, dynamic>>>(
+                  future: Future.wait(
+                    playerDocs.map((playerDoc) async {
+                      Map<String, dynamic> playerData =
+                      playerDoc.data() as Map<String, dynamic>;
+                      DocumentReference? parentRoomRef = playerDoc.reference.parent.parent;
 
-                    // Parent room reference points to Battle_Room_Details/{roomCode}
-                    DocumentReference? parentRoomRef = playerDoc.reference.parent.parent;
+                      if (parentRoomRef == null) return <String, dynamic>{};
 
-                    if (parentRoomRef == null) return const SizedBox.shrink();
+                      DocumentSnapshot roomSnapshot = await parentRoomRef.get();
+                      if (!roomSnapshot.exists) return <String, dynamic>{};
 
-                    final Color cardAccentColor = accentColors[index % accentColors.length];
+                      Map<String, dynamic> roomData =
+                      roomSnapshot.data() as Map<String, dynamic>;
 
-                    return StreamBuilder<DocumentSnapshot>(
-                      stream: parentRoomRef.snapshots(),
-                      builder: (context, roomSnapshot) {
-                        if (!roomSnapshot.hasData || !roomSnapshot.data!.exists) {
-                          return const SizedBox.shrink();
+                      return {
+                        'playerData': playerData,
+                        'roomData': roomData,
+                        'roomCode': roomData['room_code'] ?? parentRoomRef.id,
+                        'roomName': roomData['room_name'] ?? 'Battle Room',
+                        'winnerName': roomData['winner_name'] ?? 'Pending',
+                      };
+                    }),
+                  ),
+                  builder: (context, asyncSnapshot) {
+                    if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: brandBlue),
+                      );
+                    }
+
+                    final allMatches = (asyncSnapshot.data ?? [])
+                        .where((item) => item.isNotEmpty)
+                        .toList();
+
+                    final filteredBattles = allMatches.where((item) {
+                      final roomName = item['roomName'].toString().toLowerCase();
+                      final roomCode = item['roomCode'].toString().toLowerCase();
+                      final winner = item['winnerName'].toString().toLowerCase();
+
+                      return roomName.contains(_searchQuery) ||
+                          roomCode.contains(_searchQuery) ||
+                          winner.contains(_searchQuery);
+                    }).toList();
+
+                    if (filteredBattles.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          "No Battles Found",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: textGrey,
+                          ),
+                        ),
+                      );
+                    }
+
+                    final bool showFooter = _searchQuery.isEmpty;
+
+                    return ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 120),
+                      itemCount: showFooter ? filteredBattles.length + 1 : filteredBattles.length,
+                      itemBuilder: (context, index) {
+                        // Render "All Set!" badge smoothly at the bottom of the scroll list
+                        if (showFooter && index == filteredBattles.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 16, bottom: 20),
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: surfaceWhite,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: brandBlue.withAlpha(20),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.emoji_events_rounded,
+                                    color: Color(0xFF306AE7),
+                                    size: 26,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  "All Set!",
+                                  style: TextStyle(
+                                    color: Color(0xFF306AE7),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  "There are ${filteredBattles.length} total battles recorded",
+                                  style: const TextStyle(
+                                    color: textGrey,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         }
 
-                        Map<String, dynamic> roomData =
-                        roomSnapshot.data!.data() as Map<String, dynamic>;
+                        final battleItem = filteredBattles[index];
+                        final Map<String, dynamic> roomData = battleItem['roomData'];
+                        final Map<String, dynamic> playerData = battleItem['playerData'];
 
-                        // Date Parsing
                         Timestamp? timestamp = roomData['battle_date'];
                         DateTime date = timestamp?.toDate() ?? DateTime.now();
                         String formattedDate = DateFormat("dd/MM/yyyy").format(date);
-
-                        // Time Parsing
                         String startTime = formatTimeString(roomData['start_time'], date);
-
-                        // Room details mapped directly from your schema
-                        String roomName = roomData['room_name'] ?? 'Battle Room';
-                        String roomCode = roomData['room_code'] ?? parentRoomRef.id;
-
-                        // Player Score mapped directly from your schema
+                        String roomName = battleItem['roomName'];
+                        String roomCode = battleItem['roomCode'];
                         int myScore = playerData['player_score'] ?? 0;
+
+                        final Color cardAccentColor = accentColors[index % accentColors.length];
 
                         return _buildBattleCard(
                           roomName: roomName,
@@ -246,61 +378,6 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                 );
               },
             ),
-          ),
-
-          // 3. BOTTOM FOOTER COUNTER BADGE
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collectionGroup('Players')
-                .where('player_id', isEqualTo: currentUser.uid)
-                .snapshots(),
-            builder: (context, snapshot) {
-              final total = snapshot.hasData ? snapshot.data!.docs.length : 0;
-              return Container(
-                padding: const EdgeInsets.only(bottom: 16, top: 8),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: surfaceWhite,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: brandBlue.withAlpha(20),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.emoji_events_rounded,
-                        color: Color(0xFF306AE7),
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      "All Set!",
-                      style: TextStyle(
-                        color: Color(0xFF306AE7),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "There are $total total battles recorded",
-                      style: const TextStyle(
-                        color: textGrey,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
           ),
         ],
       ),

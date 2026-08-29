@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 
 class OrganizerBattleHistory extends StatefulWidget {
   const OrganizerBattleHistory({super.key});
@@ -12,6 +11,9 @@ class OrganizerBattleHistory extends StatefulWidget {
 }
 
 class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
+  final search_battle = TextEditingController();
+  String _searchQuery = "";
+
   // Theme Palette
   static const Color brandBlue = Color(0xFF2563EB);
   static const Color bgCanvas = Color(0xFFF4F7FF);
@@ -28,6 +30,12 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
     Color(0xFFF59E0B), // Amber / Gold
   ];
 
+  @override
+  void dispose() {
+    search_battle.dispose();
+    super.dispose();
+  }
+
   // Helper method to format time into "05:05 AM"
   String formatTimeString(String rawTime, DateTime fallbackDate) {
     if (rawTime.isEmpty || rawTime == "N/A") {
@@ -35,25 +43,23 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
     }
 
     try {
-      // Handles "13:05" or "05:05" 24-hour format
       DateTime parsed = DateFormat("HH:mm").parse(rawTime);
       return DateFormat("hh:mm a").format(parsed);
     } catch (_) {
       try {
-        // Handles "5:5 AM" or "1:34 AM" formats
         DateTime parsed = DateFormat("h:mm a").parse(rawTime);
         return DateFormat("hh:mm a").format(parsed);
       } catch (_) {
-        return rawTime; // Fallback to raw string if parsing fails
+        return rawTime;
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgCanvas,
-      body: Column(
+    return Container(
+      color: bgCanvas,
+      child: Column(
         children: [
           // 1. TOP HEADER BANNER
           Container(
@@ -79,7 +85,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // Background Watermark Icons
                     Positioned(
                       right: 40,
                       top: -10,
@@ -98,8 +103,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                         color: Colors.white.withAlpha(20),
                       ),
                     ),
-
-                    // Navigation Back & Header Text
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -136,7 +139,44 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
           const SizedBox(height: 16),
 
-          // 2. FIRESTORE STREAM LIST
+          // 2. SEARCH BAR
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: surfaceWhite,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: borderColor, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: textDark.withAlpha(8),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: search_battle,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase().trim();
+                  });
+                },
+                style: const TextStyle(color: textDark, fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: "Search Battle",
+                  hintStyle: TextStyle(color: textGrey, fontSize: 13),
+                  prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF306AE7), size: 22),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // 3. FIRESTORE STREAM LIST WITH IN-LINE "ALL SET" FOOTER
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -166,22 +206,91 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                   return _buildEmptyState();
                 }
 
-                var roomDetails = snapshot.data!.docs;
+                final roomDetails = snapshot.data!.docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final roomName = (data['room_name'] ?? '').toString().toLowerCase();
+                  final roomCode = (data['room_code'] ?? '').toString().toLowerCase();
+                  final winner = (data['winner_name'] ?? '').toString().toLowerCase();
+
+                  return roomName.contains(_searchQuery) ||
+                      roomCode.contains(_searchQuery) ||
+                      winner.contains(_searchQuery);
+                }).toList();
+
+                if (roomDetails.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "No Battles Found",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: textGrey,
+                      ),
+                    ),
+                  );
+                }
+
+                final bool showFooter = _searchQuery.isEmpty;
 
                 return ListView.builder(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  itemCount: roomDetails.length,
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 120),
+                  itemCount: showFooter ? roomDetails.length + 1 : roomDetails.length,
                   itemBuilder: (context, index) {
+                    // Render "All Set!" badge at the bottom of the list when search is empty
+                    if (showFooter && index == roomDetails.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 16, bottom: 20),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: surfaceWhite,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: brandBlue.withAlpha(20),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.emoji_events_rounded,
+                                color: Color(0xFF306AE7),
+                                size: 26,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              "All Set!",
+                              style: TextStyle(
+                                color: Color(0xFF306AE7),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "There are ${roomDetails.length} total battles recorded",
+                              style: const TextStyle(
+                                color: textGrey,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
                     var roomDetailsList = roomDetails[index];
 
                     Timestamp timestamp = roomDetailsList['battle_date'];
                     DateTime date = timestamp.toDate();
-
-                    // Formatted Date (e.g., "01/08/2026")
                     String formattedDate = DateFormat("dd/MM/yyyy").format(date);
 
-                    // Formatted Time
                     dynamic rawStartTime = roomDetailsList['start_time'];
                     String startTime;
 
@@ -212,64 +321,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                 );
               },
             ),
-          ),
-
-          // 3. BOTTOM FOOTER COUNTER BADGE
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('Battle_Room_Details')
-                .where(
-              'o_email',
-              isEqualTo: FirebaseAuth.instance.currentUser?.email,
-            )
-                .snapshots(),
-            builder: (context, snapshot) {
-              final total = snapshot.hasData ? snapshot.data!.docs.length : 0;
-              return Container(
-                padding: const EdgeInsets.only(bottom: 16, top: 8),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: surfaceWhite,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: brandBlue.withAlpha(20),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.emoji_events_rounded,
-                        color: Color(0xFF306AE7),
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      "All Set!",
-                      style: TextStyle(
-                        color: Color(0xFF306AE7),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "There are $total total battles recorded",
-                      style: const TextStyle(
-                        color: textGrey,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
           ),
         ],
       ),
@@ -303,7 +354,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
         borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
-            // Left Side Dynamic Accent Bar
             Positioned(
               left: 0,
               top: 0,
@@ -318,7 +368,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Row with Trophy Icon & Title
                   Row(
                     children: [
                       Container(
@@ -352,7 +401,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
                   const SizedBox(height: 12),
 
-                  // Date & Time Banner Box
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
@@ -404,7 +452,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
                   const SizedBox(height: 12),
 
-                  // Room Code Row
                   _buildDataRow(
                     icon: Icons.vpn_key_outlined,
                     title: "Room Code",
@@ -420,7 +467,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
                   const SizedBox(height: 6),
 
-                  // Participants Row
                   _buildDataRow(
                     icon: Icons.group_outlined,
                     title: "Participants",
@@ -447,7 +493,6 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
                   const SizedBox(height: 6),
 
-                  // Winner Row
                   _buildDataRow(
                     icon: Icons.workspace_premium_outlined,
                     title: "Winner",
