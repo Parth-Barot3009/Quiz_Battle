@@ -78,21 +78,23 @@ class _OrgDashboardState extends State<OrgDashboard> {
       backgroundColor: bgCanvas,
       body: Stack(
         children: [
-          // Decorative Soft Background Blobs
+          // 1. Top-Left Decorative Glow
           Positioned(
-            top: -40,
-            left: -40,
+            top: -50,
+            left: -50,
             child: Container(
-              width: 180,
-              height: 180,
+              width: 200,
+              height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.12),
+                color: brandBlue.withOpacity(0.08),
               ),
             ),
           ),
+
+          // 2. Bottom-Right Corner Decorative Glow
           Positioned(
-            bottom: 100,
+            bottom: -60,
             right: -60,
             child: Container(
               width: 220,
@@ -104,7 +106,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
             ),
           ),
 
-          // Main Content
+          // Main Scrollable Content
           SafeArea(
             child: RefreshIndicator(
               color: brandBlue,
@@ -118,7 +120,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. TOP HEADER WITH DYNAMIC GREETING
+                    // TOP HEADER WITH DYNAMIC GREETING
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -229,7 +231,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
 
                     const SizedBox(height: 20),
 
-                    // 2. GREETING CARD
+                    // GREETING CARD
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('organizer')
@@ -238,8 +240,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                       builder: (context, snapshot) {
                         String name = "Organizer";
                         if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                          final data =
-                          snapshot.data!.docs.first.data()
+                          final data = snapshot.data!.docs.first.data()
                           as Map<String, dynamic>?;
                           name = data?['o_name'] ?? "Organizer";
                         }
@@ -259,8 +260,8 @@ class _OrgDashboardState extends State<OrgDashboard> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF1D4ED8).withOpacity(0.35),
-                                blurRadius: 20,
+                                color: const Color(0xFF1D4ED8).withOpacity(0.30),
+                                blurRadius: 18,
                                 offset: const Offset(0, 8),
                               ),
                             ],
@@ -268,39 +269,46 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Welcome back",
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Welcome back",
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.85),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold,
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    currentUser?.email ?? "",
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.75),
-                                      fontSize: 12,
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      currentUser?.email ?? "",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.75),
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 12),
                               Container(
-                                width: 60,
-                                height: 60,
+                                width: 56,
+                                height: 56,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.20),
                                   borderRadius: BorderRadius.circular(18),
@@ -311,7 +319,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                 child: const Icon(
                                   Icons.menu_book_rounded,
                                   color: Colors.white,
-                                  size: 32,
+                                  size: 30,
                                 ),
                               ),
                             ],
@@ -322,7 +330,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
 
                     const SizedBox(height: 20),
 
-                    // 3. STATS CARDS
+                    // STATS CARDS
                     Row(
                       children: [
                         _buildReferenceCard(
@@ -330,9 +338,9 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           icon: Icons.quiz_rounded,
                           accentColor: const Color(0xFF4A7CFF),
                           badgeBgColor: const Color(0xFFDCE7FF),
-                          gradientColors: [
-                            const Color(0xFFF5F8FF),
-                            const Color(0xFFE8F1FF),
+                          gradientColors: const [
+                            Color(0xFFF5F8FF),
+                            Color(0xFFE8F1FF),
                           ],
                           borderColor: const Color(0xFFD0E1FF),
                           badgeText: "Battles",
@@ -358,9 +366,9 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           icon: Icons.bolt_rounded,
                           accentColor: const Color(0xFFFF8A00),
                           badgeBgColor: const Color(0xFFFFEAD8),
-                          gradientColors: [
-                            const Color(0xFFFFF9F3),
-                            const Color(0xFFFFF1E6),
+                          gradientColors: const [
+                            Color(0xFFFFF9F3),
+                            Color(0xFFFFF1E6),
                           ],
                           borderColor: const Color(0xFFFFE0C8),
                           badgeText: "Live Now",
@@ -376,7 +384,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
 
                     const SizedBox(height: 24),
 
-                    // 4. ACTIVE BATTLES SECTION
+                    // ACTIVE BATTLES SECTION
                     const Text(
                       "Active Battles",
                       style: TextStyle(
@@ -418,7 +426,8 @@ class _OrgDashboardState extends State<OrgDashboard> {
                             final startTime = start.toDate();
                             if (end != null) {
                               final endTime = end.toDate();
-                              return now.isAfter(startTime) && now.isBefore(endTime);
+                              return now.isAfter(startTime) &&
+                                  now.isBefore(endTime);
                             }
                             return now.isAfter(startTime);
                           }
@@ -428,15 +437,29 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         if (activeDocs.isEmpty) {
                           return Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 24,
+                              horizontal: 16,
+                            ),
                             decoration: BoxDecoration(
                               color: surfaceWhite,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: borderColor, width: 1.2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: textDark.withOpacity(0.02),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: const Text(
                               "No active battles live right now.",
-                              style: TextStyle(color: textGrey, fontSize: 13),
+                              style: TextStyle(
+                                color: textGrey,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           );
@@ -543,6 +566,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         );
                       },
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -571,7 +595,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          height: 135,
+          constraints: const BoxConstraints(minHeight: 135),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             gradient: LinearGradient(
@@ -598,7 +622,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                   child: Icon(
                     watermarkIcon,
                     size: 75,
-                    color: accentColor.withOpacity(0.08),
+                    color: accentColor.withOpacity(0.06),
                   ),
                 ),
                 Padding(
@@ -645,6 +669,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
