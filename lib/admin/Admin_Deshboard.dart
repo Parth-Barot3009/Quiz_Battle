@@ -16,10 +16,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
   final user = FirebaseAuth.instance.currentUser;
 
   Future<void> _handleRefresh() async {
-    // Triggers a State rebuild to update time-dependent Firestore queries
     setState(() {});
-
-    // Optional: Add a brief artificial delay to ensure the refresh indicator gives visual feedback
     await Future.delayed(const Duration(milliseconds: 1000));
   }
 
@@ -52,6 +49,85 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('role');
     await FirebaseAuth.instance.signOut();
+  }
+
+  // Confirmation Dialog for Logout
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: surfaceWhite,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 24),
+              SizedBox(width: 10),
+              Text(
+                "Confirm Logout",
+                style: TextStyle(
+                  color: textDark,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            "Are you sure you want to log out of the admin panel?",
+            style: TextStyle(
+              color: textGrey,
+              fontSize: 14,
+            ),
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actions: [
+            // Cancel Button
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(
+                  color: textGrey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            // Confirm Logout Button
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 0,
+              ),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+                await logout();
+                if (!mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                      (route) => false,
+                );
+              },
+              child: const Text(
+                "Logout",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _navigateToTab(int index) {
@@ -141,17 +217,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
 
                         // Red-accented Glassy Logout Button
                         InkWell(
-                          onTap: () async {
-                            await logout();
-                            if (!context.mounted) return;
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
-                              ),
-                                  (route) => false,
-                            );
-                          },
+                          onTap: _showLogoutDialog,
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
                             padding: const EdgeInsets.all(10),
@@ -263,7 +329,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                     // 3. STATS GRID (Row 1: Organizer & Student)
                     Row(
                       children: [
-                        // Organizer Card (Navigates to Organizers List - Index 1)
+                        // Organizer Card
                         Expanded(
                           child: _buildDashboardCard(
                             title: "Organizers",
@@ -284,7 +350,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                         ),
                         const SizedBox(width: 14),
 
-                        // Player/Student Card (Navigates to Players List - Index 2)
+                        // Player/Student Card
                         Expanded(
                           child: _buildDashboardCard(
                             title: "Players",
@@ -310,7 +376,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                     // 3. STATS GRID (Row 2: Active Battles & Total Battles)
                     Row(
                       children: [
-                        // Active Battles Card (Navigates to Battles Tab - Index 3)
+                        // Active Battles Card
                         Expanded(
                           child: _buildDashboardCardCustomStream(
                             title: "Live Now",
@@ -324,12 +390,12 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                             accentColor: const Color(0xFFFF8A00),
                             badgeColor: const Color(0xFFFFEAD8),
                             stream: getActiveBattleCountStream(),
-                            onTap: (){},
+                            onTap: () {},
                           ),
                         ),
                         const SizedBox(width: 14),
 
-                        // Total Battles Card (Navigates to Battles Tab - Index 3)
+                        // Total Battles Card
                         Expanded(
                           child: _buildDashboardCard(
                             title: "Total",
@@ -356,8 +422,8 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                     // 4. ACTIVE BATTLES SECTION
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
+                      children: const [
+                        Text(
                           "Active Battles",
                           style: TextStyle(
                             color: textDark,
@@ -391,7 +457,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                           );
                         }
 
-                        // Client-side filter for end_time >= now
                         final activeDocs = (snapshot.data?.docs ?? []).where((doc) {
                           final data = doc.data() as Map<String, dynamic>;
                           final Timestamp? endTime = data['end_time'] as Timestamp?;
@@ -519,7 +584,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
     );
   }
 
-  // Dashboard Query Card Helper
   Widget _buildDashboardCard({
     required String title,
     required String subtitle,
@@ -640,7 +704,6 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
     );
   }
 
-  // Dashboard Integer Stream Card Helper
   Widget _buildDashboardCardCustomStream({
     required String title,
     required String subtitle,
