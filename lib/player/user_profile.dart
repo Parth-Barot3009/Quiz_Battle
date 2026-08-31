@@ -622,7 +622,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                         // Editable Full Name Container
                         Container(
                           width: double.infinity,
-                          constraints: const BoxConstraints(minHeight: 52),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 14,
@@ -632,7 +631,7 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isEditingName ? headerBlue : borderColor,
-                              width: isEditingName ? 1.5 : 1,
+                              width: 1, // Fixed at 1 to match the email field's border size exactly
                             ),
                           ),
                           child: Row(
@@ -652,10 +651,11 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                     color: textDark,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
+                                    height: 1.2,
                                   ),
                                   decoration: const InputDecoration(
+                                    isDense: true,
                                     border: InputBorder.none,
-                                    isCollapsed: true,
                                     contentPadding: EdgeInsets.zero,
                                   ),
                                 )
@@ -665,20 +665,14 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                     color: textDark,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
+                                    height: 1.2,
                                   ),
                                 ),
                               ),
-                              IconButton(
-                                constraints: const BoxConstraints(),
-                                padding: EdgeInsets.zero,
-                                icon: Icon(
-                                  isEditingName
-                                      ? Icons.close_rounded
-                                      : Icons.edit_outlined,
-                                  color: headerBlue,
-                                  size: 20,
-                                ),
-                                onPressed: () {
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
                                   setState(() {
                                     if (!isEditingName) {
                                       _nameController.text = playerName;
@@ -686,6 +680,13 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                     isEditingName = !isEditingName;
                                   });
                                 },
+                                child: Icon(
+                                  isEditingName
+                                      ? Icons.close_rounded
+                                      : Icons.edit_outlined,
+                                  color: headerBlue,
+                                  size: 20,
+                                ),
                               ),
                             ],
                           ),

@@ -615,10 +615,8 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                         const SizedBox(height: 8),
 
                         // Editable Full Name Container
-                        // Editable Full Name Container
                         Container(
                           width: double.infinity,
-                          constraints: const BoxConstraints(minHeight: 52),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 14,
@@ -628,7 +626,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isEditingName ? headerBlue : borderColor,
-                              width: isEditingName ? 1.5 : 1,
+                              width: 1,
                             ),
                           ),
                           child: Row(
@@ -648,10 +646,11 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                     color: textDark,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
+                                    height: 1.2,
                                   ),
                                   decoration: const InputDecoration(
+                                    isDense: true,
                                     border: InputBorder.none,
-                                    isCollapsed: true,
                                     contentPadding: EdgeInsets.zero,
                                   ),
                                 )
@@ -661,20 +660,14 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                     color: textDark,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
+                                    height: 1.2,
                                   ),
                                 ),
                               ),
-                              IconButton(
-                                constraints: const BoxConstraints(),
-                                padding: EdgeInsets.zero,
-                                icon: Icon(
-                                  isEditingName
-                                      ? Icons.close_rounded
-                                      : Icons.edit_outlined,
-                                  color: headerBlue,
-                                  size: 20,
-                                ),
-                                onPressed: () {
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
                                   setState(() {
                                     if (!isEditingName) {
                                       _nameController.text = organizerName;
@@ -682,6 +675,13 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                     isEditingName = !isEditingName;
                                   });
                                 },
+                                child: Icon(
+                                  isEditingName
+                                      ? Icons.close_rounded
+                                      : Icons.edit_outlined,
+                                  color: headerBlue,
+                                  size: 20,
+                                ),
                               ),
                             ],
                           ),
