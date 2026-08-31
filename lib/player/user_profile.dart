@@ -739,8 +739,8 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
                         const SizedBox(height: 28),
 
-                        // Save Button (visible when editing)
-                        if (isEditingName) ...[
+                        // Conditional: Shows Save Button when editing, otherwise shows Logout Button
+                        if (isEditingName)
                           SizedBox(
                             width: double.infinity,
                             height: 52,
@@ -772,50 +772,47 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Logout Button
-                        Container(
-                          width: double.infinity,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: headerBlue.withAlpha(77),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            onPressed: () => _showLogoutDialog(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: headerBlue,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.logout_rounded, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  "Logout",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          )
+                        else
+                          Container(
+                            width: double.infinity,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: headerBlue.withAlpha(77),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
+                            child: ElevatedButton(
+                              onPressed: () => _showLogoutDialog(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: headerBlue,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.logout_rounded, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Logout",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
                       ],
                     );
                   },
