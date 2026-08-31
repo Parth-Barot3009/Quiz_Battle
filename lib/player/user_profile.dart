@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
-import 'package:quiz_battle/player/edituserprofile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProfileInfo extends StatefulWidget {
@@ -18,9 +17,13 @@ class UserProfileInfo extends StatefulWidget {
 
 class _UserProfileInfoState extends State<UserProfileInfo> {
   final formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+
   Map<String, dynamic>? userInfo;
   File? selectedImage;
   bool isUploading = false;
+  bool isEditingName = false;
+  bool isSavingName = false;
 
   // Theme Palette
   static const Color headerBlue = Color(0xFF306AE7);
@@ -43,6 +46,100 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
     getUser();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  // Modern Floating Custom SnackBar Helper
+  void _showCustomSnackBar({
+    required String title,
+    required String message,
+    required bool isSuccess,
+  }) {
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+
+    final Color accentColor = isSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+
+    messenger.showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        duration: const Duration(milliseconds: 3000),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: EdgeInsets.zero,
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: surfaceWhite,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: textDark.withAlpha(20),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withAlpha(25),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isSuccess ? Icons.check_circle_rounded : Icons.error_rounded,
+                  color: accentColor,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: textDark,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      message,
+                      style: const TextStyle(
+                        color: textGrey,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.close_rounded, size: 18, color: textGrey),
+                onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void getUser() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -50,6 +147,60 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
       if (mounted) {
         setState(() {
           userInfo = doc;
+        });
+      }
+    }
+  }
+
+  Future<void> updatePlayerName() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final newName = _nameController.text.trim();
+
+    if (uid == null) return;
+
+    if (newName.isEmpty) {
+      _showCustomSnackBar(
+        title: "Invalid Input",
+        message: "Full Name cannot be empty.",
+        isSuccess: false,
+      );
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      isSavingName = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('player').doc(uid).set({
+        'player_name': newName,
+      }, SetOptions(merge: true));
+
+      if (mounted) {
+        setState(() {
+          isEditingName = false;
+        });
+
+        _showCustomSnackBar(
+          title: "Profile Updated",
+          message: "Your name has been updated successfully!",
+          isSuccess: true,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showCustomSnackBar(
+          title: "Update Failed",
+          message: "Error updating name: $e",
+          isSuccess: false,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSavingName = false;
         });
       }
     }
@@ -77,14 +228,18 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
         getUser();
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile image updated successfully!')),
+          _showCustomSnackBar(
+            title: "Photo Updated",
+            message: "Profile image changed successfully!",
+            isSuccess: true,
           );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update image: $e')),
+          _showCustomSnackBar(
+            title: "Upload Failed",
+            message: "Could not upload image: $e",
+            isSuccess: false,
           );
         }
       } finally {
@@ -122,7 +277,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    // Use SetOptions(merge: true) so existing fields (like player_name) are preserved
     await FirebaseFirestore.instance.collection('player').doc(uid).set({
       'image_url': imageUrl,
     }, SetOptions(merge: true));
@@ -148,6 +302,120 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('role');
     await FirebaseAuth.instance.signOut();
+  }
+
+  // Logout Confirmation Dialog
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          backgroundColor: surfaceWhite,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withAlpha(25),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    color: Color(0xFFEF4444),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: textDark,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "Are you sure you want to log out of your account?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: textGrey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(color: borderColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(
+                            color: textGrey,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.of(dialogContext).pop();
+                          await logout();
+                          if (!context.mounted) return;
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                                (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEF4444),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text(
+                          "Logout",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -351,16 +619,20 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                         ),
                         const SizedBox(height: 8),
 
+                        // Editable Full Name Container
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 14,
+                            vertical: isEditingName ? 4 : 14,
                           ),
                           decoration: BoxDecoration(
                             color: bgCanvas,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: borderColor, width: 1),
+                            border: Border.all(
+                              color: isEditingName ? headerBlue : borderColor,
+                              width: isEditingName ? 1.5 : 1,
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -370,13 +642,51 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                 size: 20,
                               ),
                               const SizedBox(width: 12),
-                              Text(
-                                playerName,
-                                style: const TextStyle(
-                                  color: textDark,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: isEditingName
+                                    ? TextField(
+                                  controller: _nameController,
+                                  autofocus: true,
+                                  style: const TextStyle(
+                                    color: textDark,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                  ),
+                                )
+                                    : Text(
+                                  playerName,
+                                  style: const TextStyle(
+                                    color: textDark,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
+                              ),
+                              IconButton(
+                                constraints: const BoxConstraints(),
+                                padding: EdgeInsets.zero,
+                                icon: Icon(
+                                  isEditingName
+                                      ? Icons.close_rounded
+                                      : Icons.edit_outlined,
+                                  color: headerBlue,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    if (!isEditingName) {
+                                      _nameController.text = playerName;
+                                    }
+                                    isEditingName = !isEditingName;
+                                  });
+                                },
                               ),
                             ],
                           ),
@@ -429,41 +739,43 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
                         const SizedBox(height: 28),
 
-                        /// Edit Profile Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditProfileScreen(
-                                    playerName: playerName,
-                                  ),
+                        // Save Button (visible when editing)
+                        if (isEditingName) ...[
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton.icon(
+                              onPressed: isSavingName ? null : updatePlayerName,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF10B981),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                              );
-                              getUser(); // Refresh local image/info
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
                               ),
-                            ),
-                            icon: const Icon(Icons.edit),
-                            label: const Text(
-                              "Edit Profile",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                              icon: isSavingName
+                                  ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                                  : const Icon(Icons.check_circle_outline),
+                              label: Text(
+                                isSavingName ? "Saving..." : "Save Profile",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                        ],
 
-                        const SizedBox(height: 28),
                         // Logout Button
                         Container(
                           width: double.infinity,
@@ -479,17 +791,7 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                             ],
                           ),
                           child: ElevatedButton(
-                            onPressed: () async {
-                              await logout();
-                              if (!context.mounted) return;
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
-                                ),
-                                    (route) => false,
-                              );
-                            },
+                            onPressed: () => _showLogoutDialog(context),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: headerBlue,
                               foregroundColor: Colors.white,
@@ -527,9 +829,7 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
     );
   }
 
-  /// Helper widget to decide which image source to show in avatar
   Widget _buildAvatarContent() {
-    // 1. Show newly selected image if picked
     if (selectedImage != null) {
       return Image.file(
         selectedImage!,
@@ -539,7 +839,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
       );
     }
 
-    // 2. Show registered image URL from Firestore if existing
     final existingUrl = userInfo?["image_url"]?.toString();
     if (existingUrl != null && existingUrl.isNotEmpty) {
       return Image.network(
@@ -555,7 +854,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
       );
     }
 
-    // 3. Fallback placeholder icon if no image exists
     return Container(
       color: const Color(0xFFEEF2FF),
       child: const Icon(
