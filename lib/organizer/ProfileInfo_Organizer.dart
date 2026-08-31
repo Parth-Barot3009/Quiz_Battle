@@ -615,11 +615,13 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                         const SizedBox(height: 8),
 
                         // Editable Full Name Container
+                        // Editable Full Name Container
                         Container(
                           width: double.infinity,
-                          padding: EdgeInsets.symmetric(
+                          constraints: const BoxConstraints(minHeight: 52),
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: isEditingName ? 4 : 14,
+                            vertical: 14,
                           ),
                           decoration: BoxDecoration(
                             color: bgCanvas,
@@ -649,10 +651,8 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                                   ),
                                   decoration: const InputDecoration(
                                     border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
+                                    isCollapsed: true,
+                                    contentPadding: EdgeInsets.zero,
                                   ),
                                 )
                                     : Text(

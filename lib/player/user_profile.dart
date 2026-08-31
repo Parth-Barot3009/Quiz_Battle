@@ -622,9 +622,10 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                         // Editable Full Name Container
                         Container(
                           width: double.infinity,
-                          padding: EdgeInsets.symmetric(
+                          constraints: const BoxConstraints(minHeight: 52),
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: isEditingName ? 4 : 14,
+                            vertical: 14,
                           ),
                           decoration: BoxDecoration(
                             color: bgCanvas,
@@ -654,10 +655,8 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                                   ),
                                   decoration: const InputDecoration(
                                     border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
+                                    isCollapsed: true,
+                                    contentPadding: EdgeInsets.zero,
                                   ),
                                 )
                                     : Text(
