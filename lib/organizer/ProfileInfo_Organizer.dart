@@ -686,9 +686,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 20),
-
                         const Text(
                           "Email *",
                           style: TextStyle(
@@ -698,7 +696,6 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                           ),
                         ),
                         const SizedBox(height: 8),
-
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
