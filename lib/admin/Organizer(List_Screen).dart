@@ -108,7 +108,7 @@ class _Org_ListState extends State<Org_List> {
       SnackBar(
         elevation: 4,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 85),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),

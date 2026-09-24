@@ -71,7 +71,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         duration: const Duration(milliseconds: 3000),
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
         padding: EdgeInsets.zero,
         content: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

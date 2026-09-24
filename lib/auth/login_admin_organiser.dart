@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SnackBar(
               elevation: 4,
               behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 35),
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -149,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(
             elevation: 4,
             behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 85),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -199,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(
             elevation: 4,
             behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 35),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -237,11 +237,26 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
+
+      // Handle raw Firebase error codes with user-friendly messages
+      String errorMessage = "Incorrect email or password";
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (e.code == 'user-disabled') {
+        errorMessage = "This account has been disabled.";
+      } else if (e.code == 'too-many-requests') {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (e.code == 'invalid-email') {
+        errorMessage = "The email address is formatted incorrectly.";
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           elevation: 4,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 35),
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -264,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  e.message ?? "Incorrect email or password",
+                  errorMessage,
                   style: const TextStyle(
                     color: Color(0xFF0F172A),
                     fontWeight: FontWeight.w600,
@@ -282,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(
           elevation: 4,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 85),
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

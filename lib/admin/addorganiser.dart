@@ -608,7 +608,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                       SnackBar(
                                         elevation: 4,
                                         behavior: SnackBarBehavior.floating,
-                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 70),
+                                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 85),
                                         backgroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(16),
