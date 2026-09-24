@@ -47,6 +47,52 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
     }
   }
 
+  // Room details are resolved once per distinct set of history rows.
+  // Building the future inline meant every keystroke in the search box
+  // created a new one, which reset the FutureBuilder to its loading state and
+  // re-fetched every battle room over the network — the list blanked out on
+  // each character typed.
+  String? _detailsKey;
+  Future<List<Map<String, dynamic>>>? _detailsFuture;
+
+  Future<List<Map<String, dynamic>>> _resolveBattleDetails(
+    List<QueryDocumentSnapshot> playerDocs,
+  ) {
+    // Re-resolve only when the rows themselves change, including the rank and
+    // score the leaderboard stamps on when a battle finishes.
+    final key = playerDocs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return '${doc.reference.path}:${data['rank']}:${data['finalPoints']}';
+    }).join('|');
+
+    if (key != _detailsKey || _detailsFuture == null) {
+      _detailsKey = key;
+      _detailsFuture = Future.wait(
+        playerDocs.map((playerDoc) async {
+          final playerData = playerDoc.data() as Map<String, dynamic>;
+          final parentRoomRef = playerDoc.reference.parent.parent;
+
+          if (parentRoomRef == null) return <String, dynamic>{};
+
+          final roomSnapshot = await parentRoomRef.get();
+          if (!roomSnapshot.exists) return <String, dynamic>{};
+
+          final roomData = roomSnapshot.data() as Map<String, dynamic>;
+
+          return {
+            'playerData': playerData,
+            'roomData': roomData,
+            'roomCode': roomData['room_code'] ?? parentRoomRef.id,
+            'roomName': roomData['room_name'] ?? 'Battle Room',
+            'winnerName': roomData['winner_name'] ?? 'Pending',
+          };
+        }),
+      );
+    }
+
+    return _detailsFuture!;
+  }
+
   @override
   void dispose() {
     searchBattle.dispose();
@@ -253,31 +299,14 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
 
                 // FutureBuilder to resolve and filter parent Battle details before list rendering
                 return FutureBuilder<List<Map<String, dynamic>>>(
-                  future: Future.wait(
-                    playerDocs.map((playerDoc) async {
-                      Map<String, dynamic> playerData =
-                      playerDoc.data() as Map<String, dynamic>;
-                      DocumentReference? parentRoomRef = playerDoc.reference.parent.parent;
-
-                      if (parentRoomRef == null) return <String, dynamic>{};
-
-                      DocumentSnapshot roomSnapshot = await parentRoomRef.get();
-                      if (!roomSnapshot.exists) return <String, dynamic>{};
-
-                      Map<String, dynamic> roomData =
-                      roomSnapshot.data() as Map<String, dynamic>;
-
-                      return {
-                        'playerData': playerData,
-                        'roomData': roomData,
-                        'roomCode': roomData['room_code'] ?? parentRoomRef.id,
-                        'roomName': roomData['room_name'] ?? 'Battle Room',
-                        'winnerName': roomData['winner_name'] ?? 'Pending',
-                      };
-                    }),
-                  ),
+                  future: _resolveBattleDetails(playerDocs),
                   builder: (context, asyncSnapshot) {
-                    if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+                    // Only show the spinner before the first resolve. Keying
+                    // off the connection state alone blanked the list on every
+                    // rebuild.
+                    if (!asyncSnapshot.hasData &&
+                        asyncSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(color: brandBlue),
                       );

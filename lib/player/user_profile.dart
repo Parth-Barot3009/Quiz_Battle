@@ -25,6 +25,23 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
   bool isEditingName = false;
   bool isSavingName = false;
 
+  // Built once. This stream feeds the card that contains the name TextField,
+  // so recreating it inside build() made every setState (tapping edit, saving,
+  // uploading an avatar) swap the whole card out for a spinner, destroying the
+  // focused field and, because the field autofocuses, immediately re-opening
+  // the keyboard. That was the profile screen's keyboard flicker.
+  late final Stream<DocumentSnapshot<Map<String, dynamic>>>? _profileStream =
+      _buildProfileStream();
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>>? _buildProfileStream() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return null;
+    return FirebaseFirestore.instance
+        .collection('player')
+        .doc(uid)
+        .snapshots();
+  }
+
   // Theme Palette
   static const Color headerBlue = Color(0xFF306AE7);
   static const Color bgCanvas = Color(0xFFF4F7FF);
@@ -420,7 +437,6 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
       backgroundColor: bgCanvas,
@@ -574,14 +590,13 @@ class _UserProfileInfoState extends State<UserProfileInfo> {
                   ],
                 ),
                 child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                  stream: currentUid != null
-                      ? FirebaseFirestore.instance
-                      .collection('player')
-                      .doc(currentUid)
-                      .snapshots()
-                      : null,
+                  stream: _profileStream,
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    // Only show the spinner before the first payload. Checking
+                    // the connection state instead would tear this card down on
+                    // every rebuild, taking the focused name field with it.
+                    if (!snapshot.hasData &&
+                        snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(20.0),
