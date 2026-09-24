@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:quiz_battle/player/afterjoinroom.dart';
-import 'package:quiz_battle/player/player_navigationbar.dart';
 
 class JoinBattleScreen extends StatefulWidget {
   const JoinBattleScreen({super.key});
@@ -18,7 +17,6 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
   static const Color brandBlue = Color(0xFF306AE7);
   static const Color background = Color(0xFFEBF1FF);
   static const Color darkText = Color(0xFF1E293B);
-  static const Color greyText = Color(0xFF64748B);
 
   bool isLoading = false;
 
@@ -45,7 +43,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withOpacity(0.1),
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -88,7 +86,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: brandBlue.withOpacity(0.1),
+                color: brandBlue.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -129,7 +127,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(.08),
+                color: brandBlue.withValues(alpha: .08),
               ),
             ),
           ),
@@ -141,7 +139,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
               height: 240,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(.05),
+                color: brandBlue.withValues(alpha: .05),
               ),
             ),
           ),
@@ -185,7 +183,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: brandBlue.withOpacity(.30),
+                            color: brandBlue.withValues(alpha: .30),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -239,7 +237,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(.08),
+                          color: Colors.black.withValues(alpha: .08),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         ),
@@ -414,19 +412,19 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                               "joinedAt": FieldValue.serverTimestamp(),
                             }, SetOptions(merge: true));
 
-                            if (mounted) {
-                              _showSuccessSnackBar("Joining Battle...");
+                            if (!context.mounted) return;
 
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => WaitingRoom(
-                                    roomcode: code,
-                                    battleId: battleId,
-                                  ),
+                            _showSuccessSnackBar("Joining Battle...");
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => WaitingRoom(
+                                  roomcode: code,
+                                  battleId: battleId,
                                 ),
-                              );
-                            }
+                              ),
+                            );
                           } else {
                             if (mounted) {
                               _showErrorSnackBar("Enter Valid Room Code");
@@ -500,7 +498,7 @@ class _JoinBattleScreenState extends State<JoinBattleScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(.08),
+                          color: Colors.black.withValues(alpha: .08),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         ),

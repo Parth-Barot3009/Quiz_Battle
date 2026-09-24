@@ -63,7 +63,9 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
 
-    final Color accentColor = isSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+    final Color accentColor = isSuccess
+        ? const Color(0xFF10B981)
+        : const Color(0xFFEF4444);
 
     messenger.showSnackBar(
       SnackBar(
@@ -130,8 +132,13 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
               IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                icon: const Icon(Icons.close_rounded, size: 18, color: textGrey),
-                onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  size: 18,
+                  color: textGrey,
+                ),
+                onPressed: () =>
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar(),
               ),
             ],
           ),
@@ -144,9 +151,12 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final doc = await getDocumentById(user.uid);
-      if (mounted) {
+      if (mounted && doc != null) {
         setState(() {
           userInfo = doc;
+          if (!isEditingName) {
+            _nameController.text = doc['o_name'] ?? '';
+          }
         });
       }
     }
@@ -181,6 +191,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
       if (mounted) {
         setState(() {
           isEditingName = false;
+          isSavingName = false;
         });
 
         _showCustomSnackBar(
@@ -191,17 +202,14 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
       }
     } catch (e) {
       if (mounted) {
+        setState(() {
+          isSavingName = false;
+        });
         _showCustomSnackBar(
           title: "Update Failed",
           message: "Error updating name: $e",
           isSuccess: false,
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          isSavingName = false;
-        });
       }
     }
   }
@@ -222,7 +230,6 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
       try {
         final String uploadedUrl = await uploadImage(selectedImage!);
         await updateOrganizerImage(uploadedUrl);
-
         getOrganizer();
 
         if (mounted) {
@@ -387,7 +394,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                             MaterialPageRoute(
                               builder: (context) => const LoginScreen(),
                             ),
-                                (route) => false,
+                            (route) => false,
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -434,10 +441,7 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF4A7CFF),
-                    headerBlue,
-                  ],
+                  colors: [Color(0xFF4A7CFF), headerBlue],
                 ),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(36),
@@ -571,12 +575,13 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                 child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                   stream: currentUid != null
                       ? FirebaseFirestore.instance
-                      .collection('organizer')
-                      .doc(currentUid)
-                      .snapshots()
+                            .collection('organizer')
+                            .doc(currentUid)
+                            .snapshots()
                       : null,
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        userInfo == null) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(20.0),
@@ -600,6 +605,12 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                     var data = snapshot.data!.data() ?? {};
                     String organizerName = data['o_name'] ?? '';
                     String organizerEmail = data['o_email'] ?? '';
+
+                    // Safe synchronization when not editing
+                    if (!isEditingName &&
+                        _nameController.text != organizerName) {
+                      _nameController.text = organizerName;
+                    }
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,29 +651,29 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                               Expanded(
                                 child: isEditingName
                                     ? TextField(
-                                  controller: _nameController,
-                                  autofocus: true,
-                                  style: const TextStyle(
-                                    color: textDark,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.2,
-                                  ),
-                                  decoration: const InputDecoration(
-                                    isDense: true,
-                                    border: InputBorder.none,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                )
+                                        controller: _nameController,
+                                        autofocus: true,
+                                        style: const TextStyle(
+                                          color: textDark,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.2,
+                                        ),
+                                        decoration: const InputDecoration(
+                                          isDense: true,
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.zero,
+                                        ),
+                                      )
                                     : Text(
-                                  organizerName,
-                                  style: const TextStyle(
-                                    color: textDark,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.2,
-                                  ),
-                                ),
+                                        organizerName,
+                                        style: const TextStyle(
+                                          color: textDark,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.2,
+                                        ),
+                                      ),
                               ),
                               const SizedBox(width: 8),
                               GestureDetector(
@@ -737,7 +748,9 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton.icon(
-                              onPressed: isSavingName ? null : updateOrganizerName,
+                              onPressed: isSavingName
+                                  ? null
+                                  : updateOrganizerName,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF10B981),
                                 foregroundColor: Colors.white,
@@ -748,13 +761,13 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
                               ),
                               icon: isSavingName
                                   ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
                                   : const Icon(Icons.check_circle_outline),
                               label: Text(
                                 isSavingName ? "Saving..." : "Save Profile",
@@ -835,11 +848,8 @@ class _OrganiserProfileInfoState extends State<OrganiserProfileInfo> {
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
-        errorBuilder: (context, error, stackTrace) => const Icon(
-          Icons.person,
-          size: 44,
-          color: textGrey,
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.person, size: 44, color: textGrey),
       );
     }
 

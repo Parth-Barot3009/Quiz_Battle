@@ -7,16 +7,56 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:quiz_battle/organizer/Battle_Room_Org.dart';
+import 'package:quiz_battle/organizer/battle_room_org.dart';
 
-class create_battle extends StatefulWidget {
-  const create_battle({super.key});
-
-  @override
-  State<create_battle> createState() => _create_battleState();
+/// Reads a cell defensively — rows in a real workbook are often shorter than
+/// the header, and indexing past the end used to throw a RangeError.
+String _cellAt(List<excel.Data?> row, int index) {
+  if (index >= row.length) return "";
+  return row[index]?.value?.toString().trim() ?? "";
 }
 
-class _create_battleState extends State<create_battle> {
+/// Parses a questions workbook into question maps, without touching the
+/// network. Rows are returned in workbook order across every sheet.
+List<Map<String, dynamic>> parseQuestionRows(List<int> bytes) {
+  final excelFile = excel.Excel.decodeBytes(bytes);
+  final List<Map<String, dynamic>> parsed = [];
+
+  for (final sheetName in excelFile.tables.keys) {
+    final table = excelFile.tables[sheetName];
+    if (table == null) continue;
+
+    // Row 0 is the header.
+    for (int row = 1; row < table.rows.length; row++) {
+      final currentRow = table.rows[row];
+      if (currentRow.isEmpty) continue;
+
+      final question = _cellAt(currentRow, 0);
+      // Skip blank padding rows that trail most spreadsheets.
+      if (question.isEmpty) continue;
+
+      parsed.add({
+        "question": question,
+        "optionA": _cellAt(currentRow, 1),
+        "optionB": _cellAt(currentRow, 2),
+        "optionC": _cellAt(currentRow, 3),
+        "optionD": _cellAt(currentRow, 4),
+        "correctAnswer": _cellAt(currentRow, 5),
+      });
+    }
+  }
+
+  return parsed;
+}
+
+class CreateBattle extends StatefulWidget {
+  const CreateBattle({super.key});
+
+  @override
+  State<CreateBattle> createState() => _CreateBattleState();
+}
+
+class _CreateBattleState extends State<CreateBattle> {
   final formKey = GlobalKey<FormState>();
   TimeOfDay? startTime;
   TimeOfDay? endTime;
@@ -117,54 +157,34 @@ class _create_battleState extends State<create_battle> {
   }
 
   Future<void> uploadQuestionsToFirestore(String roomCode) async {
-    DocumentSnapshot battleDoc = await FirebaseFirestore.instance
+    final bytes = selectedBytes;
+    if (bytes == null) {
+      throw Exception("Please select Excel file");
+    }
+
+    final rows = parseQuestionRows(bytes);
+    if (rows.isEmpty) {
+      throw Exception("No questions found in the uploaded file");
+    }
+
+    final questionsRef = FirebaseFirestore.instance
         .collection("Battle_Room_Details")
         .doc(roomCode)
-        .get();
+        .collection("Questions");
 
-    String excelUrl = battleDoc["question_file"];
+    // One batch instead of a round trip per row. `index` is global across
+    // sheets so a multi-sheet workbook no longer overwrites its own questions.
+    final batch = FirebaseFirestore.instance.batch();
 
-    final response = await http.get(Uri.parse(excelUrl));
-
-    if (response.statusCode != 200) {
-      throw Exception("Excel download failed");
+    for (int index = 0; index < rows.length; index++) {
+      batch.set(questionsRef.doc("question_${index + 1}"), {
+        ...rows[index],
+        "questionIndex": index,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
     }
 
-    var excelFile = excel.Excel.decodeBytes(response.bodyBytes);
-
-    int index = 0;
-
-    for (var sheet in excelFile.tables.keys) {
-      var table = excelFile.tables[sheet];
-
-      if (table == null) continue;
-
-      int que_id = 1;
-      for (int row = 1; row < table.rows.length; row++) {
-        var currentRow = table.rows[row];
-
-        if (currentRow.isEmpty) continue;
-
-        await FirebaseFirestore.instance
-            .collection("Battle_Room_Details")
-            .doc(roomCode)
-            .collection("Questions")
-            .doc("Question :$que_id")
-            .set({
-          "question": currentRow[0]?.value.toString() ?? "",
-          "optionA": currentRow[1]?.value.toString() ?? "",
-          "optionB": currentRow[2]?.value.toString() ?? "",
-          "optionC": currentRow[3]?.value.toString() ?? "",
-          "optionD": currentRow[4]?.value.toString() ?? "",
-          "correctAnswer": currentRow[5]?.value.toString() ?? "",
-          "questionIndex": index,
-          "createdAt": FieldValue.serverTimestamp(),
-        });
-
-        index++;
-        que_id++;
-      }
-    }
+    await batch.commit();
   }
 
   // Sample Excel View Logic
@@ -186,10 +206,27 @@ class _create_battleState extends State<create_battle> {
           continue;
         }
         rows.add(
-          row.map((e) => e?.value.toString() ?? "").toList(),
+          row.map((e) => e?.value?.toString() ?? "").toList(),
         );
       }
     }
+
+    if (rows.isEmpty) {
+      _showErrorSnackBar("The sample file could not be read.");
+      return;
+    }
+
+    // DataTable asserts if any row's cell count differs from the header's, and
+    // trailing empty cells are routinely trimmed by spreadsheet editors.
+    final int columnCount = rows.first.length;
+    rows = rows
+        .map((row) => List<String>.generate(
+              columnCount,
+              (i) => i < row.length ? row[i] : "",
+            ))
+        .toList();
+
+    if (!mounted) return;
 
     showDialog(
       context: context,
@@ -274,6 +311,23 @@ class _create_battleState extends State<create_battle> {
     }
   }
 
+  /// Generates a room code that no existing battle is already using.
+  ///
+  /// The document is keyed by the code, so a collision would silently
+  /// overwrite another organizer's battle and its questions.
+  Future<String> generateUniqueRoomCode() async {
+    for (int attempt = 0; attempt < 10; attempt++) {
+      final candidate = generateRoomCode();
+      final existing = await FirebaseFirestore.instance
+          .collection("Battle_Room_Details")
+          .doc(candidate)
+          .get();
+
+      if (!existing.exists) return candidate;
+    }
+    throw Exception("Could not allocate a free room code. Please try again.");
+  }
+
   // Room Code Generator Logic
   String generateRoomCode() {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -287,6 +341,9 @@ class _create_battleState extends State<create_battle> {
 
   // Firestore Addition Logic
   Future<void> addCreateRoomDetails() async {
+    // Claim a free code before writing, so one battle can't clobber another.
+    roomCode = await generateUniqueRoomCode();
+
     String? excelUrl = await uploadExcelToCloudinary();
 
     DateTime fullStartDateTime = DateTime(
@@ -304,6 +361,12 @@ class _create_battleState extends State<create_battle> {
       endTime!.hour,
       endTime!.minute,
     );
+
+    // A battle scheduled to end "before" it starts is one that runs past
+    // midnight, so roll the end date forward a day.
+    if (!fullEndDateTime.isAfter(fullStartDateTime)) {
+      fullEndDateTime = fullEndDateTime.add(const Duration(days: 1));
+    }
 
     await FirebaseFirestore.instance
         .collection("Battle_Room_Details")
@@ -341,7 +404,7 @@ class _create_battleState extends State<create_battle> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withOpacity(0.1),
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -406,8 +469,10 @@ class _create_battleState extends State<create_battle> {
       endTime!.minute,
     );
 
-    if (!end.isAfter(start)) {
-      _showErrorSnackBar("End time must be after start time");
+    // An end time earlier in the day than the start means the battle runs past
+    // midnight, which is allowed. Identical times are not.
+    if (end.isAtSameMomentAs(start)) {
+      _showErrorSnackBar("End time must be different from start time");
       return false;
     }
 
@@ -416,7 +481,36 @@ class _create_battleState extends State<create_battle> {
       return false;
     }
 
+    // The question count is a manual stepper, so it can easily exceed what the
+    // workbook actually contains. Players used to crash mid-battle when it did.
+    final int available = _availableQuestionCount();
+    if (available == 0) {
+      _showErrorSnackBar(
+        "No questions found in the file. Check it against the sample.",
+      );
+      return false;
+    }
+    if (totalQuestions > available) {
+      _showErrorSnackBar(
+        "The file only has $available question${available == 1 ? "" : "s"}. "
+        "Lower the question count.",
+      );
+      return false;
+    }
+
     return true;
+  }
+
+  /// Number of usable question rows in the selected workbook.
+  int _availableQuestionCount() {
+    final bytes = selectedBytes;
+    if (bytes == null) return 0;
+    try {
+      return parseQuestionRows(bytes).length;
+    } catch (e) {
+      debugPrint("Could not parse the selected workbook: $e");
+      return 0;
+    }
   }
 
   @override
@@ -1052,7 +1146,7 @@ class _create_battleState extends State<create_battle> {
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF3B82F6)
-                                          .withOpacity(0.1),
+                                          .withValues(alpha: 0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(

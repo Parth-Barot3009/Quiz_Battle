@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/player/after_quiz.dart';
@@ -21,83 +22,137 @@ class WaitingScreen extends StatefulWidget {
 class _WaitingScreenState extends State<WaitingScreen> {
   bool navigated = false;
 
+  // Guards against re-entering the generator while an attempt is in flight.
+  // Every player reaches this screen at once, and the writes below retrigger
+  // the snapshot listener, so without this the build loop fires it repeatedly.
+  bool _generating = false;
+
   static const Color primaryBlue = Color(0xFF2563EB);
   static const Color background = Color(0xFFF5F9FF);
 
-  Future<void> calculateLeaderboard() async {
+  static const List<int> _bonusTable = [
+    150, 130, 120, 100, 80, 60, 50, 40, 30, 20,
+  ];
 
-    DocumentReference battleRef = FirebaseFirestore.instance
-        .collection("Battle_Room_Details")
-        .doc(widget.battleId);
+  /// How long to wait for stragglers before ranking without them. A player who
+  /// closes the app used to strand everyone else here indefinitely.
+  static const Duration _stragglerGrace = Duration(seconds: 90);
 
-    DocumentSnapshot battleSnapshot =
-    await battleRef.get();
+  Timer? _graceTimer;
+  bool _deadlinePassed = false;
 
-    Map<String, dynamic> battleData =
-    battleSnapshot.data() as Map<String, dynamic>;
+  // Hoisted so rebuilds reuse the same subscriptions instead of resetting
+  // them and flashing a spinner.
+  late final Stream<DocumentSnapshot<Map<String, dynamic>>> _battleStream =
+      FirebaseFirestore.instance
+          .collection("Battle_Room_Details")
+          .doc(widget.battleId)
+          .snapshots();
 
-    if (battleData["leaderboardGenerated"] == true) {
-      return;
-    }
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _playersStream =
+      FirebaseFirestore.instance
+          .collection("Battle_Room_Details")
+          .doc(widget.battleId)
+          .collection("Players")
+          .snapshots();
 
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("Battle_Room_Details")
-        .doc(widget.battleId)
-        .collection("Players")
-        .get();
+  @override
+  void initState() {
+    super.initState();
+    _graceTimer = Timer(_stragglerGrace, () {
+      if (!mounted) return;
+      setState(() => _deadlinePassed = true);
+      _generateLeaderboard();
+    });
+  }
 
-    List<QueryDocumentSnapshot> players = snapshot.docs;
+  @override
+  void dispose() {
+    _graceTimer?.cancel();
+    super.dispose();
+  }
 
-    players.sort((a, b) {
-      Map<String, dynamic> playerA = a.data() as Map<String, dynamic>;
+  /// Ranks every player and stamps the result on the battle document.
+  ///
+  /// The `leaderboardGenerated` flag is claimed inside a transaction so that
+  /// only one player's device does the ranking, however many finish at once.
+  Future<void> _generateLeaderboard() async {
+    if (_generating) return;
+    _generating = true;
 
-      Map<String, dynamic> playerB = b.data() as Map<String, dynamic>;
+    final firestore = FirebaseFirestore.instance;
+    final battleRef =
+        firestore.collection("Battle_Room_Details").doc(widget.battleId);
 
-      if (playerB["correct"] != playerA["correct"]) {
-        return playerB["correct"].compareTo(playerA["correct"]);
+    try {
+      // Claim the job. If another device already claimed it, stop here.
+      final bool claimed = await firestore.runTransaction<bool>((tx) async {
+        final snapshot = await tx.get(battleRef);
+        final data = snapshot.data();
+
+        if (!snapshot.exists || data == null) return false;
+        if (data["leaderboardGenerated"] == true) return false;
+
+        tx.update(battleRef, {"leaderboardGenerated": true});
+        return true;
+      });
+
+      if (!claimed) return;
+
+      final playersSnapshot = await battleRef.collection("Players").get();
+      final players = playersSnapshot.docs;
+
+      if (players.isEmpty) {
+        // Nothing to rank; release the claim so a later attempt can retry.
+        await battleRef.update({"leaderboardGenerated": false});
+        return;
       }
 
-      return (playerA["totalTime"] as num).compareTo(
-        playerB["totalTime"] as num,
-      );
-    });
+      // Most correct answers wins; ties broken by the faster total time.
+      players.sort((a, b) {
+        final dataA = a.data();
+        final dataB = b.data();
 
-    WriteBatch batch = FirebaseFirestore.instance.batch();
+        final int correctA = (dataA["correct"] as num?)?.toInt() ?? 0;
+        final int correctB = (dataB["correct"] as num?)?.toInt() ?? 0;
+        if (correctA != correctB) return correctB.compareTo(correctA);
 
-    List<int> bonus = [150, 130, 120, 100, 80, 60, 50, 40, 30, 20];
-
-    for (int i = 0; i < players.length; i++) {
-      Map<String, dynamic> data = players[i].data() as Map<String, dynamic>;
-
-      int bonusPoint = i < bonus.length ? bonus[i] : 10;
-
-      batch.update(players[i].reference, {
-        "rank": i + 1,
-        "bonusPoints": bonusPoint,
-        "finalPoints": (data["points"] ?? 0) + bonusPoint,
+        final num timeA = (dataA["totalTime"] as num?) ?? 0;
+        final num timeB = (dataB["totalTime"] as num?) ?? 0;
+        return timeA.compareTo(timeB);
       });
+
+      final batch = firestore.batch();
+
+      for (int i = 0; i < players.length; i++) {
+        final data = players[i].data();
+        final int bonus = i < _bonusTable.length ? _bonusTable[i] : 10;
+        final int points = (data["points"] as num?)?.toInt() ?? 0;
+
+        batch.update(players[i].reference, {
+          "rank": i + 1,
+          "bonusPoints": bonus,
+          "finalPoints": points + bonus,
+          "player_score": points + bonus,
+        });
+      }
+
+      final winnerName =
+          (players.first.data()["player_name"] ?? "Player").toString();
+      batch.update(battleRef, {
+        "winner_name": winnerName,
+        "status": "completed",
+      });
+
+      await batch.commit();
+    } catch (e) {
+      debugPrint("Error generating leaderboard: $e");
+      // Let another device pick the job up rather than stranding the room.
+      try {
+        await battleRef.update({"leaderboardGenerated": false});
+      } catch (_) {}
+      _generating = false;
     }
-
-    await batch.commit();
-
-    Map<String, dynamic> winner =
-    players.first.data() as Map<String, dynamic>;
-
-    await FirebaseFirestore.instance
-        .collection("Battle_Room_Details")
-        .doc(widget.battleId)
-        .update({
-
-      "winner_name": winner["player_name"],
-
-    });
-
-    await FirebaseFirestore.instance
-        .collection("Battle_Room_Details")
-        .doc(widget.battleId)
-        .update({
-      "leaderboardGenerated": true,
-    });
   }
 
   @override
@@ -105,70 +160,62 @@ class _WaitingScreenState extends State<WaitingScreen> {
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
-        child: StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection("Battle_Room_Details")
-              .doc(widget.battleId)
-              .snapshots(),
+        child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: _battleStream,
           builder: (context, battleSnapshot) {
             if (!battleSnapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            // ✅ SAFE: Safely extracts data as a Map first
-            Map<String, dynamic>? battleData =
-            battleSnapshot.data?.data() as Map<String, dynamic>?;
+            final Map<String, dynamic>? battleData = battleSnapshot.data?.data();
 
-            bool leaderboardGenerated = battleData?["leaderboardGenerated"] ?? false;
+            final bool leaderboardGenerated =
+                battleData?["leaderboardGenerated"] == true;
 
-            return StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection("Battle_Room_Details")
-                  .doc(widget.battleId)
-                  .collection("Players")
-                  .snapshots(),
+            return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _playersStream,
               builder: (context, playerSnapshot) {
                 if (!playerSnapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                List<QueryDocumentSnapshot> players = playerSnapshot.data!.docs;
+                final players = playerSnapshot.data!.docs;
 
-                int totalPlayers = players.length;
+                final int totalPlayers = players.length;
 
-                int finishedPlayers = players.where((doc) {
-                  Map<String, dynamic> data =
-                  doc.data() as Map<String, dynamic>;
+                final int finishedPlayers = players
+                    .where((doc) => doc.data()["isFinished"] == true)
+                    .length;
 
-                  return data["isFinished"] == true;
-                }).length;
-
+                final bool everyoneDone =
+                    totalPlayers > 0 && finishedPlayers == totalPlayers;
 
                 //-------------------------------------------------------
-                // Everyone Finished
+                // Everyone finished (or the grace period expired)
                 //-------------------------------------------------------
+                // Side effects are deferred out of the build phase; firing
+                // them inline retriggered this very listener in a loop.
+                if (everyoneDone && !leaderboardGenerated) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _generateLeaderboard();
+                  });
+                }
 
-                if (finishedPlayers == totalPlayers && totalPlayers > 0) {
-                  if (!leaderboardGenerated) {
-                    calculateLeaderboard();
-                  }
-
-                  if (leaderboardGenerated && !navigated) {
-                    navigated = true;
-
-                    Future.microtask(() {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ResultScreen(
-                            battleId: widget.battleId,
-                            myScore: widget.myScore,
-                            totalQuestions: widget.totalQuestions,
-                          ),
+                if (leaderboardGenerated && !navigated) {
+                  navigated = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ResultScreen(
+                          battleId: widget.battleId,
+                          myScore: widget.myScore,
+                          totalQuestions: widget.totalQuestions,
                         ),
-                      );
-                    });
-                  }
+                      ),
+                    );
+                  });
                 }
 
                 //-------------------------------------------------------
@@ -230,7 +277,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                         const SizedBox(height: 30),
 
                         Text(
-                          remaining == 0
+                          remaining == 0 || _deadlinePassed
                               ? "Preparing leaderboard..."
                               : "Waiting for $remaining player${remaining > 1 ? "s" : ""}...",
                           style: const TextStyle(
@@ -241,10 +288,14 @@ class _WaitingScreenState extends State<WaitingScreen> {
 
                         const SizedBox(height: 60),
 
-                        const Text(
-                          "Please don't close the app.\nThe result will appear automatically.",
+                        Text(
+                          _deadlinePassed
+                              ? "Finishing up without the remaining players."
+                              : "Please don't close the app.\nResults appear automatically, and at most "
+                                  "${_stragglerGrace.inSeconds ~/ 60} minute "
+                                  "${_stragglerGrace.inSeconds % 60}s after you finish.",
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       ],
                     ),

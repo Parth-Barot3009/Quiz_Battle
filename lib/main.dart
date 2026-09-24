@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:quiz_battle/auth/Splash_Screen.dart';
+import 'package:quiz_battle/auth/splash_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {

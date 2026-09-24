@@ -1,23 +1,59 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/admin/Navigation_Admin.dart';
+import 'package:quiz_battle/admin/navigation_admin.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AdminDeshboard extends StatefulWidget {
-  const AdminDeshboard({super.key});
+class AdminDashboard extends StatefulWidget {
+  const AdminDashboard({super.key});
 
   @override
-  State<AdminDeshboard> createState() => _AdminDeshboardState();
+  State<AdminDashboard> createState() => _AdminDashboardState();
 }
 
-class _AdminDeshboardState extends State<AdminDeshboard> {
+class _AdminDashboardState extends State<AdminDashboard> {
   final user = FirebaseAuth.instance.currentUser;
 
+  // Subscriptions are built once instead of on every rebuild. Recreating them
+  // inline in build() reset each StreamBuilder to its loading state, which
+  // flashed the dashboard on any rebuild.
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _adminStream =
+      FirebaseFirestore.instance
+          .collection('admin')
+          .where('email', isEqualTo: user?.email ?? "")
+          .snapshots();
+
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _organizersStream =
+      FirebaseFirestore.instance.collection('organizer').snapshots();
+
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _playersStream =
+      FirebaseFirestore.instance.collection('player').snapshots();
+
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _allBattlesStream =
+      FirebaseFirestore.instance.collection('Battle_Room_Details').snapshots();
+
+  // Time-dependent, so these are rebuilt deliberately on pull-to-refresh.
+  late Timestamp _asOf = Timestamp.now();
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _startedBattlesStream =
+      _buildStartedBattlesStream(Timestamp.now());
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _buildStartedBattlesStream(
+    Timestamp asOf,
+  ) {
+    return FirebaseFirestore.instance
+        .collection('Battle_Room_Details')
+        .where('start_time', isLessThanOrEqualTo: asOf)
+        .snapshots();
+  }
+
   Future<void> _handleRefresh() async {
-    setState(() {});
-    await Future.delayed(const Duration(milliseconds: 1000));
+    // Re-issues the time-dependent queries against the current clock.
+    setState(() {
+      _asOf = Timestamp.now();
+      _startedBattlesStream = _buildStartedBattlesStream(_asOf);
+    });
+    await Future.delayed(const Duration(milliseconds: 600));
   }
 
   // Theme Palette
@@ -30,7 +66,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
 
   // Stream for active battle count
   Stream<int> getActiveBattleCountStream() {
-    final now = Timestamp.now();
+    final now = _asOf;
     return FirebaseFirestore.instance
         .collection('Battle_Room_Details')
         .where('start_time', isLessThanOrEqualTo: now)
@@ -134,7 +170,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Admin_Nav(initialIndex: index),
+        builder: (context) => AdminNav(initialIndex: index),
       ),
     );
   }
@@ -155,7 +191,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.12),
+                color: brandBlue.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -167,7 +203,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.08),
+                color: brandBlue.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -227,7 +263,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                               border: Border.all(color: const Color(0xFFFEE2E2)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFEF4444).withOpacity(0.06),
+                                  color: const Color(0xFFEF4444).withValues(alpha: 0.06),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -247,10 +283,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
 
                     // 2. GREETING BANNER CARD
                     StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                      stream: FirebaseFirestore.instance
-                          .collection('admin')
-                          .where('email', isEqualTo: user?.email ?? "")
-                          .snapshots(),
+                      stream: _adminStream,
                       builder: (context, snapshot) {
                         String adminName = 'Admin';
                         if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
@@ -271,7 +304,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF1D4ED8).withOpacity(0.35),
+                                color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -286,7 +319,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                   Text(
                                     "Welcome back,",
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(0.85),
+                                      color: Colors.white.withValues(alpha: 0.85),
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -306,10 +339,10 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                 width: 58,
                                 height: 58,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.20),
+                                  color: Colors.white.withValues(alpha: 0.20),
                                   borderRadius: BorderRadius.circular(18),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.25),
+                                    color: Colors.white.withValues(alpha: 0.25),
                                   ),
                                 ),
                                 child: const Icon(
@@ -342,9 +375,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                             borderColor: const Color(0xFFFECACA),
                             accentColor: const Color(0xFFEF4444),
                             badgeColor: const Color(0xFFFEE2E2),
-                            stream: FirebaseFirestore.instance
-                                .collection('organizer')
-                                .snapshots(),
+                            stream: _organizersStream,
                             onTap: () => _navigateToTab(1),
                           ),
                         ),
@@ -363,9 +394,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                             borderColor: const Color(0xFFA7F3D0),
                             accentColor: const Color(0xFF10B981),
                             badgeColor: const Color(0xFFD1FAE5),
-                            stream: FirebaseFirestore.instance
-                                .collection('player')
-                                .snapshots(),
+                            stream: _playersStream,
                             onTap: () => _navigateToTab(2),
                           ),
                         ),
@@ -408,9 +437,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                             borderColor: const Color(0xFFD0E1FF),
                             accentColor: const Color(0xFF4A7CFF),
                             badgeColor: const Color(0xFFDCE7FF),
-                            stream: FirebaseFirestore.instance
-                                .collection('Battle_Room_Details')
-                                .snapshots(),
+                            stream: _allBattlesStream,
                             onTap: () => _navigateToTab(3),
                           ),
                         ),
@@ -436,10 +463,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                     const SizedBox(height: 12),
 
                     StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('Battle_Room_Details')
-                          .where('start_time', isLessThanOrEqualTo: now)
-                          .snapshots(),
+                      stream: _startedBattlesStream,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(
@@ -502,7 +526,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                                   border: Border.all(color: borderColor, width: 1.2),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: textDark.withOpacity(0.02),
+                                      color: textDark.withValues(alpha: 0.02),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -609,7 +633,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
           border: Border.all(color: borderColor, width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: accentColor.withOpacity(0.08),
+              color: accentColor.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -625,7 +649,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                 child: Icon(
                   icon,
                   size: 75,
-                  color: accentColor.withOpacity(0.08),
+                  color: accentColor.withValues(alpha: 0.08),
                 ),
               ),
               Padding(
@@ -729,7 +753,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
           border: Border.all(color: borderColor, width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: accentColor.withOpacity(0.08),
+              color: accentColor.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -745,7 +769,7 @@ class _AdminDeshboardState extends State<AdminDeshboard> {
                 child: Icon(
                   icon,
                   size: 75,
-                  color: accentColor.withOpacity(0.08),
+                  color: accentColor.withValues(alpha: 0.08),
                 ),
               ),
               Padding(

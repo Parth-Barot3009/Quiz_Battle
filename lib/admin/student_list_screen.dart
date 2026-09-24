@@ -1,18 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-class Stu_List extends StatefulWidget {
-  const Stu_List({super.key});
+class StuList extends StatefulWidget {
+  const StuList({super.key});
 
   @override
-  State<Stu_List> createState() => _Stu_ListState();
+  State<StuList> createState() => _StuListState();
 }
 
-class _Stu_ListState extends State<Stu_List> {
-  final search_organizer = TextEditingController();
+class _StuListState extends State<StuList> {
+  final searchOrganizer = TextEditingController();
   String _searchQuery = "";
+
+  // Built once so that rebuilds (typing in the search box, the keyboard
+  // opening) reuse the same subscription instead of tearing it down and
+  // flashing a spinner over the list.
+  final Stream<QuerySnapshot> _playersStream =
+      FirebaseFirestore.instance.collection('player').snapshots();
 
   // Color System
   static const Color brandBlue = Color(0xFF2563EB);
@@ -32,50 +36,34 @@ class _Stu_ListState extends State<Stu_List> {
 
   @override
   void dispose() {
-    search_organizer.dispose();
+    searchOrganizer.dispose();
     super.dispose();
   }
 
-  // Deletes player from Firebase Auth using a Secondary App instance & Firestore
+  /// Removes the player's record and revokes their access.
+  ///
+  /// The sign-in account itself lives in Firebase Auth and can only be deleted
+  /// with admin credentials, which a client app must never hold. This used to
+  /// be worked around by storing each user's password in plaintext and signing
+  /// in as them; that has been removed. The account is marked blocked and the
+  /// profile deleted, which locks the user out immediately. Removing the
+  /// leftover Auth account requires a Cloud Function calling
+  /// `admin.auth().deleteUser(uid)`, or a manual delete in the Firebase
+  /// console.
   Future<void> _deletePlayerCompletely({
     required String docId,
-    required String email,
-    required String password,
   }) async {
-    FirebaseApp? tempApp;
-    final String tempAppName = 'DeletePlayerApp_${DateTime.now().microsecondsSinceEpoch}';
+    final playerRef =
+        FirebaseFirestore.instance.collection('player').doc(docId);
 
     try {
-      tempApp = await Firebase.initializeApp(
-        name: tempAppName,
-        options: Firebase.app().options,
-      );
-
-      FirebaseAuth tempAuth = FirebaseAuth.instanceFor(app: tempApp);
-
-      UserCredential userCredential = await tempAuth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
-      );
-
-      if (userCredential.user != null) {
-        await userCredential.user!.delete();
-        debugPrint("Successfully deleted player from Firebase Auth: $email");
-      }
-
-      await FirebaseFirestore.instance
-          .collection('player')
-          .doc(docId)
-          .delete();
-
-      debugPrint("Successfully deleted player document from Firestore: $docId");
+      // Tombstone the account first so a half-completed delete still revokes
+      // access rather than leaving a working login behind.
+      await playerRef.set({'is_blocked': true}, SetOptions(merge: true));
+      await playerRef.delete();
     } catch (e) {
       debugPrint("Error during player deletion: $e");
       rethrow;
-    } finally {
-      if (tempApp != null) {
-        await tempApp.delete();
-      }
     }
   }
 
@@ -241,7 +229,7 @@ class _Stu_ListState extends State<Stu_List> {
                 ],
               ),
               child: TextField(
-                controller: search_organizer,
+                controller: searchOrganizer,
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value.toLowerCase().trim();
@@ -264,21 +252,22 @@ class _Stu_ListState extends State<Stu_List> {
           // 3. STUDENTS FIRESTORE STREAM LIST
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('player').snapshots(),
+              stream: _playersStream,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: brandBlue),
-                  );
-                }
-
                 if (snapshot.hasError) {
                   return const Center(
                     child: Text("Something went wrong"),
                   );
                 }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                // Only show the spinner before the first payload arrives.
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: brandBlue),
+                  );
+                }
+
+                if (snapshot.data!.docs.isEmpty) {
                   return const Center(
                     child: Text("No Player Found"),
                   );
@@ -572,26 +561,13 @@ class _Stu_ListState extends State<Stu_List> {
                                         if (confirm != true) return;
 
                                         try {
-                                          final String password = (data['password'] ?? data['player_password'] ?? '').toString().trim();
-
-                                          if (password.isEmpty) {
-                                            await FirebaseFirestore.instance
-                                                .collection('player')
-                                                .doc(player.id)
-                                                .delete();
-                                            _showSnackBar(
-                                              "Player deleted from Firestore (Password missing for Auth deletion).",
-                                              isWarning: true,
-                                            );
-                                            return;
-                                          }
-
                                           await _deletePlayerCompletely(
                                             docId: player.id,
-                                            email: email,
-                                            password: password,
                                           );
-                                          _showSnackBar("Player permanently deleted from Auth & Firestore!");
+                                          _showSnackBar(
+                                            "Player deleted and locked out. "
+                                            "Remove the sign-in account from the Firebase console to free the email.",
+                                          );
                                         } catch (e) {
                                           _showSnackBar("Deletion failed: $e", isError: true);
                                         }

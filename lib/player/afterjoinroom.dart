@@ -149,7 +149,7 @@ class _WaitingRoomState extends State<WaitingRoom>
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.08),
+                color: brandBlue.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -161,7 +161,7 @@ class _WaitingRoomState extends State<WaitingRoom>
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.06),
+                color: brandBlue.withValues(alpha: 0.06),
               ),
             ),
           ),
@@ -181,7 +181,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
+                              color: Colors.black.withValues(alpha: 0.06),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -230,7 +230,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: brandBlue.withOpacity(0.35),
+                                color: brandBlue.withValues(alpha: 0.35),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -254,10 +254,10 @@ class _WaitingRoomState extends State<WaitingRoom>
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.18),
+                                  color: Colors.white.withValues(alpha: 0.18),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
+                                    color: Colors.white.withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: Text(
@@ -295,7 +295,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.06),
+                                color: Colors.black.withValues(alpha: 0.06),
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
                               ),
@@ -326,7 +326,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                                           Container(
                                             padding: const EdgeInsets.all(10),
                                             decoration: BoxDecoration(
-                                              color: brandBlue.withOpacity(0.1),
+                                              color: brandBlue.withValues(alpha: 0.1),
                                               borderRadius:
                                               BorderRadius.circular(12),
                                             ),
@@ -353,7 +353,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                                           vertical: 6,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: brandBlue.withOpacity(0.1),
+                                          color: brandBlue.withValues(alpha: 0.1),
                                           borderRadius:
                                           BorderRadius.circular(20),
                                         ),
@@ -438,7 +438,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                                           borderRadius:
                                           BorderRadius.circular(16),
                                           border: Border.all(
-                                            color: brandBlue.withOpacity(0.12),
+                                            color: brandBlue.withValues(alpha: 0.12),
                                           ),
                                         ),
                                         child: Row(
@@ -476,7 +476,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                                               ),
                                               decoration: BoxDecoration(
                                                 color: const Color(0xFF10B981)
-                                                    .withOpacity(0.12),
+                                                    .withValues(alpha: 0.12),
                                                 borderRadius:
                                                 BorderRadius.circular(12),
                                               ),
@@ -527,7 +527,7 @@ class _WaitingRoomState extends State<WaitingRoom>
                                     color: Colors.amber.shade100,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.amber.withOpacity(0.4),
+                                        color: Colors.amber.withValues(alpha: 0.4),
                                         blurRadius: 20,
                                         spreadRadius: 2,
                                       ),

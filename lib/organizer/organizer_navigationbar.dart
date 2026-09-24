@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/organizer/Organizer_Battle_History.dart';
-import 'package:quiz_battle/organizer/ProfileInfo_Organizer.dart';
+import 'package:quiz_battle/organizer/organizer_battle_history.dart';
+import 'package:quiz_battle/organizer/profile_info_organizer.dart';
 import 'package:quiz_battle/organizer/create_battle.dart';
 import 'package:quiz_battle/organizer/organizer_dashboard.dart';
 
-class Org_Navigationbar extends StatefulWidget {
+class OrgNavigationBar extends StatefulWidget {
   final int? currentIndex;
-  const Org_Navigationbar({super.key, this.currentIndex});
+  const OrgNavigationBar({super.key, this.currentIndex});
 
   @override
-  State<Org_Navigationbar> createState() => _Org_NavigationbarState();
+  State<OrgNavigationBar> createState() => _OrgNavigationBarState();
 }
 
-class _Org_NavigationbarState extends State<Org_Navigationbar> with WidgetsBindingObserver {
+class _OrgNavigationBarState extends State<OrgNavigationBar> {
   late int _currentIndex;
-  bool _isKeyboardVisible = false;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -23,7 +22,7 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> with WidgetsBindi
 
   final List<Widget> _screen = const [
     OrgDashboard(),
-    create_battle(),
+    CreateBattle(),
     OrganizerBattleHistory(),
     OrganiserProfileInfo(),
   ];
@@ -32,29 +31,14 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> with WidgetsBindi
   void initState() {
     super.initState();
     _currentIndex = widget.currentIndex ?? 0;
-    WidgetsBinding.instance.addObserver(this); // Listen for keyboard metrics
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    final bottomInset = WidgetsBinding.instance.platformDispatcher.views.first.viewInsets.bottom;
-    final isVisible = bottomInset > 0;
-    if (isVisible != _isKeyboardVisible) {
-      setState(() {
-        _isKeyboardVisible = isVisible;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Driven by MediaQuery rather than a mirrored bool in State, so the bar
+    // tracks the keyboard without an extra setState per transition.
+    final bool isKeyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+
     return PopScope(
       // Allows popping/exiting only when already on index 0
       canPop: _currentIndex == 0,
@@ -69,7 +53,6 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> with WidgetsBindi
         }
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFFF4F7FF),
         body: Stack(
           children: [
@@ -81,13 +64,20 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> with WidgetsBindi
               ),
             ),
 
-            // 2. Navigation bar explicitly hidden when keyboard is open
-            if (!_isKeyboardVisible)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
+            // 2. Navigation bar slides out of the way while the keyboard is
+            //    up. It used to be dropped from the tree outright, which made
+            //    it pop in and out with no transition.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: AnimatedSlide(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                offset: isKeyboardVisible ? const Offset(0, 1.5) : Offset.zero,
+                child: IgnorePointer(
+                  ignoring: isKeyboardVisible,
+                  child: Container(
                   color: Colors.transparent,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Container(
@@ -97,7 +87,7 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> with WidgetsBindi
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1E293B).withOpacity(0.08),
+                          color: const Color(0xFF1E293B).withValues(alpha: 0.08),
                           blurRadius: 16,
                           spreadRadius: 2,
                           offset: const Offset(0, 4),
@@ -133,9 +123,11 @@ class _Org_NavigationbarState extends State<Org_Navigationbar> with WidgetsBindi
                         ),
                       ],
                     ),
+                    ),
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),

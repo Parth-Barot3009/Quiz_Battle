@@ -11,13 +11,48 @@ class StudentDashboard extends StatefulWidget {
 }
 
 class _StudentDashboardState extends State<StudentDashboard> {
+  // Subscriptions are built once instead of on every rebuild. Recreating them
+  // inline in build() reset each StreamBuilder to its loading state, which
+  // flashed the whole dashboard on any rebuild.
+  late final String? _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  late final String? _currentUserEmail =
+      FirebaseAuth.instance.currentUser?.email;
+
+  late final Stream<DocumentSnapshot<Map<String, dynamic>>>? _playerDocStream =
+      _currentUserId == null
+          ? null
+          : FirebaseFirestore.instance
+              .collection('player')
+              .doc(_currentUserId)
+              .snapshots();
+
+  // One shared listener for the three cards that all read the same profile.
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _playerQueryStream =
+      FirebaseFirestore.instance
+          .collection('player')
+          .where('player_email', isEqualTo: _currentUserEmail)
+          .snapshots();
+
+  // Time-dependent, so it is rebuilt deliberately on pull-to-refresh rather
+  // than on every frame.
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _upcomingBattlesStream =
+      _buildUpcomingBattlesStream();
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _buildUpcomingBattlesStream() {
+    return FirebaseFirestore.instance
+        .collection('Battle_Room_Details')
+        .where('start_time', isGreaterThan: Timestamp.now())
+        .snapshots();
+  }
 
   Future<void> _handleRefresh() async {
-    // Triggers a State rebuild to update time-dependent Firestore queries
-    setState(() {});
+    // Re-issues the time-dependent query against the current clock.
+    setState(() {
+      _upcomingBattlesStream = _buildUpcomingBattlesStream();
+    });
 
-    // Optional: Add a brief artificial delay to ensure the refresh indicator gives visual feedback
-    await Future.delayed(const Duration(milliseconds: 1000));
+    // Brief delay so the refresh indicator reads as deliberate feedback.
+    await Future.delayed(const Duration(milliseconds: 600));
   }
 
   // Theme Palette
@@ -30,7 +65,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
       backgroundColor: bgCanvas,
@@ -107,12 +141,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
                         // Real-time Profile Avatar Stream
                         StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                          stream: currentUserId != null
-                              ? FirebaseFirestore.instance
-                              .collection('player')
-                              .doc(currentUserId)
-                              .snapshots()
-                              : null,
+                          stream: _playerDocStream,
                           builder: (context, snapshot) {
                             String? imageUrl;
                             if (snapshot.hasData && snapshot.data!.exists) {
@@ -143,7 +172,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => player_navigationbar(
+                                          builder: (context) => PlayerNavigationBar(
                                             currentIndex: 3,
                                           ),
                                         ),
@@ -192,13 +221,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
                     // 2. PROFILE & GREETING BANNER CARD
                     StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                      stream: FirebaseFirestore.instance
-                          .collection('player')
-                          .where(
-                        'player_email',
-                        isEqualTo: FirebaseAuth.instance.currentUser?.email,
-                      )
-                          .snapshots(),
+                      stream: _playerQueryStream,
                       builder: (context, snapshot) {
                         String playerName = "Player";
                         if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
@@ -286,7 +309,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => player_navigationbar(
+                                  builder: (context) => PlayerNavigationBar(
                                     currentIndex: 2,
                                   ),
                                 ),
@@ -374,16 +397,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                             ],
                                           ),
                                           StreamBuilder(
-                                            stream: FirebaseFirestore.instance
-                                                .collection('player')
-                                                .where(
-                                              'player_email',
-                                              isEqualTo: FirebaseAuth
-                                                  .instance
-                                                  .currentUser
-                                                  ?.email,
-                                            )
-                                                .snapshots(),
+                                            stream: _playerQueryStream,
                                             builder: (context, snapshot) {
                                               int totalBattle = 0;
 
@@ -518,16 +532,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                           ],
                                         ),
                                         StreamBuilder(
-                                          stream: FirebaseFirestore.instance
-                                              .collection('player')
-                                              .where(
-                                            'player_email',
-                                            isEqualTo: FirebaseAuth
-                                                .instance
-                                                .currentUser
-                                                ?.email,
-                                          )
-                                              .snapshots(),
+                                          stream: _playerQueryStream,
                                           builder: (context, snapshot) {
                                             int totalWins = 0;
 
@@ -589,10 +594,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     const SizedBox(height: 12),
 
                     StreamBuilder(
-                      stream: FirebaseFirestore.instance
-                          .collection('Battle_Room_Details')
-                          .where('start_time', isGreaterThan: Timestamp.now())
-                          .snapshots(),
+                      stream: _upcomingBattlesStream,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(

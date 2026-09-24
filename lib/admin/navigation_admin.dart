@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/admin/Admin_Deshboard.dart';
-import 'package:quiz_battle/admin/Organizer(List_Screen).dart';
-import 'package:quiz_battle/admin/Student_ListScreen.dart';
+import 'package:quiz_battle/admin/admin_dashboard.dart';
+import 'package:quiz_battle/admin/organizer_list_screen.dart';
+import 'package:quiz_battle/admin/student_list_screen.dart';
 import 'package:quiz_battle/admin/allbattlehistoryo.dart';
 
-class Admin_Nav extends StatefulWidget {
+class AdminNav extends StatefulWidget {
   final int initialIndex;
 
-  const Admin_Nav({super.key, this.initialIndex = 0});
+  const AdminNav({super.key, this.initialIndex = 0});
 
   @override
-  State<Admin_Nav> createState() => _Admin_NavState();
+  State<AdminNav> createState() => _AdminNavState();
 }
 
-class _Admin_NavState extends State<Admin_Nav> with WidgetsBindingObserver {
+class _AdminNavState extends State<AdminNav> {
   late int _currentIndex;
-  bool _isKeyboardVisible = false;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -23,9 +22,9 @@ class _Admin_NavState extends State<Admin_Nav> with WidgetsBindingObserver {
   static const Color textGrey = Color(0xFF94A3B8);
 
   final List<Widget> _screen = const [
-    AdminDeshboard(),
-    Org_List(),
-    Stu_List(),
+    AdminDashboard(),
+    OrgList(),
+    StuList(),
     GlobalBattleHistoryScreen(),
   ];
 
@@ -33,29 +32,14 @@ class _Admin_NavState extends State<Admin_Nav> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    WidgetsBinding.instance.addObserver(this); // Listen for keyboard metrics
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    final bottomInset = WidgetsBinding.instance.platformDispatcher.views.first.viewInsets.bottom;
-    final isVisible = bottomInset > 0;
-    if (isVisible != _isKeyboardVisible) {
-      setState(() {
-        _isKeyboardVisible = isVisible;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Driven by MediaQuery rather than a mirrored bool in State, so the bar
+    // tracks the keyboard without an extra setState per transition.
+    final bool isKeyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+
     return PopScope(
       canPop: _currentIndex == 0,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
@@ -68,7 +52,6 @@ class _Admin_NavState extends State<Admin_Nav> with WidgetsBindingObserver {
         }
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFFF4F7FF),
         body: Stack(
           children: [
@@ -80,13 +63,20 @@ class _Admin_NavState extends State<Admin_Nav> with WidgetsBindingObserver {
               ),
             ),
 
-            // 2. Navigation bar explicitly hidden when keyboard is open
-            if (!_isKeyboardVisible)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
+            // 2. Navigation bar slides out of the way while the keyboard is
+            //    up. It used to be dropped from the tree outright, which made
+            //    it pop in and out with no transition.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: AnimatedSlide(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                offset: isKeyboardVisible ? const Offset(0, 1.5) : Offset.zero,
+                child: IgnorePointer(
+                  ignoring: isKeyboardVisible,
+                  child: Container(
                   color: Colors.transparent,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Container(
@@ -96,7 +86,7 @@ class _Admin_NavState extends State<Admin_Nav> with WidgetsBindingObserver {
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1E293B).withOpacity(0.08),
+                          color: const Color(0xFF1E293B).withValues(alpha: 0.08),
                           blurRadius: 16,
                           spreadRadius: 2,
                           offset: const Offset(0, 4),
@@ -132,9 +122,11 @@ class _Admin_NavState extends State<Admin_Nav> with WidgetsBindingObserver {
                         ),
                       ],
                     ),
+                    ),
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),

@@ -11,8 +11,16 @@ class OrganizerBattleHistory extends StatefulWidget {
 }
 
 class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
-  final search_battle = TextEditingController();
+  final searchBattle = TextEditingController();
   String _searchQuery = "";
+
+  // Built once so that rebuilds (typing in the search box, the keyboard
+  // opening) reuse the same subscription instead of tearing it down and
+  // flashing a spinner over the list.
+  final Stream<QuerySnapshot> _battlesStream = FirebaseFirestore.instance
+      .collection('Battle_Room_Details')
+      .where('o_email', isEqualTo: FirebaseAuth.instance.currentUser?.email)
+      .snapshots();
 
   // Theme Palette
   static const Color brandBlue = Color(0xFF2563EB);
@@ -32,7 +40,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
 
   @override
   void dispose() {
-    search_battle.dispose();
+    searchBattle.dispose();
     super.dispose();
   }
 
@@ -156,7 +164,7 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                 ],
               ),
               child: TextField(
-                controller: search_battle,
+                controller: searchBattle,
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value.toLowerCase().trim();
@@ -179,20 +187,8 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
           // 3. FIRESTORE STREAM LIST WITH IN-LINE "ALL SET" FOOTER
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('Battle_Room_Details')
-                  .where(
-                'o_email',
-                isEqualTo: FirebaseAuth.instance.currentUser?.email,
-              )
-                  .snapshots(),
+              stream: _battlesStream,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: brandBlue),
-                  );
-                }
-
                 if (snapshot.hasError) {
                   return const Center(
                     child: Text(
@@ -202,7 +198,14 @@ class _OrganizerBattleHistoryState extends State<OrganizerBattleHistory> {
                   );
                 }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                // Only show the spinner before the first payload arrives.
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: brandBlue),
+                  );
+                }
+
+                if (snapshot.data!.docs.isEmpty) {
                   return _buildEmptyState();
                 }
 

@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required in release builds. The Flutter template only declares this in
+         the debug/profile manifests, so without it a release APK cannot reach
+         Firebase or Cloudinary at all. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <queries>
         <intent>
             <action android:name="android.intent.action.SEND" />

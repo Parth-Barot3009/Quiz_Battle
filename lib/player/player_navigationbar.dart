@@ -4,18 +4,17 @@ import 'package:quiz_battle/player/user_dashboard.dart';
 import 'package:quiz_battle/player/player_battlehistory.dart';
 import 'package:quiz_battle/player/user_profile.dart';
 
-class player_navigationbar extends StatefulWidget {
+class PlayerNavigationBar extends StatefulWidget {
   final int? currentIndex;
-  const player_navigationbar({super.key, this.currentIndex});
+  const PlayerNavigationBar({super.key, this.currentIndex});
 
   @override
-  State<player_navigationbar> createState() => _player_navigationbarState();
+  State<PlayerNavigationBar> createState() => _PlayerNavigationBarState();
 }
 
-class _player_navigationbarState extends State<player_navigationbar>
-    with WidgetsBindingObserver {
+class _PlayerNavigationBarState extends State<PlayerNavigationBar>
+    {
   late int _currentIndex;
-  bool _isKeyboardVisible = false;
 
   // App Theme Palette
   static const Color brandBlue = Color(0xFF306AE7);
@@ -33,30 +32,14 @@ class _player_navigationbarState extends State<player_navigationbar>
   void initState() {
     super.initState();
     _currentIndex = widget.currentIndex ?? 0;
-    WidgetsBinding.instance.addObserver(this); // Listen for keyboard metrics
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    final bottomInset =
-        WidgetsBinding.instance.platformDispatcher.views.first.viewInsets.bottom;
-    final isVisible = bottomInset > 0;
-    if (isVisible != _isKeyboardVisible) {
-      setState(() {
-        _isKeyboardVisible = isVisible;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Driven by MediaQuery rather than a mirrored bool in State, so the bar
+    // tracks the keyboard without an extra setState per transition.
+    final bool isKeyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+
     return PopScope(
       // Allows popping/exiting only when already on index 0
       canPop: _currentIndex == 0,
@@ -71,7 +54,6 @@ class _player_navigationbarState extends State<player_navigationbar>
         }
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFFF4F7FF),
         body: Stack(
           children: [
@@ -83,13 +65,20 @@ class _player_navigationbarState extends State<player_navigationbar>
               ),
             ),
 
-            // 2. Navigation bar explicitly hidden when keyboard is open
-            if (!_isKeyboardVisible)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
+            // 2. Navigation bar slides out of the way while the keyboard is
+            //    up. It used to be dropped from the tree outright, which made
+            //    it pop in and out with no transition.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: AnimatedSlide(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                offset: isKeyboardVisible ? const Offset(0, 1.5) : Offset.zero,
+                child: IgnorePointer(
+                  ignoring: isKeyboardVisible,
+                  child: Container(
                   color: Colors.transparent,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Container(
@@ -99,7 +88,7 @@ class _player_navigationbarState extends State<player_navigationbar>
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1E293B).withOpacity(0.08),
+                          color: const Color(0xFF1E293B).withValues(alpha: 0.08),
                           blurRadius: 16,
                           spreadRadius: 2,
                           offset: const Offset(0, 4),
@@ -135,9 +124,11 @@ class _player_navigationbarState extends State<player_navigationbar>
                         ),
                       ],
                     ),
+                    ),
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),

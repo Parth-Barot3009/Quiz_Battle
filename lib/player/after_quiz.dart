@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/organizer/organizer_navigationbar.dart';
 import 'package:quiz_battle/player/player_navigationbar.dart';
 
 class PlayerPerformance {
@@ -59,8 +58,6 @@ class _ResultScreenState extends State<ResultScreen> {
   static const Color lightThemeBg = Color(0xFFEFF6FF);
   static const Color cardBg = Colors.white;
   static const Color goldAccent = Color(0xFFFFD700);
-  static const Color textDark = Color(0xFF0F172A);
-  static const Color textMuted = Color(0xFF64748B);
 
   // ✅ Guard variable to prevent multiple score updates
   bool _hasUpdatedScore = false;
@@ -261,7 +258,7 @@ class _ResultScreenState extends State<ResultScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: playersList.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                             const SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               return _buildLeaderboardTile(
@@ -327,7 +324,7 @@ class _ResultScreenState extends State<ResultScreen> {
           Text(
             resultSubtitle,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white.withOpacity(.9), fontSize: 15),
+            style: TextStyle(color: Colors.white.withValues(alpha: .9), fontSize: 15),
           ),
 
           const SizedBox(height: 20),
@@ -463,7 +460,7 @@ class _ResultScreenState extends State<ResultScreen> {
         color: cardBg,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 8),
+          BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 8),
         ],
       ),
       child: Column(
@@ -499,7 +496,7 @@ class _ResultScreenState extends State<ResultScreen> {
           width: 2,
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 8),
+          BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 8),
         ],
       ),
       child: Column(
@@ -512,7 +509,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
               CircleAvatar(
                 radius: 22,
-                backgroundColor: primaryBlue.withOpacity(.1),
+                backgroundColor: primaryBlue.withValues(alpha: .1),
                 child: const Icon(Icons.person, color: primaryBlue),
               ),
 
@@ -617,7 +614,7 @@ class _ResultScreenState extends State<ResultScreen> {
       width: 42,
       height: 42,
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(.15),
+        color: badgeColor.withValues(alpha: .15),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -641,7 +638,7 @@ class _ResultScreenState extends State<ResultScreen> {
         color: cardBg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.05),
+            color: Colors.black.withValues(alpha: .05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -662,7 +659,7 @@ class _ResultScreenState extends State<ResultScreen> {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (_) => player_navigationbar()),
+              MaterialPageRoute(builder: (_) => PlayerNavigationBar()),
                   (route) => false,
             );
           },

@@ -11,8 +11,14 @@ class GlobalBattleHistoryScreen extends StatefulWidget {
 
 class _GlobalBattleHistoryScreenState
     extends State<GlobalBattleHistoryScreen> {
-  final search_battle = TextEditingController();
+  final searchBattle = TextEditingController();
   String _searchQuery = "";
+
+  // Built once so that rebuilds (typing in the search box, the keyboard
+  // opening) reuse the same subscription instead of tearing it down and
+  // flashing a spinner over the list.
+  final Stream<QuerySnapshot> _battlesStream =
+      FirebaseFirestore.instance.collection("Battle_Room_Details").snapshots();
 
   // Color System
   static const Color brandBlue = Color(0xFF2563EB);
@@ -32,7 +38,7 @@ class _GlobalBattleHistoryScreenState
 
   @override
   void dispose() {
-    search_battle.dispose();
+    searchBattle.dispose();
     super.dispose();
   }
 
@@ -135,7 +141,7 @@ class _GlobalBattleHistoryScreenState
                 ],
               ),
               child: TextField(
-                controller: search_battle,
+                controller: searchBattle,
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value.toLowerCase().trim();
@@ -158,16 +164,8 @@ class _GlobalBattleHistoryScreenState
           // 3. BATTLE HISTORY STREAM LIST WITH IN-LINE "ALL SET" FOOTER
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection("Battle_Room_Details")
-                  .snapshots(),
+              stream: _battlesStream,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: brandBlue),
-                  );
-                }
-
                 if (snapshot.hasError) {
                   return const Center(
                     child: Text(
@@ -177,7 +175,14 @@ class _GlobalBattleHistoryScreenState
                   );
                 }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                // Only show the spinner before the first payload arrives.
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: brandBlue),
+                  );
+                }
+
+                if (snapshot.data!.docs.isEmpty) {
                   return _buildEmptyState();
                 }
 

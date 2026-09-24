@@ -122,8 +122,12 @@ class _AddorganiserState extends State<Addorganiser> {
           .set({
         'o_name': namecon.text.trim(),
         'o_email': emailcontroller.text.trim(),
-        'password': passwordcontroller.text.trim(), // Stored for deletion authentication
+        // NOTE: the password is deliberately NOT stored here. It used to be
+        // kept in plaintext so the admin could sign in as the organizer to
+        // delete them, which exposed every organizer's real password to
+        // anyone who could read this collection.
         'role': 'organizer',
+        'is_blocked': false,
         'image_url': imageUrl,
       });
 
@@ -584,6 +588,10 @@ class _AddorganiserState extends State<Addorganiser> {
                               onPressed: isLoading
                                   ? null
                                   : () async {
+                                // Captured before any await so they are not
+                                // resolved from a stale context afterwards.
+                                final messenger = ScaffoldMessenger.of(context);
+                                final navigator = Navigator.of(context);
                                 try {
                                   if (!formKey.currentState!.validate()) return;
 
@@ -604,7 +612,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                     setState(() {
                                       isLoading = false;
                                     });
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    messenger.showSnackBar(
                                       SnackBar(
                                         elevation: 4,
                                         behavior: SnackBarBehavior.floating,
@@ -619,7 +627,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                             Container(
                                               padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
-                                                color: brandBlue.withOpacity(0.1),
+                                                color: brandBlue.withValues(alpha: 0.1),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: const Icon(
@@ -644,7 +652,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                       ),
                                     );
 
-                                    Navigator.pop(context);
+                                    navigator.pop();
                                   }
                                 } catch (e) {
                                   debugPrint("ERROR: $e");
@@ -652,7 +660,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                     setState(() {
                                       isLoading = false;
                                     });
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    messenger.showSnackBar(
                                       SnackBar(
                                         elevation: 4,
                                         behavior: SnackBarBehavior.floating,
@@ -667,7 +675,7 @@ class _AddorganiserState extends State<Addorganiser> {
                                             Container(
                                               padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFFEF4444).withOpacity(0.1),
+                                                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: const Icon(

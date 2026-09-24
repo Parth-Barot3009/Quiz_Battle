@@ -14,6 +14,27 @@ class _OrgDashboardState extends State<OrgDashboard> {
   final currentUser = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? userInfo;
 
+  // Subscriptions are built once instead of on every rebuild. Recreating them
+  // inline in build() reset each StreamBuilder to its loading state, which
+  // flashed the dashboard on any rebuild.
+  late final Stream<DocumentSnapshot> _organizerDocStream = FirebaseFirestore
+      .instance
+      .collection('organizer')
+      .doc(currentUser?.uid)
+      .snapshots();
+
+  late final Stream<QuerySnapshot> _organizerQueryStream = FirebaseFirestore
+      .instance
+      .collection('organizer')
+      .where('o_email', isEqualTo: currentUser?.email)
+      .snapshots();
+
+  // Shared by the two stat cards and the recent-battles list below.
+  late final Stream<QuerySnapshot> _myBattlesStream = FirebaseFirestore.instance
+      .collection('Battle_Room_Details')
+      .where('o_email', isEqualTo: currentUser?.email)
+      .snapshots();
+
   // Theme Colors
   static const Color brandBlue = Color(0xFF2563EB);
   static const Color bgCanvas = Color(0xFFEBF1FF);
@@ -70,7 +91,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.12),
+                color: brandBlue.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -82,7 +103,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(0.08),
+                color: brandBlue.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -124,10 +145,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         ],
                       ),
                       StreamBuilder<DocumentSnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('organizer')
-                            .doc(currentUser?.uid)
-                            .snapshots(),
+                        stream: _organizerDocStream,
                         builder: (context, snapshot) {
                           String? imageUrl;
                           if (snapshot.hasData && snapshot.data!.exists) {
@@ -147,7 +165,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: brandBlue.withOpacity(0.15),
+                                      color: brandBlue.withValues(alpha: 0.15),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -159,7 +177,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                        Org_Navigationbar(
+                                        OrgNavigationBar(
                                             currentIndex: 3),
                                       ),
                                     );
@@ -208,10 +226,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
 
                   // 2. GREETING CARD
                   StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('organizer')
-                        .where('o_email', isEqualTo: currentUser?.email)
-                        .snapshots(),
+                    stream: _organizerQueryStream,
                     builder: (context, snapshot) {
                       String name = "Organizer";
                       if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
@@ -236,7 +251,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF1D4ED8).withOpacity(0.35),
+                              color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -251,7 +266,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                 Text(
                                   "Welcome back",
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
+                                    color: Colors.white.withValues(alpha: 0.8),
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -269,7 +284,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                 Text(
                                   currentUser?.email ?? "",
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.75),
+                                    color: Colors.white.withValues(alpha: 0.75),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -279,10 +294,10 @@ class _OrgDashboardState extends State<OrgDashboard> {
                               width: 60,
                               height: 60,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.20),
+                                color: Colors.white.withValues(alpha: 0.20),
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.25),
+                                  color: Colors.white.withValues(alpha: 0.25),
                                 ),
                               ),
                               child: const Icon(
@@ -315,15 +330,12 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         borderColor: const Color(0xFFD0E1FF),
                         badgeText: "Battles",
                         watermarkIcon: Icons.quiz_rounded,
-                        stream: FirebaseFirestore.instance
-                            .collection('Battle_Room_Details')
-                            .where('o_email', isEqualTo: currentUser?.email)
-                            .snapshots(),
+                        stream: _myBattlesStream,
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Org_Navigationbar(
+                              builder: (context) => OrgNavigationBar(
                                 currentIndex: 2,
                               ),
                             ),
@@ -345,10 +357,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                         borderColor: const Color(0xFFFFE0C8),
                         badgeText: "Live Now",
                         watermarkIcon: Icons.bolt_rounded,
-                        stream: FirebaseFirestore.instance
-                            .collection('Battle_Room_Details')
-                            .where('o_email', isEqualTo: currentUser?.email)
-                            .snapshots(),
+                        stream: _myBattlesStream,
                         filterActiveOnly: true,
                       ),
                     ],
@@ -367,10 +376,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                   ),
                   const SizedBox(height: 12),
                   StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('Battle_Room_Details')
-                        .where('o_email', isEqualTo: currentUser?.email)
-                        .snapshots(),
+                    stream: _myBattlesStream,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(
@@ -448,7 +454,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: textDark.withOpacity(0.02),
+                                    color: textDark.withValues(alpha: 0.02),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -562,7 +568,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
             border: Border.all(color: borderColor, width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: accentColor.withOpacity(0.08),
+                color: accentColor.withValues(alpha: 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -579,7 +585,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                   child: Icon(
                     watermarkIcon,
                     size: 75,
-                    color: accentColor.withOpacity(0.08),
+                    color: accentColor.withValues(alpha: 0.08),
                   ),
                 ),
 
@@ -600,7 +606,7 @@ class _OrgDashboardState extends State<OrgDashboard> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
+                                  color: Colors.black.withValues(alpha: 0.04),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),

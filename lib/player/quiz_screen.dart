@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/player/after_quiz.dart';
 import 'package:quiz_battle/player/waitingscreen.dart';
 
 class Question {
@@ -51,8 +50,15 @@ class _QuizScreenState extends State<QuizScreen> {
   bool showAnswer = false;
   bool isLoading = true;
 
-  int timeLeft = 10;
+  /// Seconds allowed per question.
+  static const int questionSeconds = 10;
+
+  int timeLeft = questionSeconds;
   Timer? timer;
+
+  // Holds the 1s "show the correct answer" pause so it can be cancelled on
+  // dispose instead of firing against a torn-down State.
+  Timer? _revealTimer;
 
   final List<String> optionLetters = ["A", "B", "C", "D"];
   List<Question> questions = [];
@@ -66,34 +72,12 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void dispose() {
     timer?.cancel();
+    _revealTimer?.cancel();
     super.dispose();
   }
 
-  Future<void> addBattleInPlayer() async {
-    try {
-      User? currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null || currentUser.email == null) return;
-
-      QuerySnapshot playerQuery = await FirebaseFirestore.instance
-          .collection("player")
-          .where("player_email", isEqualTo: currentUser.email)
-          .limit(1)
-          .get();
-
-      if (playerQuery.docs.isNotEmpty) {
-        String playerDocId = playerQuery.docs.first.id;
-
-        await FirebaseFirestore.instance
-            .collection("player")
-            .doc(playerDocId)
-            .set({
-          "played_battle": FieldValue.increment(1),
-        }, SetOptions(merge: true));
-      }
-    } catch (e) {
-      debugPrint("Error updating played_battle count: $e");
-    }
-  }
+  // NOTE: `played_battle` is incremented exactly once, by ResultScreen.
+  // A second increment used to live here, which double-counted every game.
 
   Future<void> fetchQuestions() async {
     try {
@@ -105,15 +89,23 @@ class _QuizScreenState extends State<QuizScreen> {
           .get();
 
       List<QueryDocumentSnapshot> docs = snapshot.docs;
-      docs.shuffle();
 
       DocumentSnapshot battleDoc = await FirebaseFirestore.instance
           .collection("Battle_Room_Details")
           .doc(widget.battleId)
           .get();
 
-      int questionLimit = battleDoc["questions"] ?? docs.length;
+      final battleData = battleDoc.data() as Map<String, dynamic>?;
+
+      // The organizer picks a question count by hand, so it can exceed the
+      // number of rows actually uploaded. Clamp it to what exists.
+      final int requested = (battleData?["questions"] as num?)?.toInt() ?? docs.length;
+      final int questionLimit = requested.clamp(0, docs.length);
+
+      // Take the same leading slice for everyone so all players answer the
+      // same set, then shuffle only the presentation order.
       docs = docs.take(questionLimit).toList();
+      docs.shuffle();
 
       List<Question> loadedQuestions = [];
 
@@ -185,10 +177,15 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void startTimer() {
     timer?.cancel();
-    setState(() => timeLeft = 10);
+    setState(() => timeLeft = questionSeconds);
     questionStartTime = DateTime.now();
 
     timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+
       if (timeLeft > 0) {
         setState(() => timeLeft--);
       } else {
@@ -196,31 +193,27 @@ class _QuizScreenState extends State<QuizScreen> {
         setState(() {
           showAnswer = true;
           selectedOption = -1;
+          optionSelected = true;
         });
         wrongAnswers++;
-        totalResponseTime += 10;
+        totalResponseTime += questionSeconds.toDouble();
 
         updatePlayerPerformance(
           isCorrect: false,
-          responseTime: 10,
+          responseTime: questionSeconds.toDouble(),
         );
 
-        Future.delayed(const Duration(seconds: 1), nextQuestion);
+        _revealTimer = Timer(const Duration(seconds: 1), nextQuestion);
       }
     });
   }
 
-  void nextQuestion() async {
-    DocumentSnapshot data = await FirebaseFirestore.instance
-        .collection('Battle_Room_Details')
-        .doc(widget.battleId)
-        .get();
-
-    int question = data['questions'] ?? questions.length;
-
+  void nextQuestion() {
     if (!mounted) return;
 
-    if (currentQuestion < question - 1) {
+    // Bounded by the questions actually loaded, never by the organizer's
+    // requested count, which may be larger than what was uploaded.
+    if (currentQuestion < questions.length - 1) {
       setState(() {
         currentQuestion++;
         selectedOption = -1;
@@ -259,6 +252,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Future<void> saveScoreAndNavigate() async {
     timer?.cancel();
+    _revealTimer?.cancel();
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
@@ -282,20 +276,8 @@ class _QuizScreenState extends State<QuizScreen> {
           "isFinished": true,
         }, SetOptions(merge: true));
 
-        QuerySnapshot allPlayers = await FirebaseFirestore.instance
-            .collection("Battle_Room_Details")
-            .doc(widget.battleId)
-            .collection("Players")
-            .get();
-
-        bool allFinished = allPlayers.docs.every((doc) {
-          var data = doc.data() as Map<String, dynamic>;
-          return data["isFinished"] == true;
-        });
-
-        if (allFinished) {
-          await calculateLeaderboard();
-        }
+        // The leaderboard itself is generated once, by WaitingScreen, inside a
+        // transaction. Doing it here as well produced two competing rankings.
       } catch (e) {
         debugPrint("Error saving final score: $e");
       }
@@ -314,53 +296,6 @@ class _QuizScreenState extends State<QuizScreen> {
       );
     }
   }
-  // ✅ FIXED: Null-safe leaderboard point evaluation
-  Future<void> calculateLeaderboard() async {
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("Battle_Room_Details")
-        .doc(widget.battleId)
-        .collection("Players")
-        .get();
-
-    List<QueryDocumentSnapshot> players = snapshot.docs;
-
-    players.sort((a, b) {
-      Map<String, dynamic> playerA = a.data() as Map<String, dynamic>;
-      Map<String, dynamic> playerB = b.data() as Map<String, dynamic>;
-
-      int correctA = playerA["correct"] ?? 0;
-      int correctB = playerB["correct"] ?? 0;
-
-      if (correctB != correctA) {
-        return correctB.compareTo(correctA);
-      }
-
-      num timeA = playerA["totalTime"] ?? 0;
-      num timeB = playerB["totalTime"] ?? 0;
-
-      return timeA.compareTo(timeB);
-    });
-
-    WriteBatch batch = FirebaseFirestore.instance.batch();
-    List<int> bonusPoints = [150, 130, 120, 100, 80, 60, 50, 40, 30, 20];
-
-    for (int i = 0; i < players.length; i++) {
-      Map<String, dynamic> data = players[i].data() as Map<String, dynamic>;
-
-      int bonus = i < bonusPoints.length ? bonusPoints[i] : 10;
-      int currentPoints = (data["points"] as num?)?.toInt() ?? 0;
-
-      batch.update(players[i].reference, {
-        "rank": i + 1,
-        "bonusPoints": bonus,
-        "finalPoints": currentPoints + bonus,
-        "player_score": currentPoints + bonus,
-      });
-    }
-
-    await batch.commit();
-  }
-
   Color optionColor(int index) {
     if (!showAnswer) return Colors.white;
     if (index == questions[currentQuestion].correctAnswer) {
@@ -414,7 +349,15 @@ class _QuizScreenState extends State<QuizScreen> {
       );
     }
 
-    return Scaffold(
+    return PopScope(
+      // Leaving mid-quiz strands every other player on the waiting screen,
+      // so the exit always goes through a confirmation.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _confirmQuit();
+      },
+      child: Scaffold(
       backgroundColor: lightBackground,
       body: Stack(
         children: [
@@ -426,7 +369,7 @@ class _QuizScreenState extends State<QuizScreen> {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(.08),
+                color: brandBlue.withValues(alpha: .08),
               ),
             ),
           ),
@@ -438,7 +381,7 @@ class _QuizScreenState extends State<QuizScreen> {
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandBlue.withOpacity(.05),
+                color: brandBlue.withValues(alpha: .05),
               ),
             ),
           ),
@@ -456,7 +399,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(.08),
+                              color: Colors.black.withValues(alpha: .08),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -467,7 +410,7 @@ class _QuizScreenState extends State<QuizScreen> {
                             Icons.arrow_back_ios_new_rounded,
                             color: darkText,
                           ),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: _confirmQuit,
                         ),
                       ),
                       const SizedBox(width: 18),
@@ -489,7 +432,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(.08),
+                          color: Colors.black.withValues(alpha: .08),
                           blurRadius: 12,
                           offset: const Offset(0, 5),
                         ),
@@ -589,7 +532,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: brandBlue.withOpacity(.30),
+                          color: brandBlue.withValues(alpha: .30),
                           blurRadius: 18,
                           offset: const Offset(0, 8),
                         ),
@@ -630,10 +573,13 @@ class _QuizScreenState extends State<QuizScreen> {
                               : () {
                             timer?.cancel();
 
-                            double responseTime =
-                                DateTime.now()
-                                    .difference(questionStartTime!)
-                                    .inMilliseconds / 1000;
+                            final start = questionStartTime;
+                            double responseTime = start == null
+                                ? questionSeconds.toDouble()
+                                : DateTime.now()
+                                        .difference(start)
+                                        .inMilliseconds /
+                                    1000;
 
                             totalResponseTime += responseTime;
 
@@ -658,7 +604,7 @@ class _QuizScreenState extends State<QuizScreen> {
                               responseTime: responseTime,
                             );
 
-                            Future.delayed(
+                            _revealTimer = Timer(
                               const Duration(seconds: 1),
                               nextQuestion,
                             );
@@ -677,7 +623,7 @@ class _QuizScreenState extends State<QuizScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(.08),
+                                  color: Colors.black.withValues(alpha: .08),
                                   blurRadius: 12,
                                   offset: const Offset(0, 5),
                                 ),
@@ -724,7 +670,7 @@ class _QuizScreenState extends State<QuizScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(.08),
+                            color: Colors.black.withValues(alpha: .08),
                             blurRadius: 15,
                             offset: const Offset(0, 5),
                           ),
@@ -771,6 +717,53 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
         ],
       ),
+      ),
     );
+  }
+
+  /// Confirms before abandoning a battle in progress.
+  Future<void> _confirmQuit() async {
+    timer?.cancel();
+
+    final bool shouldQuit = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              "Leave the battle?",
+              style: TextStyle(fontWeight: FontWeight.bold, color: darkText),
+            ),
+            content: const Text(
+              "Your answers so far will be submitted and you cannot rejoin "
+              "this battle.",
+              style: TextStyle(color: Color(0xFF64748B)),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text("Keep playing"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFEF4444),
+                ),
+                child: const Text("Leave"),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!mounted) return;
+
+    if (shouldQuit) {
+      // Submit what they have so the rest of the room isn't left waiting.
+      await saveScoreAndNavigate();
+    } else {
+      startTimer();
+    }
   }
 }

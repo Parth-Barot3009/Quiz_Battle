@@ -1,0 +1,107 @@
+rules_version = '2';
+
+// QuizX Firestore security rules.
+//
+// IMPORTANT — read before deploying:
+//
+//  1. These rules assume `admin` documents are keyed by the admin's Firebase
+//     Auth uid (i.e. /admin/{uid}). The login screen currently *queries* the
+//     admin collection by email, which works either way, but the rules below
+//     can only identify an admin cheaply if the document id is the uid. Move
+//     any existing admin documents to uid-keyed ids before deploying.
+//
+//  2. This file is not wired into firebase.json yet, so nothing changes until
+//     you add a "firestore" section pointing at it and run
+//     `firebase deploy --only firestore:rules`. Test in the Rules Playground
+//     first.
+//
+//  3. Client code can no longer be trusted to enforce roles: the app stores
+//     the signed-in role in SharedPreferences, which a determined user can
+//     edit. These rules are the actual boundary.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.uid));
+    }
+
+    function isOrganizer() {
+      return signedIn() && exists(/databases/$(database)/documents/organizer/$(request.auth.uid));
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Admin records: readable by admins only, never writable from a client.
+    match /admin/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Organizers: an organizer may read and update their own profile, but may
+    // not grant themselves a different role or unblock themselves.
+    match /organizer/{organizerId} {
+      allow read: if isAdmin() || isSelf(organizerId);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isSelf(organizerId)
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.is_blocked == resource.data.is_blocked);
+    }
+
+    // Players: self-service profile, created at registration.
+    match /player/{playerId} {
+      // Organizers and admins need to read player profiles to show names.
+      allow read: if isAdmin() || isOrganizer() || isSelf(playerId);
+      allow create: if isSelf(playerId)
+        && request.resource.data.is_blocked == false;
+      allow update: if isAdmin()
+        || (isSelf(playerId)
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.is_blocked == resource.data.is_blocked);
+      allow delete: if isAdmin();
+    }
+
+    // Battle rooms: created and edited by the owning organizer, readable by
+    // any signed-in user so players can join with a room code.
+    match /Battle_Room_Details/{battleId} {
+      allow read: if signedIn();
+      allow create: if isOrganizer()
+        && request.resource.data.o_email == request.auth.token.email;
+      allow delete: if isAdmin() || (isOrganizer() && resource.data.o_email == request.auth.token.email);
+
+      // Players need to flip `leaderboardGenerated` and stamp the winner when
+      // a battle ends, so a narrow update is allowed for participants.
+      allow update: if isAdmin()
+        || (isOrganizer() && resource.data.o_email == request.auth.token.email)
+        || (signedIn()
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['leaderboardGenerated', 'winner_name', 'status']));
+
+      // Questions are authored by the organizer and read by participants.
+      match /Questions/{questionId} {
+        allow read: if signedIn();
+        allow write: if isAdmin()
+          || (isOrganizer()
+              && get(/databases/$(database)/documents/Battle_Room_Details/$(battleId)).data.o_email == request.auth.token.email);
+      }
+
+      // Each player writes only their own scoreboard row. The leaderboard pass
+      // additionally lets a participant write rank and bonus fields.
+      match /Players/{playerId} {
+        allow read: if signedIn();
+        allow create, update: if isSelf(playerId)
+          || (signedIn()
+              && request.resource.data.diff(resource.data).affectedKeys()
+                   .hasOnly(['rank', 'bonusPoints', 'finalPoints', 'player_score']));
+        allow delete: if isAdmin();
+      }
+    }
+  }
+}

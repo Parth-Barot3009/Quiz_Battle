@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/auth/Authantication.dart';
-import 'package:quiz_battle/auth/User_Registration.dart';
+import 'package:quiz_battle/auth/authentication.dart';
+import 'package:quiz_battle/auth/user_registration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -188,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navigate to Authentication wrapper
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const Authantication()),
+          MaterialPageRoute(builder: (context) => const Authentication()),
               (route) => false,
         );
       } else {
@@ -666,7 +666,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const user_Register(),
+                                          builder: (context) => const UserRegister(),
                                         ),
                                       );
                                     },

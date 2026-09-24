@@ -11,7 +11,7 @@ class PlayerBattleHistory extends StatefulWidget {
 }
 
 class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
-  final search_battle = TextEditingController();
+  final searchBattle = TextEditingController();
   String _searchQuery = "";
 
   // Theme Palette
@@ -30,9 +30,26 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
     Color(0xFFF59E0B), // Amber / Gold
   ];
 
+  // Built once so that rebuilds (typing in the search box, the keyboard
+  // opening) reuse the same subscription instead of tearing it down and
+  // flashing a spinner over the list.
+  Stream<QuerySnapshot>? _historyStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      _historyStream = FirebaseFirestore.instance
+          .collectionGroup('Players')
+          .where('player_id', isEqualTo: currentUser.uid)
+          .snapshots();
+    }
+  }
+
   @override
   void dispose() {
-    search_battle.dispose();
+    searchBattle.dispose();
     super.dispose();
   }
 
@@ -182,7 +199,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                 ],
               ),
               child: TextField(
-                controller: search_battle,
+                controller: searchBattle,
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value.toLowerCase().trim();
@@ -205,10 +222,7 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
           // 3. FIRESTORE COLLECTIONGROUP STREAM LIST WITH IN-LINE "ALL SET" FOOTER
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collectionGroup('Players')
-                  .where('player_id', isEqualTo: currentUser.uid)
-                  .snapshots(),
+              stream: _historyStream,
               builder: (context, playerSnapshot) {
                 if (playerSnapshot.hasError) {
                   debugPrint("Firestore CollectionGroup Error: ${playerSnapshot.error}");
@@ -224,13 +238,14 @@ class _PlayerBattleHistoryState extends State<PlayerBattleHistory> {
                   );
                 }
 
-                if (playerSnapshot.connectionState == ConnectionState.waiting) {
+                // Only show the spinner before the first payload arrives.
+                if (!playerSnapshot.hasData) {
                   return const Center(
                     child: CircularProgressIndicator(color: brandBlue),
                   );
                 }
 
-                if (!playerSnapshot.hasData || playerSnapshot.data!.docs.isEmpty) {
+                if (playerSnapshot.data!.docs.isEmpty) {
                   return _buildEmptyState();
                 }
 

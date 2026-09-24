@@ -1,19 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:quiz_battle/admin/addorganiser.dart';
 
-class Org_List extends StatefulWidget {
-  const Org_List({super.key});
+class OrgList extends StatefulWidget {
+  const OrgList({super.key});
 
   @override
-  State<Org_List> createState() => _Org_ListState();
+  State<OrgList> createState() => _OrgListState();
 }
 
-class _Org_ListState extends State<Org_List> {
-  final search_organizer = TextEditingController();
+class _OrgListState extends State<OrgList> {
+  final searchOrganizer = TextEditingController();
   String _searchQuery = "";
+
+  // Built once so that rebuilds (typing in the search box, the keyboard
+  // opening) reuse the same subscription instead of tearing it down and
+  // flashing a spinner over the list.
+  final Stream<QuerySnapshot> _organizersStream =
+      FirebaseFirestore.instance.collection('organizer').snapshots();
 
   // Color Palette
   static const Color brandBlue = Color(0xFF2563EB);
@@ -33,50 +37,34 @@ class _Org_ListState extends State<Org_List> {
 
   @override
   void dispose() {
-    search_organizer.dispose();
+    searchOrganizer.dispose();
     super.dispose();
   }
 
-  // Deletes organizer from Firebase Auth using a Secondary App instance & Firestore
+  /// Removes the organizer's record and revokes their access.
+  ///
+  /// The sign-in account itself lives in Firebase Auth and can only be deleted
+  /// with admin credentials, which a client app must never hold. This used to
+  /// be worked around by storing each organizer's password in plaintext and
+  /// signing in as them; that has been removed. The account is marked blocked
+  /// and the profile deleted, which locks the organizer out immediately.
+  /// Removing the leftover Auth account requires a Cloud Function calling
+  /// `admin.auth().deleteUser(uid)`, or a manual delete in the Firebase
+  /// console.
   Future<void> _deleteOrganizerCompletely({
     required String docId,
-    required String email,
-    required String password,
   }) async {
-    FirebaseApp? tempApp;
-    final String tempAppName = 'DeleteOrganizerApp_${DateTime.now().microsecondsSinceEpoch}';
+    final organizerRef =
+        FirebaseFirestore.instance.collection('organizer').doc(docId);
 
     try {
-      tempApp = await Firebase.initializeApp(
-        name: tempAppName,
-        options: Firebase.app().options,
-      );
-
-      FirebaseAuth tempAuth = FirebaseAuth.instanceFor(app: tempApp);
-
-      UserCredential userCredential = await tempAuth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
-      );
-
-      if (userCredential.user != null) {
-        await userCredential.user!.delete();
-        debugPrint("Successfully deleted organizer from Firebase Auth: $email");
-      }
-
-      await FirebaseFirestore.instance
-          .collection('organizer')
-          .doc(docId)
-          .delete();
-
-      debugPrint("Successfully deleted organizer document from Firestore: $docId");
+      // Tombstone the account first so a half-completed delete still revokes
+      // access rather than leaving a working login behind.
+      await organizerRef.set({'is_blocked': true}, SetOptions(merge: true));
+      await organizerRef.delete();
     } catch (e) {
-      debugPrint("Error during deletion: $e");
+      debugPrint("Error during organizer deletion: $e");
       rethrow;
-    } finally {
-      if (tempApp != null) {
-        await tempApp.delete();
-      }
     }
   }
 
@@ -273,7 +261,7 @@ class _Org_ListState extends State<Org_List> {
                 ],
               ),
               child: TextField(
-                controller: search_organizer,
+                controller: searchOrganizer,
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value.toLowerCase().trim();
@@ -296,21 +284,22 @@ class _Org_ListState extends State<Org_List> {
           // 3. ORGANIZERS STREAM LIST
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('organizer').snapshots(),
+              stream: _organizersStream,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: brandBlue),
-                  );
-                }
-
                 if (snapshot.hasError) {
                   return const Center(
                     child: Text("Something went wrong"),
                   );
                 }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                // Only show the spinner before the first payload arrives.
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: brandBlue),
+                  );
+                }
+
+                if (snapshot.data!.docs.isEmpty) {
                   return const Center(
                     child: Text("No Organizer Found"),
                   );
@@ -604,26 +593,13 @@ class _Org_ListState extends State<Org_List> {
                                         if (confirm != true) return;
 
                                         try {
-                                          final String password = (data['password'] ?? data['o_password'] ?? '').toString().trim();
-
-                                          if (password.isEmpty) {
-                                            await FirebaseFirestore.instance
-                                                .collection('organizer')
-                                                .doc(organizer.id)
-                                                .delete();
-                                            _showSnackBar(
-                                              "Organizer deleted from Firestore (Password missing for Auth deletion).",
-                                              isWarning: true,
-                                            );
-                                            return;
-                                          }
-
                                           await _deleteOrganizerCompletely(
                                             docId: organizer.id,
-                                            email: email,
-                                            password: password,
                                           );
-                                          _showSnackBar("Organizer permanently deleted from Auth & Firestore!");
+                                          _showSnackBar(
+                                            "Organizer deleted and locked out. "
+                                            "Remove the sign-in account from the Firebase console to free the email.",
+                                          );
                                         } catch (e) {
                                           _showSnackBar("Deletion failed: $e", isError: true);
                                         }

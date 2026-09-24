@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:quiz_battle/auth/Authantication.dart';
+import 'package:quiz_battle/auth/authentication.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Authantication()),
+          MaterialPageRoute(builder: (context) => const Authentication()),
         );
       }
     });
@@ -91,7 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF1D61E7).withOpacity(0.12),
+                color: const Color(0xFF1D61E7).withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -103,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF60A5FA).withOpacity(0.15),
+                color: const Color(0xFF60A5FA).withValues(alpha: 0.15),
               ),
             ),
           ),
@@ -130,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF1D61E7).withOpacity(0.15),
+                              color: const Color(0xFF1D61E7).withValues(alpha: 0.15),
                               blurRadius: 30,
                               offset: const Offset(0, 10),
                             ),

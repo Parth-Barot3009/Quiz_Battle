@@ -8,14 +8,14 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:quiz_battle/auth/login_admin_organiser.dart';
 
-class user_Register extends StatefulWidget {
-  const user_Register({super.key});
+class UserRegister extends StatefulWidget {
+  const UserRegister({super.key});
 
   @override
-  State<user_Register> createState() => _user_RegisterState();
+  State<UserRegister> createState() => _UserRegisterState();
 }
 
-class _user_RegisterState extends State<user_Register> {
+class _UserRegisterState extends State<UserRegister> {
   final formkey = GlobalKey<FormState>();
   final namecon = TextEditingController();
   final emailcontroller = TextEditingController();
@@ -92,6 +92,7 @@ class _user_RegisterState extends State<user_Register> {
 
       await addPlayerDetail("player", imageURL);
     } on FirebaseAuthException catch (e) {
+      if (!mounted) rethrow;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           elevation: 4,
@@ -107,7 +108,7 @@ class _user_RegisterState extends State<user_Register> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -133,6 +134,7 @@ class _user_RegisterState extends State<user_Register> {
       );
       rethrow;
     } catch (e) {
+      if (!mounted) rethrow;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           elevation: 4,
@@ -148,7 +150,7 @@ class _user_RegisterState extends State<user_Register> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -222,7 +224,7 @@ class _user_RegisterState extends State<user_Register> {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF1D61E7).withOpacity(0.12),
+                color: const Color(0xFF1D61E7).withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -234,7 +236,7 @@ class _user_RegisterState extends State<user_Register> {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF60A5FA).withOpacity(0.15),
+                color: const Color(0xFF60A5FA).withValues(alpha: 0.15),
               ),
             ),
           ),
@@ -287,7 +289,7 @@ class _user_RegisterState extends State<user_Register> {
                         borderRadius: BorderRadius.circular(24.0),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
@@ -680,12 +682,17 @@ class _user_RegisterState extends State<user_Register> {
                                     setState(() {
                                       isLoading = true;
                                     });
+                                    // Captured before the await so they are
+                                    // not resolved from a stale context.
+                                    final messenger =
+                                        ScaffoldMessenger.of(context);
+                                    final navigator = Navigator.of(context);
                                     try {
                                       await sighUp();
                                       if (!mounted) return;
 
                                       // Success SnackBar
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      messenger.showSnackBar(
                                         SnackBar(
                                           elevation: 4,
                                           behavior: SnackBarBehavior.floating,
@@ -700,7 +707,7 @@ class _user_RegisterState extends State<user_Register> {
                                               Container(
                                                 padding: const EdgeInsets.all(8),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF1D61E7).withOpacity(0.1),
+                                                  color: const Color(0xFF1D61E7).withValues(alpha: 0.1),
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: const Icon(
@@ -725,8 +732,7 @@ class _user_RegisterState extends State<user_Register> {
                                         ),
                                       );
 
-                                      Navigator.pushReplacement(
-                                        context,
+                                      navigator.pushReplacement(
                                         MaterialPageRoute(
                                           builder: (context) => const LoginScreen(),
                                         ),
